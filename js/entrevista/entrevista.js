@@ -10,7 +10,7 @@
 
    Activación automática: js/toolbar-tooltips.js lo inyecta en todas las
    actividades. A mano:
-     <script src="js/entrevista/entrevista.js?v=13" defer></script>
+     <script src="js/entrevista/entrevista.js?v=14" defer></script>
    (opcional data-config="js/entrevista/otra-config.js").
    Carga config.js (fresco), personajes.js y reglas.js; ia.js solo al abrir.
    Una actividad puede pedir un personaje: <body data-entrevista-personaje="franklin">
@@ -39,9 +39,11 @@
   var cargas = [cargar(carpeta + 'personajes.js' + version), cargar(carpeta + 'reglas.js' + version)];
   if (!window.ENTREVISTA_CONFIG || configAtributo) cargas.unshift(cargar((configAtributo || carpeta + 'config.js') + '?t=' + Date.now()));
   // Clave de pruebas (js/entrevista/config.local.js, no se sube a git): se
-  // busca SOLO en tu computadora (archivo, localhost o red local). Publicado
-  // (GitHub Pages) nunca se pide: se usa el servidor de config.js (proxyUrl).
-  var enLocal = location.protocol === 'file:' || /^(localhost|127\.\d+\.\d+\.\d+|\[::1\]|0\.0\.0\.0|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+)$/.test(location.hostname);
+  // busca SOLO en tu computadora (archivo, localhost o red local) o por el
+  // túnel de puertos de VS Code (*.devtunnels.ms, para probar desde otro
+  // dispositivo). Publicado (GitHub Pages) nunca se pide: se usa el servidor
+  // de config.js (proxyUrl).
+  var enLocal = location.protocol === 'file:' || /^(localhost|127\.\d+\.\d+\.\d+|\[::1\]|0\.0\.0\.0|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+)$/.test(location.hostname) || /\.devtunnels\.ms$/.test(location.hostname);
   function cargarSecretos() {
     var ia = (window.ENTREVISTA_CONFIG && window.ENTREVISTA_CONFIG.ia) || {};
     if (!enLocal || window.ENTREVISTA_SECRETOS || ia.activa === false) return Promise.resolve();
@@ -59,7 +61,7 @@
   Promise.all(cargas).then(cargarSecretos).then(function () {
     aplicarSecretos();
     var ia = (window.ENTREVISTA_CONFIG && window.ENTREVISTA_CONFIG.ia) || {};
-    if (!enLocal && !ia.proxyUrl && ia.activa !== false && window.console) console.warn('Entrevista: falta la dirección del Worker en js/entrevista/config.js (ia.proxyUrl). Sin ella, la IA no funciona publicada. Ver js/entrevista/README.md → "Publicar en GitHub Pages".');
+    if (!enLocal && !ia.proxyUrl && ia.activa !== false && window.console) console.warn('Entrevista: falta la dirección del servidor intermedio en js/entrevista/config.js (ia.proxyUrl). Sin ella, la IA no funciona publicada. Ver js/entrevista/README.md → "Publicar en GitHub Pages".');
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', iniciar);
     else iniciar();
   }).catch(function (err) { if (window.console) console.warn(err); });

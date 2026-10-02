@@ -90,7 +90,7 @@
   var yo = document.currentScript && document.currentScript.src;
   if (!yo) return;
   var s = document.createElement('script');
-  s.src = yo.split('?')[0].replace(/[^/]*$/, '') + 'entrevista/entrevista.js?v=13';
+  s.src = yo.split('?')[0].replace(/[^/]*$/, '') + 'entrevista/entrevista.js?v=14';
   s.defer = true;
   document.body.appendChild(s);
 })();

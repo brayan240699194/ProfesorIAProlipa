@@ -1,9 +1,8 @@
 /* =========================================================================
    Servidor intermedio en Node 18+ (js/entrevista/servidor/proxy-entrevista.mjs)
    -------------------------------------------------------------------------
-   Alternativa al Worker de Cloudflare (worker.js) para un hosting con Node
-   (Render, Railway, un VPS) o para probar en tu computadora. Sin
-   dependencias. La lógica está en nucleo.mjs (la misma del Worker).
+   Para un hosting con Node (Render, Railway, un VPS) o para probar en tu
+   computadora. Sin dependencias. La lógica está en nucleo.mjs.
 
    Ejecutar:
      GOOGLE_API_KEY=… ORIGENES_PERMITIDOS="https://usuario.github.io,http://localhost:*" node js/entrevista/servidor/proxy-entrevista.mjs

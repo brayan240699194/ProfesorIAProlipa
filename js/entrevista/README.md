@@ -9,7 +9,7 @@ según el tema de la actividad. Al terminar, se despide y deja un resumen de la 
 
 ## Activación: automática en todas las actividades
 
-`js/toolbar-tooltips.js` (bloque "Entrevista a un personaje con IA") inyecta `entrevista/entrevista.js?v=13` en todas
+`js/toolbar-tooltips.js` (bloque "Entrevista a un personaje con IA") inyecta `entrevista/entrevista.js?v=14` en todas
 las actividades que tienen `#activity` y la barra de builder.js. **No hay que agregar nada en cada HTML.**
 
 - Al cambiar archivos de `js/entrevista/` (menos `config.js`), sube el `?v=` de `entrevista.js` en
@@ -24,9 +24,8 @@ las actividades que tienen `#activity` y la barra de builder.js. **No hay que ag
 | `personajes.js` | Dibujos SVG de cuerpo entero (Darwin y Franklin), con hombros, codos, cadera y cuello articulados. | siempre |
 | `reglas.js` | Prompts y validación. **Lo comparten el navegador y el servidor.** | siempre |
 | `ia.js` | Llamadas a la IA, voz natural, dictado y transcripción. | al abrir la clase |
-| `servidor/nucleo.mjs` | Lógica del servidor intermedio (la misma para Cloudflare y Node). | en Cloudflare |
-| `servidor/worker.js` + `wrangler.toml` | Servidor en **Cloudflare Workers** (gratis, recomendado). | en Cloudflare |
-| `servidor/proxy-entrevista.mjs` | El mismo servidor para Node 18+ (opcional). | en un hosting Node |
+| `servidor/nucleo.mjs` | Lógica del servidor intermedio (opcional, para publicar con IA). | en el servidor |
+| `servidor/proxy-entrevista.mjs` | Servidor intermedio para Node 18+ (opcional). | en un hosting Node |
 | `config.local.js` | Tu clave para probar en tu computadora. **No se sube a git.** | solo en local |
 
 ## Los personajes
@@ -174,8 +173,8 @@ La clase dura la sesión (si cambia de página y vuelve, sigue ahí). ⋯ → **
 
 | Dónde | Cómo se conecta | Qué necesitas |
 |---|---|---|
-| Tu computadora (archivo, `localhost`, red local) | Si existe `config.local.js`, directo a Gemini con tu clave. Si no, por el Worker. | `js/entrevista/config.local.js` (copia `config.local.example.js` y pega tu clave) |
-| GitHub Pages (o cualquier sitio publicado) | **Siempre por el Worker.** `config.local.js` nunca se pide. | `ia.proxyUrl` en `config.js` con la dirección del Worker |
+| Tu computadora (archivo, `localhost`, red local, túnel de puertos de VS Code `*.devtunnels.ms`) | Si existe `config.local.js`, directo a Gemini con tu clave. Si no, por el servidor de `proxyUrl`. | `js/entrevista/config.local.js` (copia `config.local.example.js` y pega tu clave) |
+| GitHub Pages (o cualquier sitio publicado) | **Siempre por el servidor intermedio.** `config.local.js` nunca se pide. | `ia.proxyUrl` en `config.js` con la dirección del servidor |
 
 - La clave **nunca** va en `config.js`, porque ese archivo se publica.
 - `config.local.js` está en `.gitignore`: git no lo sube aunque esté en la carpeta.
@@ -183,38 +182,7 @@ La clase dura la sesión (si cambia de página y vuelve, sigue ahí). ⋯ → **
 
 ## Publicar en GitHub Pages (paso a paso)
 
-### 1. El Worker de Cloudflare (una sola vez, ~10 minutos, gratis)
-
-El Worker es el servidor intermedio: guarda la clave como **secreto** y GitHub nunca la ve. El plan gratis permite
-100 000 peticiones por día.
-
-1. Crea una cuenta gratis en <https://dash.cloudflare.com> e instala [Node.js](https://nodejs.org) (versión LTS).
-2. Abre una terminal en `js/entrevista/servidor/` y entra a tu cuenta:
-   ```bash
-   npx wrangler login
-   ```
-3. En `wrangler.toml`, cambia `USUARIO` por tu usuario de GitHub en `ORIGENES_PERMITIDOS`. Si el sitio usa un dominio
-   propio, agrégalo también, separado por coma.
-4. Guarda la clave como secreto. Te la pide al ejecutar el comando; no queda en ningún archivo:
-   ```bash
-   npx wrangler secret put GOOGLE_API_KEY
-   ```
-5. Publica el Worker:
-   ```bash
-   npx wrangler deploy
-   ```
-   Al final muestra su dirección, por ejemplo `https://entrevista-ia.tu-cuenta.workers.dev`.
-6. Comprueba que funciona: abre `https://entrevista-ia.tu-cuenta.workers.dev/api/salud`. Debe decir
-   `"clave":"configurada"`.
-7. Pega esa dirección en `js/entrevista/config.js`:
-   ```js
-   proxyUrl: 'https://entrevista-ia.tu-cuenta.workers.dev',
-   ```
-
-Para cambiar algo del servidor (reglas, modelo, orígenes), edita y vuelve a ejecutar `npx wrangler deploy`. El mismo
-`reglas.js` sirve para el navegador y el Worker.
-
-### 2. Subir a GitHub y activar Pages
+### 1. Subir a GitHub y activar Pages
 
 ```bash
 git init
@@ -234,34 +202,33 @@ minutos queda en `https://USUARIO.github.io/REPOSITORIO/`, con una portada (`ind
 - Si la carpeta del repositorio no es `actividades/`, copia también `.gitignore`, `.gitattributes` y `.nojekyll` a la
   raíz del repositorio.
 
-### 3. Probar el Worker en tu computadora (opcional)
+### 2. Servidor intermedio (opcional, para tener IA publicada)
 
-- **Con Live Server o `python -m http.server`:** borra o renombra `config.local.js` y la página usará el Worker de
-  `proxyUrl`. `localhost` ya está permitido en `wrangler.toml`.
-- **El Worker en tu computadora:** crea `js/entrevista/servidor/.dev.vars` (no se sube a git) con
-  `GOOGLE_API_KEY=tu-clave` y ejecuta `npx wrangler dev`. Luego pon `proxyUrl: 'http://localhost:8787'` en
-  `config.local.js`.
-- **Con Node** (o un hosting Node como Render o Railway):
-  ```bash
-  GOOGLE_API_KEY=… ORIGENES_PERMITIDOS="https://USUARIO.github.io,http://localhost:*" node js/entrevista/servidor/proxy-entrevista.mjs
-  ```
+Sin servidor, la página publicada funciona sin IA. Para tenerla, corre `servidor/proxy-entrevista.mjs` en un hosting
+con Node (Render, Railway, un VPS) o en tu computadora. La clave queda solo en el servidor:
+
+```bash
+GOOGLE_API_KEY=… ORIGENES_PERMITIDOS="https://USUARIO.github.io,http://localhost:*" node js/entrevista/servidor/proxy-entrevista.mjs
+```
+
+Comprueba que funciona en `https://tu-servidor/api/salud` (debe decir `"clave":"configurada"`) y pega esa dirección en
+`ia.proxyUrl` de `config.js`. El mismo `reglas.js` sirve para el navegador y el servidor.
 
 ### Rutas del servidor
 
 - `POST /api/entrevista/chat` → `{ enTema, texto, pizarra, siguientes }`
 - `POST /api/entrevista/cierre`
-- `POST /api/voz` → `{ audio, mime }`. En Cloudflare, los audios repetidos se guardan en su caché y se comparten entre
-  estudiantes.
+- `POST /api/voz` → `{ audio, mime }`. Los audios repetidos se guardan en memoria y se comparten entre estudiantes.
 - `POST /api/transcribir`
 - `GET /api/salud`
 
 Límites por IP y hora: `LIMITE_CHAT_POR_HORA`, `LIMITE_CIERRE_POR_HORA`, `LIMITE_VOZ_POR_HORA` y
-`LIMITE_TRANSCRIBIR_POR_HORA`, como variables en `wrangler.toml`. Son altos porque un colegio suele salir por una
+`LIMITE_TRANSCRIBIR_POR_HORA`, como variables de entorno. Son altos porque un colegio suele salir por una
 sola IP.
 
 ### Límites de Google (importante)
 
-El Worker es gratis, pero la IA la pone Google. Con el **plan gratis de Gemini**, el texto tiene un límite por minuto y
+La IA la pone Google. Con el **plan gratis de Gemini**, el texto tiene un límite por minuto y
 por día, y la voz natural solo da 10 audios por día por modelo. Con varios estudiantes a la vez se agota rápido, y
 entonces la voz pasa a la del dispositivo. Para una clase real, activa la **facturación** de la cuenta de Google
 (<https://aistudio.google.com>): se paga por uso y con este modelo liviano es muy poco.

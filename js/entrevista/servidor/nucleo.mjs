@@ -5,10 +5,8 @@
    Guarda la clave de Google (nunca llega al navegador), arma los prompts con
    las MISMAS reglas que el navegador (../reglas.js) y solo acepta las tareas
    de la clase: no se puede usar como chat libre.
-   Usa solo APIs web estándar (fetch, Request, Response, crypto.subtle), así
-   el mismo código corre en:
-     - Cloudflare Workers (worker.js)  ← recomendado: gratis y sin servidor;
-     - Node 18+ (proxy-entrevista.mjs).
+   Usa solo APIs web estándar (fetch, Request, Response, crypto.subtle) y
+   corre en Node 18+ (proxy-entrevista.mjs).
 
    Variables (secretos/entorno):
      GOOGLE_API_KEY        (obligatoria, SECRETO) clave de Google AI Studio
@@ -187,20 +185,13 @@ export function crearServidor(env) {
     const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t));
     return [...new Uint8Array(b)].map((x) => x.toString(16).padStart(2, '0')).join('');
   }
-  // En Cloudflare, los audios repetidos (saludos…) se comparten entre todos
-  // los estudiantes con la caché del borde; en Node, solo en memoria.
-  const cacheBorde = typeof caches !== 'undefined' && caches.default ? caches.default : null;
+  // Los audios repetidos (saludos…) se guardan en memoria y se comparten.
   async function voz(e) {
     const frase = texto(e.texto, 1000);
     const nombre = /^[A-Za-z]{3,20}$/.test(e.voz || '') ? e.voz : 'Puck';
     if (frase.length < 2) return [400, { error: 'texto vacío' }];
     const clave = await huella(nombre + '|' + frase);
-    const llave = new Request('https://cache.entrevista-ia/voz/' + clave);
-    let guardado = cacheVoz.get(clave);
-    if (!guardado && cacheBorde) {
-      const c = await cacheBorde.match(llave).catch(() => null);
-      if (c) guardado = await c.json().catch(() => null);
-    }
+    const guardado = cacheVoz.get(clave);
     if (guardado) return [200, guardado];
     const disponibles = VOZ_MODELOS.filter((m) => !(agotados.get(m) > Date.now()));
     if (!disponibles.length) return [429, { error: 'la voz no tiene cupo', diario: true }];
@@ -225,7 +216,6 @@ export function crearServidor(env) {
     const audio = { audio: d.data, mime: d.mimeType || '' };
     cacheVoz.set(clave, audio);
     if (cacheVoz.size > 200) cacheVoz.delete(cacheVoz.keys().next().value);
-    if (cacheBorde) cacheBorde.put(llave, new Response(JSON.stringify(audio), { headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=2592000' } })).catch(() => {});
     return [200, audio];
   }
 

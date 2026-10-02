@@ -12,18 +12,18 @@ window.ENTREVISTA_CONFIG = {
   // ║  IA — AQUÍ SE CONFIGURA LA CONEXIÓN                                ║
   // ╠═══════════════════════════════════════════════════════════════════╣
   // ║  PUBLICADO (GitHub Pages): pega en proxyUrl la dirección de tu     ║
-  // ║    Worker de Cloudflare (js/entrevista/servidor/, ver README):    ║
-  // ║    proxyUrl: 'https://entrevista-ia.TU-CUENTA.workers.dev',       ║
-  // ║    La clave queda guardada en Cloudflare, NUNCA en este archivo.  ║
+  // ║    servidor intermedio (js/entrevista/servidor/, ver README):     ║
+  // ║    proxyUrl: 'https://tu-servidor.com',                           ║
+  // ║    La clave queda guardada en el servidor, NUNCA en este archivo. ║
   // ║  EN TU COMPUTADORA: si existe js/entrevista/config.local.js (con  ║
   // ║    tu clave; git no lo sube), se usa esa clave directo. Si no     ║
-  // ║    existe, se usa el Worker de proxyUrl.                          ║
+  // ║    existe, se usa el servidor de proxyUrl.                        ║
   // ║  ⚠ NUNCA pongas la clave en apiKey: este archivo se publica.      ║
   // ╚═══════════════════════════════════════════════════════════════════╝
   ia: {
     activa: true,
-    apiKey: '', // ⚠ siempre vacío (la clave va en config.local.js o en Cloudflare)
-    proxyUrl: '', // dirección del Worker, sin /api al final
+    apiKey: '', // ⚠ siempre vacío (la clave va en config.local.js o en el servidor)
+    proxyUrl: '', // dirección del servidor intermedio, sin /api al final
     // Google Gemini: texto, voz y transcripción con la misma clave.
     modelo: 'gemini-3.5-flash-lite',
     tiempoMaximoMs: 6000, // por intento (lo normal es 1-2 s); si tarda más, se repite una vez al instante
