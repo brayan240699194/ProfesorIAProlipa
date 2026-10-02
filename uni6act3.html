@@ -1,0 +1,142 @@
+<!doctype html>
+<html>
+
+<head>
+  <title>Aprendo y me divierto</title>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="css/newCSS/misEstilos.css" rel="stylesheet" media="all" />
+  <link href="css/animate.css" rel="stylesheet" />
+  <link href="css/hover.css" rel="stylesheet" media="all" />
+  <link href="css/no-bootstrap.css?v=54" rel="stylesheet" />
+  <link href="css/folleto2.css?v=113" rel="stylesheet" />
+</head>
+
+<body class="bg-stone-50">
+  <div class="container">
+    <div class="panel border-aplicacion print-color" id="activity">
+      <div class="panel-heading bg-aplicacion"></div>
+      <div class="panel-body relative">
+
+        <!-- ================= El manuscrito perdido del origen ================= -->
+        <h3 class="text-center font-extrabold text-lg sm:text-2xl mb-3">
+          <span style="color: #b41d8e">El manuscrito</span> <span style="color: #0066b3">perdido del origen</span>
+        </h3>
+
+        <div class="flex items-center gap-2 mb-4">
+          <input type="text" class="nota-abierta" id="pre1a" />
+          <p class="text-sm flex-1">
+            <b>Completa</b> las partes faltantes de este antiguo manuscrito, utilizando tus conocimientos sobre las
+            teorías del origen de la vida. <b>Asegúrate</b> de que tu texto sea coherente y preciso.
+            <i class="c-d"></i>
+          </p>
+        </div>
+
+        <!-- Manuscritos: en pantallas medianas/grandes los niños van superpuestos al borde exterior de cada
+             pergamino (como en el PDF); en celular van en una fila arriba y los pergaminos uno debajo del otro. -->
+        <div class="flex justify-between items-end mb-2 sm:hidden">
+          <img src="img/img2_p28_act1.png" alt="Niña escribiendo con un marcador." class="w-14 h-auto"
+            onerror="this.style.display='none'" />
+          <img src="img/img3_p28_act1.png" alt="Niño escribiendo con un marcador." class="w-14 h-auto"
+            onerror="this.style.display='none'" />
+        </div>
+        <div class="relative sm:px-12 mb-6 break-inside-avoid">
+          <img src="img/img2_p28_act1.png" alt="" aria-hidden="true"
+            class="hidden sm:block absolute left-0 bottom-2 w-20 h-auto z-10 print:[.panel-body_&]:!max-h-none"
+            onerror="this.style.display='none'" />
+          <img src="img/img3_p28_act1.png" alt="" aria-hidden="true"
+            class="hidden sm:block absolute right-0 bottom-6 w-20 h-auto z-10 print:[.panel-body_&]:!max-h-none"
+            onerror="this.style.display='none'" />
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="bg-[length:100%_100%] bg-no-repeat px-6 py-6 text-sm leading-relaxed"
+              style="background-image: url('img/img1_p28_act1.png')">
+              <p class="font-bold text-center text-lg mb-1" style="color: #24408f">El viaje cósmico de la vida</p>
+              <div id="p1manuscrito1"></div>
+            </div>
+            <div class="bg-[length:100%_100%] bg-no-repeat px-6 py-6 text-sm leading-relaxed"
+              style="background-image: url('img/img1_p28_act1.png')">
+              <p class="font-bold text-center text-lg mb-1 leading-tight" style="color: #762414">Los primeros pasos<br>de
+                la vida terrestre</p>
+              <div id="p1manuscrito2"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= Diseño de dietas ================= -->
+        <div class="break-inside-avoid">
+        <h3 class="text-center font-extrabold text-xl sm:text-3xl mt-6 mb-3">
+          <span style="color: #00aeef">Diseño</span> <span style="color: #40ad49">de dietas</span>
+        </h3>
+
+        <div class="flex items-center gap-2 mb-4">
+          <input type="text" class="nota-abierta" id="pre2a" />
+          <p class="text-sm flex-1">
+            <b>Lee</b> el siguiente caso y <b>diseña</b> un plan de dieta. <b>Justifica</b> tus elecciones de alimentos
+            basándote en el contenido y la función de las biomoléculas.
+            <i class="c-d"></i>
+          </p>
+        </div>
+
+        <!-- Caso de Sofía: foto ovalada a la izquierda + texto en la mancha verde, como en el PDF -->
+        <div class="flex flex-col sm:flex-row gap-4 items-center mb-6">
+          <img src="img/img4_p28_act1.jpg" alt="Joven en la cocina con un libro de recetas y un pimiento en la mano."
+            class="w-full sm:w-[45%] h-auto rounded-[50%] flex-none print:[.panel-body_&]:!max-h-none"
+            onerror="this.style.display='none'" />
+          <div id="p2caso" class="flex-1 w-full"></div>
+        </div>
+        </div>
+
+        <!-- ================= Informe de consultoría nutricional ================= -->
+        <div class="relative border border-stone-200 rounded-2xl shadow-sm p-4 sm:p-6 text-sm overflow-auto"
+          style="background-color: #fff; background-image: linear-gradient(#e7eef5 1px, transparent 1px), linear-gradient(90deg, #e7eef5 1px, transparent 1px); background-size: 18px 18px;">
+          <div class="flex items-start gap-3 mb-4">
+            <img src="img/img1_p29_act1.png" alt="Pinza sujetapapeles negra."
+              class="w-12 sm:w-16 h-auto flex-none -mt-6 print:[.panel-body_&]:!max-h-none"
+              onerror="this.style.display='none'" />
+            <div class="flex-1 font-serif">
+              <p class="font-bold text-center text-base sm:text-lg">INFORME DE CONSULTORÍA NUTRICIONAL</p>
+              <p class="font-bold">Paciente: Sofía, 20 años</p>
+              <p class="font-bold">Fecha: 25 de julio de 2025</p>
+            </div>
+          </div>
+
+          <img src="img/img2_p29_act1.png" alt="Joven con lentes sosteniendo un libro."
+            class="float-right w-20 sm:w-28 h-auto ml-3 mb-2 print:[.panel-body_&]:!max-h-none"
+            onerror="this.style.display='none'" />
+
+          <p class="font-serif mb-1"><b>1.</b> Análisis de necesidades biomoleculares:</p>
+          <div class="p5campoTexto bookText mb-3"></div>
+
+          <p class="font-serif mb-1"><b>2.</b> Plan de dieta sugerido (ejemplo de un día):</p>
+          <div class="pl-3 sm:pl-5 space-y-1">
+            <p class="font-serif">Desayuno (07:00 <i>a. m.</i>):</p>
+            <div class="p3campoTexto bookText"></div>
+            <p class="font-serif">Almuerzo (01:00 <i>p. m.</i>)</p>
+            <div class="p3campoTexto bookText"></div>
+            <p class="font-serif"><i>Snack</i> de media tarde (04:30 <i>p. m.</i>):</p>
+            <div class="p3campoTexto bookText"></div>
+            <p class="font-serif">Cena (08:00 <i>p. m.</i>):</p>
+            <div class="p3campoTexto bookText"></div>
+          </div>
+
+          <p class="font-serif mt-3 mb-1"><b>3.</b> Consejos biomoleculares adicionales:</p>
+          <div class="p2campoTexto bookText"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/no-bootstrap.js"></script>
+  <script src="js/helper.js"></script>
+  <script src="js/activities.js"></script>
+  <script src="js/new-js/builder.js"></script>
+  <script src="js/new-js/funciones.js"></script>
+  <script src="js/Utilitario.js"></script>
+  <script src="js/folleto-widgets.js?v=138"></script>
+  <script src="js/toolbar-tooltips.js?v=64"></script>
+  <script src="js/uni6act3.js?v=6"></script>
+</body>
+
+</html>

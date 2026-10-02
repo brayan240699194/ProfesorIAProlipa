@@ -1,0 +1,2121 @@
+/* modal  */
+
+:root {
+  color-scheme: light;
+}
+
+@page {
+  size: A4;
+  margin: 6mm;
+}
+
+@media print {
+  html, body {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .container {
+    width: 100% !important;
+    max-width: none !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  .panel {
+    margin: 0 !important;
+  }
+}
+
+/* ---------- Compactar el PDF (window.print) ----------
+   El PDF se genera imprimiendo la propia página (save_to_pdf en
+   helper.js -> window.print()), así que la cantidad de hojas depende de
+   cuánto "aire" tenga el flujo normal en pantalla (pensado para leerse
+   cómodo en un celular/tablet). Estas reglas SOLO aplican al imprimir
+   (no tocan la vista en pantalla) y achican tipografía/espaciados dentro
+   de .panel-body para que quepan más preguntas por hoja, sin quitar
+   colores, tarjetas ni imágenes (el diseño se mantiene, solo más denso).
+   Todo con !important porque el <script> de Tailwind (cdn.tailwindcss.com)
+   inyecta su propio <style> después de estos <link>, y sin !important esa
+   utilidad (misma especificidad, pero más tarde en el DOM) gana. */
+@media print {
+  .panel-body {
+    padding: 12px 16px 18px !important;
+  }
+
+  .panel-body h3 {
+    font-size: 1.05rem !important;
+    margin-bottom: 6px !important;
+  }
+
+  .panel-body h4 {
+    font-size: 0.92rem !important;
+    margin-top: 8px !important;
+    margin-bottom: 6px !important;
+  }
+
+  .panel-body,
+  .panel-body p,
+  .panel-body li,
+  .panel-body span,
+  .panel-body b,
+  .panel-body .text-sm {
+    font-size: 0.72rem !important;
+    line-height: 1.3 !important;
+  }
+
+  .panel-body .text-lg,
+  .panel-body .text-base {
+    font-size: 0.85rem !important;
+  }
+
+  /* espaciados: mismas clases de Tailwind, valores más chicos */
+  .panel-body .p-4 { padding: 8px !important; }
+  .panel-body .p-3 { padding: 6px !important; }
+  .panel-body .pt-6 { padding-top: 12px !important; }
+  .panel-body .mb-6 { margin-bottom: 8px !important; }
+  .panel-body .mb-4 { margin-bottom: 6px !important; }
+  .panel-body .mb-3 { margin-bottom: 4px !important; }
+  .panel-body .mb-2 { margin-bottom: 3px !important; }
+  .panel-body .mt-6 { margin-top: 10px !important; }
+  .panel-body .mt-2 { margin-top: 3px !important; }
+  .panel-body .my-3,
+  .panel-body .my-4 {
+    margin-top: 4px !important;
+    margin-bottom: 4px !important;
+  }
+  .panel-body .gap-2 { gap: 4px !important; }
+  .panel-body .gap-3 { gap: 6px !important; }
+  .panel-body .gap-4 { gap: 8px !important; }
+  .panel-body .space-y-1 > * + * { margin-top: 2px !important; }
+  .panel-body .space-y-2 > * + * { margin-top: 4px !important; }
+  .panel-body .space-y-3 > * + * { margin-top: 6px !important; }
+
+  /* tarjetas/recuadros de color: bordes más finos, radios más chicos */
+  .panel-body .rounded-2xl { border-radius: 12px !important; }
+  .panel-body .rounded-xl { border-radius: 10px !important; }
+  .panel-body .border-2 { border-width: 1px !important; }
+
+  /* fotos ilustrativas: se conservan (mismo diseño) pero más chicas para
+     no empujar el resto del contenido a una hoja nueva */
+  .panel-body img {
+    max-height: 90px !important;
+  }
+
+  /* campos de respuesta abierta (textarea pN campoTexto/bookText): menos
+     alto por fila para no regalar hojas enteras en blanco */
+  .panel-body textarea {
+    min-height: 0 !important;
+    font-size: 0.72rem !important;
+    line-height: 1.3 !important;
+  }
+
+  /* una pregunta (enunciado + su campo) no debería partirse justo entre
+     dos hojas dejando un renglón suelto arriba o abajo */
+  .panel-body .nota-abierta {
+    break-after: avoid;
+  }
+}
+
+.encabezadoInfo {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-weight: bold;
+  /* Asegúrate de que el texto en este elemento sea bold */
+}
+
+@media print {
+  #toggle-btn-navbar {
+    display: none;
+    /* Ocultar el botón al imprimir */
+  }
+}
+
+.navbar {
+  position: fixed;
+  /* Mantiene el botón en la pantalla */
+  top: 2px;
+  /* Espacio desde la parte superior */
+  left: -250px;
+  /* Oculta la navbar a la izquierda */
+  width: 70px;
+  height: auto;
+  background-color: #1d9ab0;
+  transition: left 0.3s ease;
+  z-index: 1000;
+  padding: 10px 0px;
+  text-align: center;
+}
+
+.navbar a {
+  display: block;
+  color: white;
+  padding: 15px;
+  text-decoration: none;
+}
+
+.navbar a:hover {
+  background-color: #575757;
+}
+
+.navbar.visible {
+  left: 0;
+  /* Muestra la navbar */
+}
+
+#toggle-btn-navbar {
+  background-color: #1d9ab0;
+  color: white;
+  position: fixed;
+  /* Mantiene el botón en la pantalla */
+  top: 10px;
+  /* Espacio desde la parte superior */
+  left: 10px;
+  /* Espacio desde la izquierda */
+  left: 5px;
+  z-index: 1000;
+  border: none;
+  padding: 10px 15px;
+  cursor: pointer;
+  border-radius: 5px;
+  -webkit-box-shadow: 0px 0px 6px 3px rgba(255, 255, 255, 1);
+  -moz-box-shadow: 0px 0px 6px 3px rgba(255, 255, 255, 1);
+  box-shadow: 0px 0px 6px 3px rgba(255, 255, 255, 1);
+}
+
+#toggle-btn-navbar:hover {
+  background-color: #5f8079;
+}
+
+#toggle-btn-navbar-Ocultar {
+  position: absolute;
+  border-radius: 10px;
+  bottom: -30px;
+  left: 55px;
+  z-index: 60;
+}
+
+.content {
+  padding: 20px;
+}
+
+#navbar > ul > li > button {
+  border: solid 1px silver;
+}
+
+/* fin modal */
+
+.sombraBox {
+  -webkit-box-shadow: 1px 1px 5px 1px rgba(138, 136, 138, 1);
+  -moz-box-shadow: 1px 1px 5px 1px rgba(138, 136, 138, 1);
+  box-shadow: 1px 1px 5px 1px rgba(138, 136, 138, 1);
+}
+
+/* estilos ficha Diagnostico */
+.form-container-Casilla {
+  background-color: #fcf8e5 !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  border-radius: 5px;
+  padding: 20px;
+  border: 1px solid rgb(177, 172, 153);
+}
+
+.encabezado_datos {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: start;
+  justify-content: center;
+}
+
+.d-i-f-start-Casilla {
+  display: flex;
+  gap: 30px;
+  /* Espaciado entre los inputs */
+}
+
+.input-textCasilla,
+.input-smallCasilla,
+.input-dateCasilla {
+  border: none;
+  border-bottom: 1px dotted rgb(121, 116, 116) !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  background-color: transparent;
+  width: calc(100% - 20px);
+  padding: 5px;
+  outline: none;
+}
+
+.input-smallCasilla {
+  width: 200px;
+  /* Ajustar tamaño de inputs pequeños */
+}
+
+@media (max-width: 600px) {
+  .input-smallCasilla {
+    width: 100%;
+    /* Hacer inputs pequeños de ancho completo en móviles */
+  }
+}
+
+/* fin estilos ficha Diagnostico */
+
+/* .lc-picker-contents {
+    width: 100px;
+} */
+
+/* estilos boton ayuda/texto */
+.btnAudiotext {
+  padding: 5px;
+  border-radius: 3px;
+  border: solid 1px grey;
+}
+
+.btnAudiotext:hover {
+  color: white;
+  background-color: rgb(12, 131, 195);
+}
+
+.nota-abierta {
+  outline: none;
+  text-align: center;
+}
+
+.bien1 {
+  box-shadow: 2px 2px 2px 3px rgba(36, 149, 40, 1) !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.mal1 {
+  box-shadow: 2px 2px 2px 3px rgba(226, 95, 56, 1) !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.bien3 {
+  box-shadow: 2px 2px 5px 4px #04a70a !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.mal3 {
+  box-shadow: 2px 2px 5px 4px #fc1c0c !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.bien4 {
+  print-color-adjust: exact;
+  box-shadow: 0 8px 6px -3px #04a70a !important;
+  -webkit-print-color-adjust: exact;
+  -webkit-box-shadow: 0 8px 6px -3px #04a70a !important;
+  -webkit-print-color-adjust: exact;
+}
+
+.bienimg {
+  filter: drop-shadow(0px 0px 5px rgb(0, 130, 2)) !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.malimg {
+  filter: drop-shadow(0px 0px 5px rgb(242, 14, 14)) !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.mal4 {
+  -webkit-box-shadow: 0 8px 6px -3px #fc1c0c !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  -moz-box-shadow: 0 8px 6px -3px #fc1c0c !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  box-shadow: 0 8px 6px -3px #fc1c0c !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.bien2 {
+  border: solid 4px #04a70a !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  border-radius: 5px;
+}
+
+.literalEncerrarOpcion {
+  background-color: rgb(255, 205, 135) !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.mal2 {
+  border: solid 4px #fc1c0c !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  border-radius: 5px;
+}
+
+.bien {
+  /* background: #b1ffb3 !important;
+    -webkit-print-color-adjust: exact; */
+  background: rgb(209, 237, 204) !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  background: -moz-radial-gradient(
+    circle,
+    rgba(209, 237, 204, 0.7203256302521008) 89%,
+    rgba(37, 130, 3, 0.5606617647058824) 100%
+  ) !important;
+  -webkit-print-color-adjust: exact;
+  background: -webkit-radial-gradient(
+    circle,
+    rgba(209, 237, 204, 0.7203256302521008) 89%,
+    rgba(37, 130, 3, 0.5606617647058824) 100%
+  );
+  background: radial-gradient(
+    circle,
+    rgba(209, 237, 204, 0.7203256302521008) 89%,
+    rgba(37, 130, 3, 0.5606617647058824) 100%
+  ) !important;
+  -webkit-print-color-adjust: exact;
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#d1edcc", endColorstr="#258203", GradientType=1);
+}
+
+.mal {
+  /* background: #ffa8a8 !important;
+    -webkit-print-color-adjust: exact; */
+  background: rgb(240, 196, 190) !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  background: -moz-radial-gradient(
+    circle,
+    rgba(240, 196, 190, 0.7203256302521008) 89%,
+    rgba(235, 22, 7, 0.5606617647058824) 100%
+  ) !important;
+  -webkit-print-color-adjust: exact;
+  background: -webkit-radial-gradient(
+    circle,
+    rgba(240, 196, 190, 0.7203256302521008) 89%,
+    rgba(235, 22, 7, 0.5606617647058824) 100%
+  ) !important;
+  -webkit-print-color-adjust: exact;
+  background: radial-gradient(
+    circle,
+    rgba(240, 196, 190, 0.7203256302521008) 89%,
+    rgba(235, 22, 7, 0.5606617647058824) 100%
+  ) !important;
+  -webkit-print-color-adjust: exact;
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#f0c4be", endColorstr="#eb1607", GradientType=1);
+}
+
+.selectbox1 {
+  border: solid 1px rgb(8, 152, 219);
+  text-align: center;
+  border-radius: 5px;
+  outline: none;
+  cursor: pointer;
+  padding: 0px 5px;
+  /* no flecha en un select */
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+.selectbox1::-ms-expand {
+  display: none;
+}
+
+.selectbox2 {
+  min-width: 50px;
+  border: solid 1px rgb(233, 226, 226);
+  border-bottom: solid 1px grey;
+  text-align: center;
+  border-radius: 5px;
+  outline: none;
+  cursor: pointer;
+  padding: 0px 5px;
+  margin: 3px;
+  /* no flecha en un select */
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+.selectbox2::-ms-expand {
+  display: none;
+}
+
+.textoinput {
+  border: solid 1px rgb(8, 152, 219);
+  text-align: center;
+  border-radius: 5px;
+  outline: none;
+  cursor: pointer;
+  padding: 0px 5px;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+.box1,
+.boxuni {
+  width: 40px;
+  border: solid 1px rgb(8, 152, 219);
+  text-align: center;
+  font-size: 20px;
+  border-radius: 5px;
+  outline: none;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+.box3 {
+  width: 50px;
+  border: solid 1px rgb(8, 152, 219);
+  text-align: center;
+  font-size: 20px;
+  border-radius: 5px;
+  outline: none;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+.box2 {
+  width: 50px;
+  border: none;
+  border-bottom: solid 1px silver;
+  text-align: center;
+  font-size: 20px;
+  border-radius: 0px;
+  outline: none;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+.boxllevar {
+  width: 25px;
+  height: 25px;
+  border: solid 1px #ec0494;
+  border-radius: 50%;
+  text-align: center;
+  font-size: 19px;
+  outline: none;
+  cursor: pointer;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  text-transform: uppercase;
+}
+
+.unidad {
+  font-weight: bolder;
+  color: #ec0494 !important;
+  text-align: center;
+}
+
+.decena {
+  font-weight: bolder;
+  color: #04adee !important;
+  text-align: center;
+}
+
+.b-tabla {
+  border: solid 1px grey !important;
+}
+
+.b-bajo {
+  border-bottom: solid 2px #2a63a8 !important;
+}
+
+.text-left {
+  text-align: left;
+}
+
+.text-right {
+  text-align: right;
+}
+
+textarea {
+  overflow: hidden;
+  resize: none;
+  box-sizing: border-box;
+}
+
+textarea.no-redimensionar {
+  height: auto;
+  box-shadow: 0px -20px 20px #e0e1e3 inset;
+}
+
+/* padding*/
+.padding10 {
+  padding: 10px;
+}
+
+.padding-l10 {
+  padding-left: 10px;
+}
+
+.dragpg,
+.drag1,
+.drag2,
+.drag3,
+.drag4,
+.drag5,
+.drag6,
+.drag7 {
+  cursor: move;
+  mix-blend-mode: multiply;
+  z-index: 40;
+}
+
+.literal {
+  color: rgb(8, 152, 219) !important;
+}
+
+/******
+iconos de ayuda
+****/
+.movermano-izq {
+  animation: ayudamano-izq 4s infinite;
+  -webkit-animation: ayudamano-izq 4s infinite;
+}
+
+table.table-bordered-1 {
+  border: solid 2px #e7f2ff;
+  text-align: center;
+  width: 100%;
+}
+
+table.table-bordered-1 > thead > tr {
+  border: solid 2px #e7f2ff;
+  text-align: center;
+}
+
+table.table-bordered-1 > tbody > tr > td {
+  border: solid 2px #e7f2ff;
+  vertical-align: middle;
+  text-align: center;
+}
+
+/* tabla coevaluacion */
+table.table-coevaluacion {
+  outline: solid 1px #6690a0;
+  text-align: center;
+  width: 100%;
+}
+
+table.table-coevaluacion > thead > tr {
+  outline: solid 1px #6690a0;
+  text-align: center;
+}
+
+table.table-coevaluacion > tbody > tr > td {
+  outline: solid 1px #6690a0;
+  vertical-align: middle;
+  text-align: center;
+  background-color: #fffdd8 !important;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+/* fin  tabla coevaluacion */
+
+/* tabla autoregulacion */
+table.table-autoregulacion {
+  outline: solid 1px #f6b17b;
+  text-align: center;
+  width: 100%;
+}
+
+table.table-autoregulacion > thead > tr {
+  outline: solid 1px #f6b17b;
+  text-align: center;
+}
+
+table.table-autoregulacion > tbody > tr > td {
+  outline: solid 1px #f6b17b;
+  vertical-align: middle;
+  text-align: center;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+/* fin  tabla autoregulacion */
+
+@-webkit-keyframes ayudamano-izq {
+  0% {
+    /* -webkit-transform: rotateX(50deg); */
+    transform: translate(20px, 0px);
+  }
+
+  25% {
+    /* -webkit-transform: rotateX(-50deg); */
+    transform: translate(10px, 0px);
+    transform: rotate(-10deg);
+  }
+
+  50% {
+    /* -webkit-transform: rotateX(50deg); */
+    transform: translate(20px, 0px);
+  }
+
+  75% {
+    /* -webkit-transform: rotateX(-50deg); */
+    transform: translate(10px, 0px);
+    transform: rotate(-10deg);
+  }
+
+  100% {
+    /* -webkit-transform: rotateX(50deg); */
+    transform: translate(20px, 0px);
+  }
+}
+
+/* .tacharCaja::before {
+    position: absolute;
+    color: orangered !important;
+    -webkit-print-color-adjust: exact;
+    content: "X";
+    text-align: center;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 100px !important;
+} */
+
+/******
+*** PARA LAS CAJAS DE UNIDADES Y DECENAS BASE 10
+*****/
+
+.boxUniDec {
+  width: 310px;
+  text-align: center;
+  border-radius: 5px;
+  border: solid 1px rgb(2, 142, 223);
+  height: 150px;
+  margin-bottom: 3px;
+}
+
+.boxUniDec > div {
+  display: inline-table;
+}
+
+.boxUniDec > div > img {
+  display: inline-table;
+  margin: 0px;
+}
+
+.boxCarrier {
+  border: solid 1px orange;
+  width: 30px;
+  height: 30px;
+  border-radius: 5px;
+  outline: none;
+  text-align: center;
+  cursor: pointer;
+}
+
+.separator {
+  border-bottom: solid 3px black;
+}
+
+.boxOperation {
+  width: 45px;
+  height: 45px;
+  margin: 0px;
+  text-align: center;
+  outline: none;
+  border: solid 1px silver;
+  cursor: pointer;
+  position: relative;
+  font-size: 2.5rem;
+}
+
+.boxOperationTitulo {
+  width: 45px;
+  height: 30px;
+  text-align: center;
+  outline: none;
+  cursor: pointer;
+  font-size: 2.6rem;
+  background-color: #fde6d0 !important;
+}
+
+.titulomil {
+  color: #f47318 !important;
+  border: solid 1px silver;
+}
+
+.titulocentena {
+  color: #53a936 !important;
+  border: solid 1px silver;
+}
+
+.titulodecena {
+  color: #ee1e92 !important;
+  border: solid 1px silver;
+}
+
+.titulounidad {
+  color: #13a2e6 !important;
+  border: solid 1px silver;
+}
+
+.b-s-s {
+  border: solid 1px silver;
+  border-radius: 5px;
+  padding: 10px;
+  text-align: center;
+}
+
+.d-i-t {
+  display: inline-table;
+}
+
+.d-table {
+  display: table;
+}
+
+.d-i-f {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.d-i-f-min {
+  display: inline-flex;
+  justify-content: center;
+  align-items: start;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+/* General - para pantallas móviles de hasta 768px */
+@media (max-width: 768px) {
+  .d-i-f-min {
+    display: inline-flex;
+    flex-direction: column;
+    /* Columna en lugar de fila en pantallas pequeñas */
+    align-items: flex-start;
+    justify-content: center;
+    width: 100%;
+    /* Ocupar el ancho completo */
+    padding: 10px;
+    /* Añadir padding para mejor espaciamiento */
+  }
+
+  .espacio {
+    width: 650px;
+  }
+}
+
+/* Mobile L - Para dispositivos entre 426px y 767px */
+@media (min-width: 426px) and (max-width: 767px) {
+  .d-i-f-min {
+    display: inline-flex;
+    flex-direction: row;
+    /* Fila en lugar de columna */
+    align-items: center;
+    justify-content: center;
+  }
+
+  .espacio {
+    width: 650px;
+  }
+}
+
+/* Mobile S y M - Para dispositivos entre 320px y 425px */
+@media (min-width: 320px) and (max-width: 425px) {
+  .d-i-f-min {
+    display: inline-flex;
+    /* Cambiar a flex */
+    flex-direction: row;
+    /* Fila en lugar de columna */
+    align-items: center;
+    /* Alinear elementos en el centro */
+    justify-content: center;
+    /* Centrar horizontalmente */
+  }
+
+  .espacio {
+    width: 650px;
+  }
+}
+
+/* Estilo para generar el PDF */
+
+@media print {
+  .d-i-f-min {
+    display: inline-flex;
+    justify-content: center;
+    flex-direction: row;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+  }
+
+  .espacio {
+    /* margin-top: 105px; */
+    width: 1100px;
+  }
+}
+
+.pintar1 {
+  background-color: rgb(199, 167, 104) !important;
+}
+
+.encerImgOpcion {
+  background-color: rgb(255, 180, 82) !important;
+}
+
+.pintarTexto {
+  background-color: rgb(255, 211, 109) !important;
+  border: solid 1px rgb(254, 89, 0);
+}
+
+.encerDivOpcion {
+  background-color: rgb(255, 211, 109) !important;
+  border: solid 1px rgb(254, 89, 0);
+}
+
+.itemArrastreSimple {
+  cursor: grab;
+}
+
+/*BORDER PASOS*/
+.borderpasos {
+  display: inline-block;
+  width: 300px;
+  border: dotted 2px #72bf44;
+  border-radius: 10px;
+  padding: 5px;
+  margin: 5px;
+}
+
+.pasos {
+  background-color: #e49b03 !important;
+  color: white !important;
+  display: inline-table;
+  padding: 3px 10px;
+  border-radius: 15px 0px 15px 0px;
+  font-size: 2rem;
+  margin-bottom: 10px;
+}
+
+/*Controla el tamaño de los botones de menu */
+
+li::marker {
+  color: #0288a3 !important;
+  font-weight: bolder;
+  /* bullet color */
+}
+
+li {
+  color: #333333 !important;
+  /* text color */
+}
+
+.espaciar {
+  border-collapse: separate;
+  border-spacing: 0px 10px;
+}
+
+table.table-bordered {
+  border: solid 2px #36aee8;
+  text-align: center;
+}
+
+table.table-bordered > thead > tr {
+  border: solid 2px #36aee8;
+  text-align: center;
+}
+
+table.table-bordered > tbody > tr > td {
+  border: solid 2px #36aee8;
+  text-align: center;
+  height: 40px;
+}
+
+.tachar {
+  text-decoration: line-through;
+}
+
+.no-seleccionable {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.backnoabierta {
+  background-color: #71d671 !important;
+}
+
+select {
+  text-align-last: center;
+}
+
+.igual,
+.menorque,
+.mayorque {
+  font-size: 22px;
+  color: #c95502 !important;
+  font-weight: bolder;
+  margin: 0px 5px;
+}
+
+.finarrastre:empty::before {
+  /* box-shadow: 0px 0px 4px 4px rgba(222, 124, 9, 0.75);
+    -webkit-box-shadow: 0px 0px 4px 4px rgba(222, 124, 9, 0.75);
+    -moz-box-shadow: 0px 0px 4px 4px rgba(222, 124, 9, 0.75); */
+  background-color: transparent;
+  cursor: grabbing;
+  content: "Soltar aquí";
+  display: flex;
+  color: rgb(252, 124, 39);
+  align-items: center;
+  align-content: center;
+  justify-content: center;
+  justify-items: center;
+}
+
+.divpizarra {
+  position: relative;
+  display: inline-block;
+  /* box-shadow: 1px 1px 2px 2px #555; */
+  /* esto es para pocicionar el icono pizarra */
+  /* background-color: white; */
+  font-size: 20px;
+}
+
+.textarea-blanco {
+  background-color: white !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.m-t-20 {
+  margin-top: 10px;
+}
+
+.ico-tema {
+  font-size: 23px;
+  border-radius: 5px;
+  padding: 5px 10px;
+  background-color: rgb(208, 239, 247) !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  print-color-adjust: exact;
+  color: black !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  print-color-adjust: exact;
+  margin-right: 10px;
+  text-align: center;
+}
+
+.vof {
+  width: 60px;
+  height: 35px;
+  border-radius: 5px;
+  text-align-last: center;
+  cursor: pointer;
+  border: none;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+/* borde izquierda */
+
+.div-i {
+  border-left: none;
+}
+
+@media (min-width: 1200px) {
+  .div-i {
+    border-left: dashed 2px silver;
+  }
+}
+
+@media (max-width: 770px) {
+  .div-i {
+    border-left: dashed 2px silver;
+  }
+}
+
+/* borde derecha */
+
+.div-d {
+  border-right: none;
+}
+
+@media (min-width: 1200px) {
+  .div-d {
+    border-right: dashed 2px silver;
+  }
+}
+
+@media (max-width: 770px) {
+  .div-d {
+    border-right: dashed 2px silver;
+  }
+}
+
+/* borde abajo */
+
+.div-b {
+  border-bottom: none;
+}
+
+@media (min-width: 1200px) {
+  .div-b {
+    border-bottom: dashed 2px silver;
+  }
+}
+
+@media (max-width: 770px) {
+  .div-b {
+    border-bottom: dashed 2px silver;
+  }
+}
+
+/* borde arriba */
+
+.div-t {
+  border-top: none;
+}
+
+@media (min-width: 1200px) {
+  .div-t {
+    border-top: dashed 2px silver;
+  }
+}
+
+@media (max-width: 770px) {
+  .div-t {
+    border-top: dashed 2px silver;
+  }
+}
+
+/* borde derecha */
+
+.fin-actividad {
+  pointer-events: none;
+}
+
+/*ANIMACIONES*/
+.bin1 {
+  animation-name: pulse;
+  animation-duration: 2s;
+  animation-timing-function: 1;
+  animation-delay: 0s;
+  animation-iteration-count: infinite;
+  animation-direction: initial;
+  animation-fill-mode: forwards;
+  color: #0077c0 !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* COLORES CALIFICACIONES */
+
+.backnoabierta {
+  background-color: #71d671 !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.biensombra {
+  box-shadow: 0px 5px rgba(24, 171, 50, 0.75) !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  -webkit-box-shadow: 0px 5px rgba(24, 171, 50, 0.75) !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  -moz-box-shadow: 0px 5px rgba(24, 171, 50, 0.75) !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.malsombra {
+  box-shadow: 0px 5px rgba(255, 0, 0, 0.75) !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  -webkit-box-shadow: 0px 5px rgba(255, 0, 0, 0.75) !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  -moz-box-shadow: 0px 5px rgba(255, 0, 0, 0.75) !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.biencolor {
+  background-color: #a3ffa3 !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.malcolor {
+  background-color: #ff9e9e !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.bienborder {
+  border: solid 2px #2e992e !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  border-radius: 5px;
+}
+
+.malborder {
+  border: solid 2px #b43030 !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  border-radius: 5px;
+}
+
+/*
+[contenteditable="false"]:empty:not(:focus):before {
+    content: attr(data-text);
+    display: flex;
+    width: 80px;
+    padding: 5px;
+    height: 100px;
+    font-size: 19px;
+    align-items: center;
+    align-content: center;
+    justify-content: center;
+    justify-items: center;
+}
+ */
+
+.c-d {
+  color: rgb(135, 112, 10) !important;
+  text-decoration: underline;
+  font-size: 1.7rem;
+  margin-left: 20px;
+}
+
+@media print {
+  a[href]:after {
+    content: none !important;
+  }
+}
+
+li::marker {
+  color: #0288a3 !important;
+  font-weight: bolder;
+  /* bullet color */
+}
+
+li {
+  color: #333333 !important;
+  /* text color */
+}
+
+ol.li-letter {
+  counter-reset: item;
+  list-style-type: none;
+  padding-left: 0;
+}
+
+ol.li-letter li {
+  counter-increment: item;
+  margin-bottom: 5px;
+  margin-left: 5px;
+}
+
+ol.li-letter li::before {
+  color: #0288a3 !important;
+  content: counter(item, lower-alpha) ") ";
+  font-weight: bold;
+  margin-right: 5px;
+}
+
+ol.li-number {
+  counter-reset: item;
+  list-style-type: none;
+  padding-left: 0;
+}
+
+ol.li-number li {
+  counter-increment: item;
+  margin-bottom: 5px;
+  margin-left: 5px;
+}
+
+ol.li-number li::before {
+  color: #0288a3 !important;
+  content: counter(item) ") ";
+  font-weight: bold;
+  margin-right: 5px;
+}
+
+/*coloca fondo en blanco del boton*/
+
+.button:hover {
+  background: rgba(0, 0, 0, 0);
+}
+
+.button_GeoGebra {
+  background: #3e98c4;
+  color: #f2f2f2;
+}
+
+.button_GeoGebra:hover {
+  color: #3e98c4;
+  box-shadow: inset 0 0 0 2px #3e98c4;
+}
+
+.btngeo {
+  border: solid 1px silver;
+}
+
+/* =================================
+Estilos enlace href
+================================*/
+
+@media print {
+  a[href]:after {
+    content: none !important;
+  }
+}
+
+a[target="_blank"] {
+  color: #0aaff0 !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  /* Color del texto al pasar el ratón */
+}
+
+/* =================================
+Estilos colores de texto
+================================*/
+
+.numPregunta {
+  color: #03b5e2 !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.txt-azul {
+  color: #06aef0 !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.txt-dorado {
+  color: #68582a !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.txt-cafe {
+  color: #af6e5e !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.txt-verde {
+  color: #33b540 !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.txt-verdeoscuro {
+  color: #00aaad !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.txt-blanco {
+  color: #ffffff !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.txt-naranja {
+  color: #f25c19 !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.txt-vino {
+  color: #ae2133 !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.txt-amarillo {
+  color: #cce603 !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.txt-azuloscuro {
+  color: #0a568c !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.txt-rosado {
+  color: #ec0fa2 !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.txt-morado {
+  color: #572d96 !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* =================================
+Estilos background-color
+================================*/
+
+.bg-rosado {
+  background-color: #ec0fa2 !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.bg-transparent {
+  background-color: transparent !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.bg-rosa {
+  background-color: #fdeaf5 !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.bg-blanco {
+  background-color: #ffffff !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.bg-azul {
+  background-color: #00acef !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.bg-azuloscuro {
+  background-color: #0a568c !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.bg-verdeoscuro {
+  background-color: #00aaad !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.bg-rojooscuro {
+  background-color: #e73d2d !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.bg-rojosuave {
+  background-color: #ffe1de !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.bg-naranja {
+  background-color: #f25c19 !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.bg-naranja1 {
+  background-color: #fce4cf !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.bg-naranjasuave {
+  background-color: #ffe9d6 !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.bg-amarillo {
+  background-color: #e7e083 !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.bg-amarillo1 {
+  background-color: #fffef2 !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.bg-amarillosuave {
+  background-color: #fffccc !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.bg-cafe {
+  background-color: #9f5b4c !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.bg-verde {
+  background-color: #33b540 !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.bg-grissuave {
+  background-color: #f5f5f5 !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.bg-verdesuave {
+  background-color: #e0ffe2 !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.bg-morado {
+  background-color: #b30e8d !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.bg-morado1 {
+  background-color: #f0e4f3 !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.bg-celeste {
+  background-color: #00acef !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.bg-azul1 {
+  background-color: #cdf1ff !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.espacio {
+  user-select: none;
+}
+
+/* =================================
+Estilos de las calificaciones
+================================*/
+.punto10,
+.punto9,
+.punto8,
+.punto7,
+.punto6,
+.punto5,
+.punto4,
+.punto35,
+.punto3,
+.punto25,
+.punto2,
+.punto15,
+.punto1,
+.punto125,
+.punto025,
+.punto05,
+.punto075,
+.punto1 {
+  color: #f47115 !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.arrastre {
+  color: silver;
+}
+
+.imgCargar {
+  aspect-ratio: 1/1;
+  width: 500px;
+  object-fit: contain;
+  border: none;
+  outline: none;
+}
+
+.respuesta {
+  color: #0077c0 !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  font-weight: bolder;
+}
+
+.inputfile {
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+  overflow: hidden;
+  position: absolute;
+  z-index: -1;
+}
+
+.imgCargar {
+  aspect-ratio: 1/1;
+  max-width: 100%;
+  object-fit: contain;
+  border: none;
+  outline: none;
+}
+
+.textocorto {
+  border: solid 1px #0890d0;
+  border-radius: 5px;
+  outline: none;
+}
+
+.caracter1,
+.caracter2 {
+  border: solid 1px #0890d0;
+  border-radius: 1px;
+  outline: none;
+  text-align: center;
+  cursor: pointer;
+  width: 50px;
+}
+
+.caracter3,
+.caracter4,
+.caracter5 {
+  border: solid 1px #0890d0;
+  border-radius: 1px;
+  outline: none;
+  text-align: center;
+  cursor: pointer;
+  width: 60px;
+}
+
+.caracter6,
+.caracter7,
+.caracter8,
+.caracter9 {
+  border: none;
+  border-bottom: solid 1px #5c717a;
+  border-radius: 5px;
+  outline: none;
+  text-align: center;
+  cursor: pointer;
+  width: 110px;
+}
+
+.caracter12,
+.caracter13,
+.caracter14,
+.caracter15 {
+  border: none;
+  border-bottom: solid 1px #5c717a;
+  border-radius: 5px;
+  outline: none;
+  text-align: center;
+  cursor: pointer;
+  width: 150px;
+}
+
+.textocorto::placeholder {
+  color: rgba(255, 69, 0, 0.4);
+}
+
+.inline {
+  display: inline;
+}
+
+.inline-flex {
+  display: inline-flex;
+}
+
+/* =================================
+Estilos informacion de iconos
+================================*/
+
+/* estilos para los alertas  */
+#alerta_info {
+  display: none;
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 12px 18px;
+  border-radius: 8px;
+  /* Bordes un poco más redondeados para suavizar */
+  font-size: 14px;
+  font-family: "Arial", sans-serif;
+  transition:
+    opacity 0.5s ease,
+    transform 0.5s ease;
+  opacity: 0;
+  transform: translateY(-20px);
+  z-index: 9999;
+  max-width: 350px;
+  width: auto;
+  text-align: center;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  /* Sombra para mayor profundidad */
+}
+
+/* Clases adicionales para diferentes tipos de alertas */
+
+#alerta_info.bieninfo {
+  color: #155724;
+  /* Verde oscuro para texto */
+  background-color: #d4edda;
+  /* Verde claro */
+  border: 1px solid #c3e6cb;
+  /* Borde verde suave */
+}
+
+#alerta_info.malinfo {
+  color: #721c24;
+  /* Rojo oscuro para texto */
+  background-color: #f8d7da;
+  /* Fondo rojo claro */
+  border: 1px solid #f5c6cb;
+  /* Borde rojo suave */
+}
+
+/* CON LA CLASE NO-CCP NO SE PUEDE COPIAR, CORTAR NI PEGAR */
+.no-ccp {
+  user-select: none;
+  /* Para navegadores modernos */
+  -webkit-user-select: none;
+  /* Para navegadores basados en WebKit */
+  -ms-user-select: none;
+  /* Para navegadores antiguos de Microsoft */
+}
+
+/* =================================
+Estilos informacion de iconos
+================================*/
+
+.limpiar-canvas {
+  padding: 2px 5px;
+  background-color: transparent;
+  color: black;
+  border: none;
+  border: solid 1px black;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.limpiar-canvas:active {
+  background-color: #f1bd10;
+}
+
+.bien2icono::before {
+  content: "✔";
+  position: absolute;
+  z-index: 10;
+  top: 0px;
+  right: -20px;
+  font-size: 1.8rem;
+  color: rgb(4, 177, 47) !important;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+  font-weight: bolder;
+  font-family: verdana;
+}
+
+.mal2icono::before {
+  content: "✖";
+  position: absolute;
+  z-index: 10;
+  top: 0px;
+  right: -20px;
+  font-size: 1.8rem;
+  color: rgb(240, 2, 2) !important;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+  font-weight: bolder;
+  font-family: verdana;
+}
+
+.infoAyuda > div {
+  cursor: pointer;
+}
+
+.infoAyuda {
+  display: none;
+}
+
+.btn_Ayudas {
+  background: #f3b735;
+  color: #f2f2f2;
+}
+
+.btn_Ayudas:hover {
+  color: #dbedf5;
+  box-shadow: inset 0 0 0 2px #f3b735;
+}
+
+/* =================================
+fin info ayuda
+=================================*/
+
+/***************
+ESTILOS FUNCIONES
+***************/
+
+.SelMultiple > div {
+  display: table;
+  cursor: pointer;
+  margin: 10px 5px;
+  padding: 0px 5px;
+  border-radius: 5px;
+  position: relative;
+}
+
+.SelSimple > div {
+  display: table;
+  cursor: pointer;
+  margin: 10px 12px;
+  padding: 0px 5px;
+  border-radius: 5px;
+  position: relative;
+}
+
+.MarcarSimpleCaja {
+  display: inline-table;
+  position: relative;
+}
+
+.MarcarSimpleCaja > div {
+  cursor: pointer;
+  margin: 5px 15px;
+  padding: 8px;
+  border-radius: 15px;
+}
+
+.pintar {
+  border: solid 1px rgb(86, 1, 1);
+  border-bottom: solid 2px rgb(86, 1, 1);
+  border-left: solid 2px rgb(86, 1, 1);
+  box-shadow: 1px 2px 2px rgba(86, 1, 1, 0.8);
+  background-color: #e7e083 !important;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+.Marcar1::before {
+  position: absolute;
+  content: "X";
+  font-size: 12rem;
+  font-family: sans-serif;
+  top: 50%;
+  /* Mueve el elemento al 50% del contenedor */
+  left: 50%;
+  /* Mueve el elemento al 50% del contenedor */
+  transform: translate(-50%, -50%);
+  /* Centra el elemento */
+  color: rgb(100, 5, 195) !important;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+.MarcarX::before {
+  position: absolute;
+  content: "X";
+  font-size: 10rem;
+  font-family: sans-serif;
+  top: 50%;
+  /* Mueve el elemento al 50% del contenedor */
+  left: 50%;
+  /* Mueve el elemento al 50% del contenedor */
+  transform: translate(-50%, -50%);
+  /* Centra el elemento */
+  /* color: #0AAFEF !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact; */
+  color: #0aafef !important;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+  /* Color amarillo del visto */
+  text-shadow:
+    -1px -1px 0 #3e3e3e,
+    /* Sombra superior izquierda (borde negro) */ 1px -1px 0 #3e3e3e,
+    /* Sombra superior derecha (borde negro) */ -1px 1px 0 #3e3e3e,
+    /* Sombra inferior izquierda (borde negro) */ 1px 1px 0 #3e3e3e !important;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+  /* Sombra inferior derecha (borde negro) */
+}
+
+.MarcarO::before {
+  position: absolute;
+  content: "";
+  width: 100%;
+  height: 100%;
+  font-size: 6rem;
+  border-radius: 50%;
+  border: solid 4px #0aafef;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+  outline: solid #313d41 1px;
+  box-shadow: inset 0 0 0 1px #313d41;
+}
+
+.MarcarVisto::before {
+  position: absolute;
+  content: "✔";
+  font-size: 10rem;
+  font-family: sans-serif;
+  top: 50%;
+  /* Mueve el elemento al 50% del contenedor */
+  left: 50%;
+  /* Mueve el elemento al 50% del contenedor */
+  transform: translate(-50%, -50%);
+  /* Centra el elemento */
+  color: #0aafef !important;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+  /* Color amarillo del visto */
+  text-shadow:
+    -1px -1px 0 #3e3e3e,
+    /* Sombra superior izquierda (borde negro) */ 1px -1px 0 #3e3e3e,
+    /* Sombra superior derecha (borde negro) */ -1px 1px 0 #3e3e3e,
+    /* Sombra inferior izquierda (borde negro) */ 1px 1px 0 #3e3e3e !important;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+  /* Sombra inferior derecha (borde negro) */
+}
+
+.divContenedorSelectX {
+  display: inline-table;
+  border: solid 1px silver;
+  position: relative;
+  margin: 5px;
+  padding: 5px;
+  border-radius: 5px;
+}
+
+.divContenedorSelectX {
+  cursor: pointer;
+}
+
+.imgSelectX {
+  border: solid 2px #8ec1c2;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 3rem;
+  print-color-adjust: exact;
+  position: absolute;
+  bottom: -1px;
+  left: -1px;
+  border-radius: 5px;
+  background-color: white !important;
+  print-color-adjust: exact;
+}
+
+.Encerrar1::before {
+  position: absolute;
+  content: "";
+  width: 100%;
+  height: 100%;
+  font-size: 6rem;
+  border-radius: 50%;
+  border: solid 3px #fa6d01;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+  outline: solid #c7e6f1 1px;
+  box-shadow: inset 0 0 0 1px #c7e6f1;
+}
+
+.subrayar {
+  border: solid 1px rgb(86, 1, 1);
+  border-bottom: solid 2px rgb(86, 1, 1);
+  border-left: solid 2px rgb(86, 1, 1);
+  box-shadow: 1px 2px 2px rgba(86, 1, 1, 0.8) !important;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+/* CARGAR IMAGENES */
+.inputfile {
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+  overflow: hidden;
+  position: absolute;
+  z-index: -1;
+}
+
+.imgCargar {
+  /* aspect-ratio: 1/1; */
+  max-width: 100%;
+  object-fit: contain;
+  border: none;
+  outline: none;
+}
+
+/* BOTON PARA COLOR DE PINTAR */
+.btn-color {
+  width: 35px;
+  height: 35px;
+  border-radius: 30%;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+/* Efecto al pasar el mouse */
+.btn-color:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.pintarimg {
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+/* Efecto al pasar el mouse */
+.pintarimg:hover {
+  /* transform: scale(1.1); */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.subrayarTexto {
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+/* Efecto al pasar el mouse */
+.subrayarTexto:hover {
+  /* transform: scale(1.1); */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* boton CIUDADANO DIGITAL */
+
+#infoCiudadanoDigital {
+  box-shadow: 0 4px 8px rgba(31, 29, 29, 0.774);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: solid 2px rgba(245, 179, 104, 0.699);
+}
+
+.binCiudadanoDigital {
+  -webkit-animation: tiembla 5s infinite;
+  animation: tiembla 5s infinite;
+}
+
+@keyframes tiembla {
+  0% {
+    -webkit-transform: scale(1);
+    background-color: white;
+  }
+
+  25% {
+    -webkit-transform: scale(1.05);
+    background-color: white;
+  }
+
+  50% {
+    -webkit-transform: scale(1);
+    background-color: white;
+  }
+
+  75% {
+    -webkit-transform: scale(1.05);
+    background-color: white;
+  }
+
+  100% {
+    -webkit-transform: scale(1);
+    background-color: white;
+  }
+}
+
+@-webkit-keyframes tiembla {
+  0% {
+    -webkit-transform: scale(1);
+    background-color: white;
+  }
+
+  25% {
+    -webkit-transform: scale(1.05);
+    background-color: white;
+  }
+
+  50% {
+    -webkit-transform: scale(1);
+    background-color: white;
+  }
+
+  75% {
+    -webkit-transform: scale(1.05);
+    background-color: #e7f2ff;
+  }
+
+  100% {
+    -webkit-transform: scale(1);
+    background-color: white;
+  }
+}
+
+/* FIN boton CIUDADANO DIGITAL */
+
+/* ESTILO PARA PINTAR-FRASE  */
+.highlight {
+  text-decoration: underline;
+  /* Subrayar texto */
+  background-color: yellow !important;
+  print-color-adjust: exact;
+  /* Color de fondo para resaltado */
+}
+
+.cajaRelacionarLiterales {
+  display: flex;
+  align-items: center;
+  justify-content: start;
+  gap: 5px;
+  padding: 5px;
+  border-radius: 5px;
+  margin: 5px;
+}
+
+#icons img {
+  height: 50px;
+}

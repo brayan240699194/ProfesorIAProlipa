@@ -1,0 +1,14 @@
+# Cloudflare Worker de la Entrevista con IA.
+# Publicar:  npx wrangler deploy   (desde esta carpeta)
+# La clave NO va aquí: npx wrangler secret put GOOGLE_API_KEY
+name = "entrevista-ia"
+main = "worker.js"
+compatibility_date = "2026-09-01"
+
+[vars]
+# Páginas que pueden usar este servidor, separadas por coma.
+# Cambia USUARIO por tu usuario de GitHub (tu sitio: https://USUARIO.github.io).
+# "localhost:*" permite probar en tu computadora con cualquier puerto
+# (Live Server de VS Code, python -m http.server…).
+ORIGENES_PERMITIDOS = "https://USUARIO.github.io,http://localhost:*,http://127.0.0.1:*"
+GEMINI_MODELO = "gemini-3.5-flash-lite"

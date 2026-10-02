@@ -1,0 +1,18 @@
+# ── Claves de prueba: NUNCA se suben (GitHub Pages es público) ──
+config.local.js
+**/config.local.js
+.dev.vars
+**/.dev.vars
+.env
+.env.*
+
+# ── Cloudflare Wrangler / Node ──
+**/.wrangler/
+node_modules/
+npm-debug.log*
+*.log
+
+# ── Sistema ──
+.DS_Store
+Thumbs.db
+desktop.ini

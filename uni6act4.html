@@ -1,0 +1,132 @@
+<!doctype html>
+<html>
+
+<head>
+  <title>Detectives celulares</title>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="css/newCSS/misEstilos.css" rel="stylesheet" media="all" />
+  <link href="css/animate.css" rel="stylesheet" />
+  <link href="css/hover.css" rel="stylesheet" media="all" />
+  <link href="css/no-bootstrap.css?v=54" rel="stylesheet" />
+  <link href="css/folleto2.css?v=113" rel="stylesheet" />
+</head>
+
+<body class="bg-stone-50">
+  <div class="container">
+    <div class="panel border-aplicacion print-color" id="activity">
+      <div class="panel-heading bg-aplicacion"></div>
+      <div class="panel-body relative">
+
+        <h3 class="text-center font-extrabold text-xl sm:text-2xl mb-3">
+          <span style="color: #34bb9d">Detectives</span> <span style="color: #f36f21">celulares</span>
+        </h3>
+
+        <div class="flex items-center gap-2 mb-4">
+          <input type="text" class="nota-abierta" id="pre1a" />
+          <p class="text-sm flex-1">
+            <b>Lee</b> la pista y <b>escribe</b> el nombre del organelo que corresponde.
+            <i class="c-d"></i>
+          </p>
+        </div>
+
+        <!-- Pistas de arriba (Golgi, mitocondria, núcleo), como en el PDF -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-start sm:pt-24">
+          <div class="relative mt-24 sm:mt-0 break-inside-avoid">
+            <img src="img/img2_p30_act1.png" alt="Niña sentada en un puf usando una computadora portátil."
+              class="w-24 sm:w-28 h-auto absolute bottom-full left-1/2 -translate-x-1/2 -mb-2 z-10 print:[.panel-body_&]:!max-h-none"
+              onerror="this.style.display='none'" />
+            <div class="bg-white border-2 rounded-[2rem] p-4 text-sm leading-relaxed" style="border-color: #f5811f">
+              <p>Es el encargado de la modificación, empaquetamiento y distribución de proteínas y lípidos sintetizados en
+                la célula. Recibe estos productos, los procesa y los dirige hacia su destino final dentro o fuera de la
+                célula.</p>
+              <input type="text"
+                class="w-full mt-2 border-0 border-b-2 border-dashed bg-transparent focus:outline-none focus:border-solid py-1"
+                style="border-color: #f5811f" />
+            </div>
+          </div>
+          <div class="relative break-inside-avoid">
+            <div class="bg-white border-2 rounded-[2rem] p-4 text-sm leading-relaxed" style="border-color: #a6ce38">
+              <p>Es el orgánulo responsable de la producción de energía celular. En su interior, la glucosa se oxida
+                mediante procesos metabólicos como la respiración celular, generando ATP, la principal fuente de energía
+                para las funciones celulares.</p>
+              <input type="text"
+                class="w-full mt-2 border-0 border-b-2 border-dashed bg-transparent focus:outline-none focus:border-solid py-1"
+                style="border-color: #a6ce38" />
+            </div>
+          </div>
+          <div class="relative mt-24 sm:mt-0 break-inside-avoid">
+            <img src="img/img3_p30_act1.png" alt="Niño sonriente cargando libros y un lápiz."
+              class="w-16 sm:w-20 h-auto absolute bottom-full left-1/2 -translate-x-1/2 -mb-2 z-10 print:[.panel-body_&]:!max-h-none"
+              onerror="this.style.display='none'" />
+            <div class="bg-white border-2 rounded-[2rem] p-4 text-sm leading-relaxed" style="border-color: #0066b2">
+              <p>Es el sitio de la célula donde se guarda el ADN y se controla todo. Tiene poros que permiten el paso de
+                sustancias.</p>
+              <input type="text"
+                class="w-full mt-2 border-0 border-b-2 border-dashed bg-transparent focus:outline-none focus:border-solid py-1"
+                style="border-color: #0066b2" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Célula al centro -->
+        <img src="img/img1_p30_act1.png"
+          alt="Ilustración de una célula eucariota en corte, con núcleo, mitocondrias, aparato de Golgi, ribosomas, citoplasma y membrana plasmática."
+          class="w-full max-w-[480px] print:max-w-[300px] h-auto mx-auto my-4 print:[.panel-body_&]:!max-h-none"
+          onerror="this.style.display='none'" />
+
+        <!-- Pistas de abajo (ribosomas, citoplasma, membrana plasmática) -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-start sm:pt-24">
+          <div class="relative mt-24 sm:mt-0 break-inside-avoid">
+            <img src="img/img4_p30_act1.png" alt="Niña con lentes saludando con la mano y un libro."
+              class="w-16 sm:w-20 h-auto absolute bottom-full left-1/2 -translate-x-1/2 -mb-2 z-10 print:[.panel-body_&]:!max-h-none"
+              onerror="this.style.display='none'" />
+            <div class="bg-white border-2 rounded-[2rem] p-4 text-sm leading-relaxed" style="border-color: #aa499b">
+              <p>Es el orgánulo encargado de la síntesis de proteínas, donde se traduce la secuencia de ARN mensajero
+                para ensamblar cadenas de aminoácidos según el código genético.</p>
+              <input type="text"
+                class="w-full mt-2 border-0 border-b-2 border-dashed bg-transparent focus:outline-none focus:border-solid py-1"
+                style="border-color: #aa499b" />
+            </div>
+          </div>
+          <div class="relative break-inside-avoid">
+            <div class="bg-white border-2 rounded-[2rem] p-4 text-sm leading-relaxed" style="border-color: #5c2d91">
+              <p>Es el líquido gelatinoso que llena la célula, donde flotan todos los organelos. Aquí ocurren muchas
+                reacciones metabólicas.</p>
+              <input type="text"
+                class="w-full mt-2 border-0 border-b-2 border-dashed bg-transparent focus:outline-none focus:border-solid py-1"
+                style="border-color: #5c2d91" />
+            </div>
+          </div>
+          <div class="relative mt-24 sm:mt-0 break-inside-avoid">
+            <img src="img/img5_p30_act1.png" alt="Niño sentado con una computadora portátil levantando el pulgar."
+              class="w-20 sm:w-24 h-auto absolute bottom-full left-1/2 -translate-x-1/2 -mb-2 z-10 print:[.panel-body_&]:!max-h-none"
+              onerror="this.style.display='none'" />
+            <div class="bg-white border-2 rounded-[2rem] p-4 text-sm leading-relaxed" style="border-color: #00bbd6">
+              <p>Es la estructura externa que delimita la célula y actúa como una barrera selectiva, regulando el
+                intercambio de sustancias entre el interior celular y el medio externo. Está compuesta por una bicapa
+                lipídica con proteínas incrustadas que permiten el transporte y la comunicación celular.</p>
+              <input type="text"
+                class="w-full mt-2 border-0 border-b-2 border-dashed bg-transparent focus:outline-none focus:border-solid py-1"
+                style="border-color: #00bbd6" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/no-bootstrap.js"></script>
+  <script src="js/helper.js"></script>
+  <script src="js/activities.js"></script>
+  <script src="js/new-js/builder.js"></script>
+  <script src="js/new-js/funciones.js"></script>
+  <script src="js/Utilitario.js"></script>
+  <script src="js/folleto-widgets.js?v=138"></script>
+  <script src="js/toolbar-tooltips.js?v=64"></script>
+  <script src="js/uni6act4.js?v=7"></script>
+</body>
+
+</html>

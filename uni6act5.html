@@ -1,0 +1,81 @@
+<!doctype html>
+<html>
+
+<head>
+  <title>La ruta del bocado</title>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="css/newCSS/misEstilos.css" rel="stylesheet" media="all" />
+  <link href="css/animate.css" rel="stylesheet" />
+  <link href="css/hover.css" rel="stylesheet" media="all" />
+  <link href="css/no-bootstrap.css?v=54" rel="stylesheet" />
+  <link href="css/folleto2.css?v=113" rel="stylesheet" />
+</head>
+
+<body class="bg-stone-50">
+  <div class="container">
+    <div class="panel border-aplicacion print-color" id="activity">
+      <div class="panel-heading bg-aplicacion"></div>
+      <div class="panel-body relative">
+
+        <!-- ================= La ruta del bocado ================= -->
+        <h3 class="text-center font-extrabold text-xl sm:text-2xl mb-3">
+          <span style="color: #762414">La ruta</span> <span style="color: #0066b3">del bocado</span>
+        </h3>
+
+        <div class="flex items-center gap-2 mb-5">
+          <input type="text" class="nota-abierta" id="pre1a" />
+          <p class="text-sm flex-1">
+            <b>Ordena</b> los eventos, escribiendo el número correcto en cada fase.
+            <i class="punto5 text-sm font-semibold text-indigo-600"></i>
+          </p>
+        </div>
+
+        <!-- 8 fases en el mismo lugar que en el PDF (3 + 3 + 2). Cada tarjeta: franja de color + círculo
+             donde el estudiante escribe el número. -->
+        <div id="p1fases" class="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-6 mb-2 break-inside-avoid"></div>
+        <div class="flex items-end justify-between gap-3 mb-6 break-inside-avoid">
+          <img src="img/img1_p31_act1.png" alt="Niña exploradora mirando a lo lejos con la mano en la frente."
+            class="hidden sm:block w-24 h-auto flex-none print:[.panel-body_&]:!max-h-none"
+            onerror="this.style.display='none'" />
+          <div id="p1fases2" class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-6 flex-1 sm:max-w-[66%] sm:mx-auto">
+          </div>
+          <img src="img/img2_p31_act1.png" alt="Niña con mochila y un libro saludando."
+            class="hidden sm:block w-20 h-auto flex-none print:[.panel-body_&]:!max-h-none"
+            onerror="this.style.display='none'" />
+        </div>
+
+        <!-- ================= Sistema urinario ================= -->
+        <div class="break-inside-avoid">
+          <h3 class="text-center font-extrabold text-xl sm:text-3xl mb-3">
+            <span style="color: #b41d8e">Sistema</span> <span style="color: #00aeef">urinario</span>
+          </h3>
+
+          <div class="flex items-center gap-2 mb-3">
+            <input type="text" class="nota-abierta" id="pre2a" />
+            <p class="text-sm flex-1">
+              <b>Marca</b> con una <b style="color: #00aeef">X</b> las estructuras que realizan la función descrita.
+              <i class="punto5 text-sm font-semibold text-indigo-600"></i>
+            </p>
+          </div>
+
+          <div id="p2tabla"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/no-bootstrap.js"></script>
+  <script src="js/helper.js"></script>
+  <script src="js/activities.js"></script>
+  <script src="js/new-js/builder.js"></script>
+  <script src="js/new-js/funciones.js"></script>
+  <script src="js/Utilitario.js"></script>
+  <script src="js/folleto-widgets.js?v=141"></script>
+  <script src="js/toolbar-tooltips.js?v=64"></script>
+  <script src="js/uni6act5.js?v=11"></script>
+</body>
+
+</html>

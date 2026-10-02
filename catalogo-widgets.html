@@ -1,0 +1,1328 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>Catálogo de widgets — folleto-widgets.js</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="css/newCSS/misEstilos.css" rel="stylesheet" media="all" />
+    <link href="css/animate.css" rel="stylesheet" />
+    <link href="css/hover.css" rel="stylesheet" media="all" />
+    <link href="css/no-bootstrap.css?v=53" rel="stylesheet" />
+    <link href="css/folleto2.css?v=113" rel="stylesheet" />
+    <style>
+      body { background: #f5f5f4; }
+      .cat-layout { display: flex; min-height: 100vh; }
+      .cat-sidebar {
+        width: 260px; flex: none; position: sticky; top: 0; align-self: flex-start;
+        height: 100vh; overflow-y: auto; background: #1e1b4b; color: #e0e7ff;
+        padding: 20px 14px; box-sizing: border-box;
+      }
+      .cat-sidebar h2 {
+        font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em;
+        color: #a5b4fc; margin: 18px 0 6px; font-weight: 800;
+      }
+      .cat-sidebar h2:first-child { margin-top: 0; }
+      .cat-sidebar a {
+        display: block; padding: 5px 8px; border-radius: 8px; font-size: 0.84rem;
+        color: #e0e7ff; text-decoration: none; margin-bottom: 1px;
+      }
+      .cat-sidebar a:hover { background: #312e81; }
+      .cat-main { flex: 1; min-width: 0; padding: 32px 28px 100px; max-width: 1100px; }
+      .cat-main h1 { font-size: 1.7rem; font-weight: 900; color: #1e1b4b; }
+      .cat-intro { color: #57534e; font-size: 0.95rem; max-width: 760px; margin: 8px 0 36px; line-height: 1.6; }
+      section.cat-cat { margin-bottom: 56px; scroll-margin-top: 16px; }
+      section.cat-cat > h2 {
+        font-size: 1.3rem; font-weight: 900; color: #fff; background: #4f46e5;
+        display: inline-block; padding: 6px 18px; border-radius: 999px; margin-bottom: 18px;
+      }
+      article.cat-widget {
+        scroll-margin-top: 16px; background: #fff; border: 1px solid #e7e5e4; border-radius: 18px;
+        padding: 20px 22px; margin-bottom: 22px; box-shadow: 0 1px 3px rgba(0,0,0,.04);
+      }
+      article.cat-widget h3 { font-size: 1.1rem; font-weight: 800; color: #4338ca; margin-bottom: 4px; }
+      article.cat-widget h3 code { background: none; color: inherit; padding: 0; font-size: 1em; }
+      article.cat-widget > p.cat-desc { font-size: 0.88rem; color: #57534e; margin-bottom: 14px; line-height: 1.55; }
+      .cat-demo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-bottom: 14px; }
+      .cat-demo { background: #fafaf9; border: 1px dashed #d6d3d1; border-radius: 14px; padding: 14px; }
+      .cat-demo h4 { font-size: 0.78rem; font-weight: 800; color: #78350f; text-transform: uppercase; letter-spacing: .03em; margin-bottom: 8px; }
+      .cat-demo-body { font-size: 0.85rem; }
+      .cat-validar-row { margin-top: 10px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+      .cat-btn {
+        background: #4f46e5; color: #fff; font-weight: 700; font-size: 0.78rem; border: none;
+        border-radius: 999px; padding: 6px 14px; cursor: pointer;
+      }
+      .cat-btn:hover { background: #4338ca; }
+      .cat-resultado { font-size: 0.78rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: #e7e5e4; color: #57534e; }
+      .cat-resultado.ok { background: #dcfce7; color: #15803d; }
+      .cat-resultado.parcial { background: #fef9c3; color: #a16207; }
+      .cat-resultado.mal { background: #fee2e2; color: #b91c1c; }
+      pre.cat-code {
+        background: #1c1917; color: #e7e5e4; font-size: 0.78rem; line-height: 1.55;
+        border-radius: 12px; padding: 14px 16px; overflow-x: auto; margin-top: 10px;
+      }
+      pre.cat-code b { color: #93c5fd; font-weight: 400; }
+      .cat-tag {
+        display: inline-block; font-size: 0.68rem; font-weight: 800; text-transform: uppercase;
+        letter-spacing: .03em; background: #ede9fe; color: #6d28d9; border-radius: 999px;
+        padding: 2px 9px; margin-left: 8px; vertical-align: middle;
+      }
+      @media (max-width: 820px) {
+        .cat-sidebar { display: none; }
+        .cat-main { padding: 20px 16px 80px; }
+      }
+    </style>
+  </head>
+  <body class="bg-stone-50">
+    <div class="cat-layout">
+      <nav class="cat-sidebar">
+        <h2>1. Seleccionar</h2>
+        <a href="#w-encerrar">Encerrar (única/múltiple)</a>
+        <a href="#w-marcarvisto">Marcar visto (✓/X)</a>
+        <a href="#w-marcarimagenes">Marcar imágenes</a>
+        <a href="#w-subrayar">Subrayar opciones</a>
+        <a href="#w-checklist">Checklist libre</a>
+        <a href="#w-listachecklist">Lista checklist agrupada</a>
+
+        <h2>2. Verdadero / Falso</h2>
+        <a href="#w-vf">Verdadero o Falso</a>
+
+        <h2>3. Unir con líneas</h2>
+        <a href="#w-unir">Unir líneas (SVG)</a>
+        <a href="#w-asignar-literal">Asignar literal (select)</a>
+
+        <h2>4. Ordenar / secuencia</h2>
+        <a href="#w-ordenar">Ordenar arrastrando</a>
+
+        <h2>5. Tablas</h2>
+        <a href="#w-tabla">Tabla para completar</a>
+        <a href="#w-tablamarcar">Tabla para marcar X / ✓</a>
+        <a href="#w-exactas">Validar exactas (por id)</a>
+        <a href="#w-opcionesselect">Opciones para select</a>
+        <a href="#w-evaluartabla">Autoevaluación Sí/No/DM</a>
+
+        <h2>6. Texto y lectura</h2>
+        <a href="#w-lectura">Recuadro de lectura</a>
+        <a href="#w-respnumeradas">Respuestas numeradas</a>
+        <a href="#w-resptituladas">Respuestas tituladas</a>
+        <a href="#w-oraciones">Oraciones con espacio</a>
+        <a href="#w-rutina">Rutina en burbujas</a>
+
+        <h2>7. Multimedia</h2>
+        <a href="#w-subirimagen">Subir imagen</a>
+        <a href="#w-lienzo">Lienzo para dibujar</a>
+
+        <h2>8. Insignias</h2>
+        <a href="#w-badge">Badge de lectura</a>
+        <a href="#w-titulosec">Títulos de sección</a>
+      </nav>
+
+      <main class="cat-main">
+        <h1>Catálogo de widgets — folleto-widgets.js</h1>
+        <p class="cat-intro">
+          Cada widget de abajo está demostrado <b>en vivo</b>: esta página carga el
+          <code>js/folleto-widgets.js</code> real del proyecto, así que lo que ves aquí
+          es exactamente lo que sale en las 12 actividades. Debajo de cada demo hay un
+          botón <b>Validar</b> (cuando el widget se autocalifica) y el código exacto
+          para usarlo. Todo el JS es nativo, sin jQuery.
+        </p>
+
+        <!-- ============================================================ -->
+        <section class="cat-cat" id="seleccionar">
+          <h2>1. Seleccionar / marcar opciones</h2>
+
+          <article class="cat-widget" id="w-encerrar">
+            <h3>folletoEncerrarSimple <span class="cat-tag">se autocalifica</span></h3>
+            <p class="cat-desc">
+              "Encierra" una o varias tarjetas de texto entre varias opciones. Para
+              preguntas donde el enunciado dice "encierra"/"elige". <code>multiple</code>
+              (default true) controla si se puede marcar una sola o varias a la vez;
+              <code>ovalos</code> (default false) cambia las tarjetas rectangulares por
+              óvalos de color, para calcar el diseño del folleto.
+            </p>
+            <div class="cat-demo-grid">
+              <div class="cat-demo">
+                <h4>Única · tarjetas</h4>
+                <div class="cat-demo-body" id="demo-encerrar-a"></div>
+                <div class="cat-validar-row">
+                  <button class="cat-btn" id="btn-encerrar-a">Validar</button>
+                  <span class="cat-resultado" id="res-encerrar-a">sin calificar</span>
+                </div>
+              </div>
+              <div class="cat-demo">
+                <h4>Múltiple · tarjetas</h4>
+                <div class="cat-demo-body" id="demo-encerrar-b"></div>
+                <div class="cat-validar-row">
+                  <button class="cat-btn" id="btn-encerrar-b">Validar</button>
+                  <span class="cat-resultado" id="res-encerrar-b">sin calificar</span>
+                </div>
+              </div>
+              <div class="cat-demo">
+                <h4>Única · óvalos de color</h4>
+                <div class="cat-demo-body" id="demo-encerrar-c"></div>
+                <div class="cat-validar-row">
+                  <button class="cat-btn" id="btn-encerrar-c">Validar</button>
+                  <span class="cat-resultado" id="res-encerrar-c">sin calificar</span>
+                </div>
+              </div>
+            </div>
+            <pre class="cat-code"><code>var items = [
+  { title: 'Reutilizar el agua de lluvia', resp: '1' },   // '1' = correcta
+  { title: 'Dejar la llave abierta',        resp: '0' },
+  { title: 'Cerrar la llave al enjabonarse', resp: '1' },
+];
+
+<b>// única, tarjetas (por defecto)</b>
+folletoEncerrarSimple(items, 'p1act', false);
+
+<b>// múltiple, tarjetas</b>
+folletoEncerrarSimple(items, 'p1act', true);
+
+<b>// única, óvalos de color</b>
+folletoEncerrarSimple(items, 'p1act', false, true);
+
+function pregunta1() {
+  let core = folletoValidarEncerrarSimple('p1act'); // 0..1
+  document.getElementById('pre1a').value = (core * 2).toFixed(2);
+}</code></pre>
+          </article>
+
+          <article class="cat-widget" id="w-marcarvisto">
+            <h3>folletoMarcarVisto <span class="cat-tag">se autocalifica</span></h3>
+            <p class="cat-desc">
+              Casilla cuadrada + texto en píldora de color, para "coloca un ✓" o
+              "marca" (en vez de "selecciona"/"encierra"). <code>opciones.multiple</code>
+              (default false) y <code>opciones.marca</code> (default '✓', puede ser
+              'X' o cualquier símbolo) son ambos opcionales.
+            </p>
+            <div class="cat-demo-grid">
+              <div class="cat-demo">
+                <h4>Única · marca ✓ (default)</h4>
+                <div class="cat-demo-body" id="demo-visto-a"></div>
+                <div class="cat-validar-row">
+                  <button class="cat-btn" id="btn-visto-a">Validar</button>
+                  <span class="cat-resultado" id="res-visto-a">sin calificar</span>
+                </div>
+              </div>
+              <div class="cat-demo">
+                <h4>Múltiple · marca X</h4>
+                <div class="cat-demo-body" id="demo-visto-b"></div>
+                <div class="cat-validar-row">
+                  <button class="cat-btn" id="btn-visto-b">Validar</button>
+                  <span class="cat-resultado" id="res-visto-b">sin calificar</span>
+                </div>
+              </div>
+            </div>
+            <pre class="cat-code"><code>var opciones = [
+  { title: 'Reducir el consumo de energía', resp: '1' },
+  { title: 'Dejar luces encendidas todo el día', resp: '0' },
+  { title: 'Usar transporte compartido', resp: '1' },
+  { title: 'Comprar más de lo necesario', resp: '0' },
+];
+
+<b>// única, con ✓ (default)</b>
+folletoMarcarVisto(opciones, 'p2act');
+
+<b>// múltiple, con X</b>
+folletoMarcarVisto(opciones, 'p2act', { multiple: true, marca: 'X' });
+
+function pregunta2() {
+  let core = folletoValidarMarcarVisto('p2act');
+  document.getElementById('pre2a').value = (core * 2).toFixed(2);
+}</code></pre>
+          </article>
+
+          <article class="cat-widget" id="w-marcarimagenes">
+            <h3>folletoMarcarImagenes <span class="cat-tag">se autocalifica</span></h3>
+            <p class="cat-desc">
+              Tarjetas con un icono/emoji grande y un check circular al marcarlas.
+              Siempre es de selección múltiple. <code>items: [{ico, label, ok}]</code> —
+              <code>ico</code> puede ser un emoji o un <code>&lt;img&gt;</code>, <code>ok</code> boolean.
+            </p>
+            <div class="cat-demo-grid">
+              <div class="cat-demo">
+                <h4>Marcar las imágenes correctas</h4>
+                <div class="cat-demo-body" id="demo-marcarimg"></div>
+                <div class="cat-validar-row">
+                  <button class="cat-btn" id="btn-marcarimg">Validar</button>
+                  <span class="cat-resultado" id="res-marcarimg">sin calificar</span>
+                </div>
+              </div>
+            </div>
+            <pre class="cat-code"><code>var items = [
+  { ico: '🚲', label: 'Bicicleta', ok: true },
+  { ico: '🚗', label: 'Auto a gasolina', ok: false },
+  { ico: '☀️', label: 'Panel solar', ok: true },
+  { ico: '🏭', label: 'Fábrica con humo', ok: false },
+];
+folletoMarcarImagenes(items, 'p3act');
+
+function pregunta3() {
+  let core = folletoValidarMarcarImagenes('p3act');
+  document.getElementById('pre3a').value = (core * 2).toFixed(2);
+}</code></pre>
+          </article>
+
+          <article class="cat-widget" id="w-subrayar">
+            <h3>folletoSubrayarOpciones <span class="cat-tag">R.A. o se autocalifica</span></h3>
+            <p class="cat-desc">
+              Simula "subrayar a mano": una línea se dibuja bajo el texto al hacer
+              clic. Acepta <code>items: [string]</code> (respuesta abierta, sin
+              calificar) o <code>items: [{title, resp}]</code> (si sí tiene respuesta
+              correcta). <code>marcador</code>: <code>'punto'</code> (default, •),
+              <code>'letra'</code> (a, b, c…), <code>'numero'</code> (1., 2., 3…) o
+              <code>'ninguno'</code>.
+            </p>
+            <div class="cat-demo-grid">
+              <div class="cat-demo">
+                <h4>Múltiple · viñetas · R.A.</h4>
+                <div class="cat-demo-body" id="demo-subrayar-a"></div>
+              </div>
+              <div class="cat-demo">
+                <h4>Única · letras · se autocalifica</h4>
+                <div class="cat-demo-body" id="demo-subrayar-b"></div>
+                <div class="cat-validar-row">
+                  <button class="cat-btn" id="btn-subrayar-b">Validar</button>
+                  <span class="cat-resultado" id="res-subrayar-b">sin calificar</span>
+                </div>
+              </div>
+              <div class="cat-demo">
+                <h4>Múltiple · números</h4>
+                <div class="cat-demo-body" id="demo-subrayar-c"></div>
+              </div>
+            </div>
+            <pre class="cat-code"><code>// R.A. (sin calificar): items como strings
+var propuestas = ['Crear una campaña escolar.', 'Reducir el uso de plásticos.', 'Organizar una feria ambiental.'];
+folletoSubrayarOpciones(propuestas, 'p4act');                       // múltiple, viñetas (default)
+folletoSubrayarOpciones(propuestas, 'p4act', false, 'letra');       // única, con letras
+folletoSubrayarOpciones(propuestas, 'p4act', true, 'numero');       // múltiple, numerado
+
+// con respuesta correcta: items como {title, resp}
+var opciones = [
+  { title: 'El reciclaje reduce la basura.', resp: '1' },
+  { title: 'Quemar basura no contamina.', resp: '0' },
+];
+folletoSubrayarOpciones(opciones, 'p4act', false, 'letra');
+function pregunta4() {
+  let core = folletoValidarSubrayarOpciones('p4act');
+  document.getElementById('pre4a').value = (core * 2).toFixed(2);
+}</code></pre>
+          </article>
+
+          <article class="cat-widget" id="w-checklist">
+            <h3>folletoChecklistAbierto <span class="cat-tag">R.A., no se autocalifica</span></h3>
+            <p class="cat-desc">
+              Lista simple de casillas de verificación (checkbox nativo), sin
+              respuesta correcta única — para "Lluvia de ideas" y similares.
+              <code>cols</code>: 1 (default, una columna) o 2 (dos columnas en pantallas anchas).
+            </p>
+            <div class="cat-demo-grid">
+              <div class="cat-demo">
+                <h4>1 columna (default)</h4>
+                <div class="cat-demo-body" id="demo-checklist-a"></div>
+              </div>
+              <div class="cat-demo">
+                <h4>2 columnas</h4>
+                <div class="cat-demo-body" id="demo-checklist-b"></div>
+              </div>
+            </div>
+            <pre class="cat-code"><code>var ideas = [
+  'Organizar una campaña de reciclaje.',
+  'Crear carteles informativos.',
+  'Hacer una huerta escolar.',
+  'Reducir el uso de plástico en el bar escolar.',
+];
+folletoChecklistAbierto(ideas, 'p5act');       // 1 columna (default)
+folletoChecklistAbierto(ideas, 'p5act', 2);    // 2 columnas</code></pre>
+          </article>
+
+          <article class="cat-widget" id="w-listachecklist">
+            <h3>folletoListaChecklist <span class="cat-tag">R.A., no se autocalifica</span></h3>
+            <p class="cat-desc">
+              Igual que el anterior, pero agrupado en tarjetas de color, cada una con
+              su propio título/pregunta — para "Lluvia de ideas" con varias preguntas
+              lado a lado. <code>grupos: [{titulo, claseCaja, claseTitulo, opciones: [string]}]</code>.
+            </p>
+            <div class="cat-demo-grid">
+              <div class="cat-demo" style="grid-column: 1 / -1">
+                <h4>Dos grupos lado a lado</h4>
+                <div class="cat-demo-body" id="demo-listachecklist"></div>
+              </div>
+            </div>
+            <pre class="cat-code"><code>var grupos = [
+  {
+    titulo: '¿Por qué ocurre el problema?',
+    claseCaja: 'bg-amber-50 border-2 border-amber-200',
+    claseTitulo: 'text-amber-800',
+    opciones: ['Falta de información', 'Poca costumbre de reciclar', 'No hay contenedores suficientes'],
+  },
+  {
+    titulo: '¿Qué consecuencias tiene?',
+    claseCaja: 'bg-lime-50 border-2 border-lime-200',
+    claseTitulo: 'text-lime-800',
+    opciones: ['Más basura en botaderos', 'Contaminación del agua', 'Menor vida útil de los materiales'],
+  },
+];
+folletoListaChecklist(grupos, 'p6act');</code></pre>
+          </article>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="cat-cat" id="vf">
+          <h2>2. Verdadero o Falso</h2>
+          <article class="cat-widget" id="w-vf">
+            <h3>folletoVerdaderoFalso <span class="cat-tag">se autocalifica</span></h3>
+            <p class="cat-desc">
+              Cada enunciado en su propia franja de color con una píldora V/F a la
+              derecha. Un enunciado sin responder cuenta como incorrecto (se pinta de
+              rojo, no se deja neutro). <code>items: [{enunciado, correcta: 'V'|'F'}]</code>.
+              <code>colores</code> (opcional, 3er parámetro): array <code>[{bg,border}]</code>
+              para fijarlos a mano; si no se pasa, se generan al azar.
+              <code>opciones.justificacion</code> (4to parámetro, opcional): agrega un
+              campo de texto debajo de cada afirmación para que el estudiante explique
+              su respuesta — <code>false</code> (default, sin campo),
+              <code>true</code> (todas lo llevan) o <code>'soloFalsos'</code> (solo las
+              afirmaciones falsas, el caso típico de "si es falso, explica"). También se
+              puede fijar por ítem con <code>item.justificacion</code>.
+            </p>
+            <div class="cat-demo-grid">
+              <div class="cat-demo" style="grid-column: 1 / -1">
+                <h4>Sin justificación (comportamiento original)</h4>
+                <div class="cat-demo-body" id="demo-vf"></div>
+                <div class="cat-validar-row">
+                  <button class="cat-btn" id="btn-vf">Validar</button>
+                  <span class="cat-resultado" id="res-vf">sin calificar</span>
+                </div>
+              </div>
+              <div class="cat-demo" style="grid-column: 1 / -1">
+                <h4>Con justificación en todas las afirmaciones</h4>
+                <div class="cat-demo-body" id="demo-vf-justificacion"></div>
+                <div class="cat-validar-row">
+                  <button class="cat-btn" id="btn-vf-justificacion">Validar</button>
+                  <span class="cat-resultado" id="res-vf-justificacion">sin calificar</span>
+                </div>
+              </div>
+            </div>
+            <pre class="cat-code"><code>var items = [
+  { enunciado: 'El reciclaje ayuda a reducir la contaminación.', correcta: 'V' },
+  { enunciado: 'Toda la basura orgánica tarda lo mismo en descomponerse que el plástico.', correcta: 'F' },
+  { enunciado: 'Separar la basura facilita su reciclaje.', correcta: 'V' },
+];
+folletoVerdaderoFalso(items, 'p1act');
+
+function pregunta1() {
+  let core = folletoValidarVerdaderoFalso('p1act');
+  document.getElementById('pre1a').value = (core * 2).toFixed(2);
+}
+
+<b>// con campo de justificación bajo TODAS las afirmaciones (V y F)</b>
+folletoVerdaderoFalso(items, 'p1act', null, { justificacion: true });
+
+<b>// variante: solo bajo las falsas ("si es falso, explica")</b>
+folletoVerdaderoFalso(items, 'p1act', null, { justificacion: 'soloFalsos' });</code></pre>
+          </article>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="cat-cat" id="unir">
+          <h2>3. Unir con líneas</h2>
+          <article class="cat-widget" id="w-unir">
+            <h3>folletoUnirLineas <span class="cat-tag">se autocalifica</span></h3>
+            <p class="cat-desc">
+              Dos columnas: clic en un ítem de la izquierda y luego en el de la
+              derecha que le corresponde, y se dibuja una línea real (SVG) entre
+              ambos — doble clic sobre un ítem ya unido deshace esa unión. El par
+              correcto es <code>items[i].literal</code> con
+              <code>items[i].enunciado</code> (mismo índice); la columna derecha se
+              mezcla sola. <code>opciones.tituloIzquierda</code> /
+              <code>opciones.tituloDerecha</code> (4to parámetro, ambos opcionales):
+              rótulo encima de cada columna, como "Causa"/"Efecto" en el PDF — si no
+              se pasa ninguno, no aparece fila de títulos (igual que antes).
+              <code>opciones.colorTituloIzquierda</code> /
+              <code>opciones.colorTituloDerecha</code> (opcionales): color de fondo
+              de cada píldora, para calcar el color exacto del PDF; sin esto, ambas
+              usan el mismo índigo por defecto.
+            </p>
+            <div class="cat-demo-grid">
+              <div class="cat-demo" style="grid-column: 1 / -1">
+                <h4>Sin títulos (comportamiento original)</h4>
+                <div class="cat-demo-body" id="demo-unir" style="min-height:220px"></div>
+                <div class="cat-validar-row">
+                  <button class="cat-btn" id="btn-unir">Validar</button>
+                  <span class="cat-resultado" id="res-unir">sin calificar</span>
+                </div>
+              </div>
+              <div class="cat-demo" style="grid-column: 1 / -1">
+                <h4>Con títulos de columna ("Causa" / "Efecto")</h4>
+                <div class="cat-demo-body" id="demo-unir-titulos" style="min-height:220px"></div>
+                <div class="cat-validar-row">
+                  <button class="cat-btn" id="btn-unir-titulos">Validar</button>
+                  <span class="cat-resultado" id="res-unir-titulos">sin calificar</span>
+                </div>
+              </div>
+            </div>
+            <pre class="cat-code"><code>var pares = [
+  { literal: 'Reciclar', enunciado: 'Transformar un material usado en uno nuevo.' },
+  { literal: 'Reducir', enunciado: 'Consumir menos recursos desde el inicio.' },
+  { literal: 'Reutilizar', enunciado: 'Dar un nuevo uso a algo antes de desecharlo.' },
+];
+folletoUnirLineas(pares, 'p1act');
+
+function pregunta1() {
+  let core = folletoValidarUnirLineas('p1act');
+  document.getElementById('pre1a').value = (core * 2).toFixed(2);
+}
+
+<b>// con títulos de columna, con los colores exactos del PDF</b>
+folletoUnirLineas(pares, 'p1act', null, {
+  tituloIzquierda: 'Causa',
+  tituloDerecha: 'Efecto',
+  colorTituloIzquierda: '#fb923c',
+  colorTituloDerecha: '#38bdf8',
+});</code></pre>
+          </article>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="cat-cat" id="asignar-literal">
+          <h2>3.5. Asignar literal</h2>
+          <article class="cat-widget" id="w-asignar-literal">
+            <h3>folletoAsignarLiteral <span class="cat-tag">se autocalifica</span></h3>
+            <p class="cat-desc">
+              Dos columnas SIN líneas: a la izquierda, tarjetas con su literal
+              (a, b, c…) en un chip de color; a la derecha, cada descripción trae
+              una casilla <code>&lt;select&gt;</code> donde el estudiante ELIGE la
+              letra que le corresponde — para preguntas tipo "Lee los siguientes X
+              y coloca el literal que corresponda a su Y", donde el PDF trae un
+              cuadradito con la letra ya escrita a mano en vez de líneas trazadas.
+              Las casillas de la derecha son todas del mismo gris neutro (no del
+              color de su literal correcto): colorearlas según la respuesta
+              delataría la solución con solo mirarlas. <code>izquierda</code>:
+              <code>[{ literal, texto }]</code>. <code>derecha</code>:
+              <code>[{ texto, correcta }]</code>, donde <code>correcta</code> es el
+              literal esperado.
+            </p>
+            <div class="cat-demo-grid">
+              <div class="cat-demo" style="grid-column: 1 / -1">
+                <div class="cat-demo-body" id="demo-asignar-literal" style="min-height:220px"></div>
+                <div class="cat-validar-row">
+                  <button class="cat-btn" id="btn-asignar-literal">Validar</button>
+                  <span class="cat-resultado" id="res-asignar-literal">sin calificar</span>
+                </div>
+              </div>
+            </div>
+            <pre class="cat-code"><code>var izquierda = [
+  { literal: 'a', texto: 'Separar los residuos en orgánicos e inorgánicos.' },
+  { literal: 'b', texto: 'Reducir el uso de plásticos de un solo uso.' },
+  { literal: 'c', texto: 'Reutilizar envases de vidrio para almacenar alimentos.' },
+];
+var derecha = [
+  { texto: 'Permite que cada tipo de residuo tenga un destino adecuado.', correcta: 'a' },
+  { texto: 'Disminuye la cantidad de basura que termina en el ambiente.', correcta: 'b' },
+  { texto: 'Alarga la vida útil de un envase antes de desecharlo.', correcta: 'c' },
+];
+folletoAsignarLiteral(izquierda, derecha, 'p1act');
+
+function pregunta1() {
+  let core = folletoValidarAsignarLiteral('p1act');
+  document.getElementById('pre1a').value = (core * 1.5).toFixed(2);
+}</code></pre>
+          </article>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="cat-cat" id="ordenar">
+          <h2>4. Ordenar / secuencia (arrastrar)</h2>
+          <article class="cat-widget" id="w-ordenar">
+            <h3>folletoOrdenarSecuencia <span class="cat-tag">se autocalifica (modo fijo)</span></h3>
+            <p class="cat-desc">
+              Lista arrastrable con Pointer Events (mouse, táctil y lápiz — sin
+              jQuery UI); se agarra desde cualquier parte de la tarjeta (no solo
+              el ícono ⠿⠿) y sigue al cursor en vivo mientras los demás se corren
+              con una animación suave para abrir espacio. Por defecto
+              (<code>modoRango: false</code>) cada oración conserva su letra/id
+              fija sin importar dónde se arrastre: sirve para "ordena para que
+              tenga sentido" con una única secuencia correcta.
+              Con <code>modoRango: true</code> la insignia se convierte en un
+              <b>rango por posición</b> (1, 2, 3…) que se recalcula al soltar —
+              para "coloca 1 en el más urgente, 3 en el menos" (R.A., sin orden único).
+            </p>
+            <div class="cat-demo-grid">
+              <div class="cat-demo">
+                <h4>Modo fijo · una secuencia correcta</h4>
+                <div class="cat-demo-body" id="demo-ordenar-a"></div>
+                <div class="cat-validar-row">
+                  <button class="cat-btn" id="btn-ordenar-a">Validar</button>
+                  <span class="cat-resultado" id="res-ordenar-a">sin calificar</span>
+                </div>
+              </div>
+              <div class="cat-demo">
+                <h4>modoRango · ranking (R.A.)</h4>
+                <div class="cat-demo-body" id="demo-ordenar-b"></div>
+              </div>
+            </div>
+            <pre class="cat-code"><code>var pasos = [
+  { id: 'A', texto: 'Separar los materiales reciclables.' },
+  { id: 'B', texto: 'Llevarlos al contenedor correspondiente.' },
+  { id: 'C', texto: 'Lavar los envases antes de reciclarlos.' },
+];
+
+<b>// modo fijo (default): existe UN orden correcto</b>
+folletoOrdenarSecuencia(pasos, 'p1act');
+function pregunta1() {
+  // el orden correcto se define por el ID de cada paso, no por su posición inicial
+  let core = folletoValidarOrdenarSecuencia(['C', 'A', 'B'], 'p1act');
+  document.getElementById('pre1a').value = (core * 2).toFixed(2);
+}
+
+<b>// modoRango: ranking por posición, sin orden único (R.A.)</b>
+folletoOrdenarSecuencia(pasos, 'p2act', { modoRango: true });</code></pre>
+          </article>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="cat-cat" id="tablas">
+          <h2>5. Tablas</h2>
+
+          <article class="cat-widget" id="w-tabla">
+            <h3>folletoTabla <span class="cat-tag">mixta: libre y/o se autocalifica</span></h3>
+            <p class="cat-desc">
+              Tabla con columnas de color y celdas fijas, editables (R.A.) o
+              autocalificadas, celda por celda. Cada celda puede ser: un
+              string/number (fijo), <code>null</code> (campo abierto), <code>{resp}</code>
+              (se autocalifica), <code>{campo:'pNcampoTexto'}</code> (fuerza un campo
+              tipo cuaderno específico), o <code>{texto,bg,color,rowspan?,colSpan?}</code>
+              (celda-etiqueta fusionable). <code>sinEncabezado</code> omite el
+              <code>&lt;thead&gt;</code>; <code>anchosCol</code> fija el ancho de cada columna.
+            </p>
+            <div class="cat-demo-grid">
+              <div class="cat-demo">
+                <h4>Abierta (R.A.) — campo tipo cuaderno</h4>
+                <div class="cat-demo-body" id="demo-tabla-a"></div>
+              </div>
+              <div class="cat-demo">
+                <h4>Con columna autocalificada</h4>
+                <div class="cat-demo-body" id="demo-tabla-b"></div>
+                <div class="cat-validar-row">
+                  <button class="cat-btn" id="btn-tabla-b">Validar</button>
+                  <span class="cat-resultado" id="res-tabla-b">sin calificar</span>
+                </div>
+              </div>
+              <div class="cat-demo" style="grid-column: 1 / -1">
+                <h4>Sin encabezado + colSpan/rowspan + anchosCol</h4>
+                <div class="cat-demo-body" id="demo-tabla-c"></div>
+              </div>
+            </div>
+            <pre class="cat-code"><code>// abierta (R.A.), campo tipo cuaderno
+folletoTabla({
+  columnas: [{ titulo: 'Lugar', color: '#ec4899' }, { titulo: '¿Qué consumo tiene?', color: '#38bdf8' }],
+  filas: [['Vivienda', null], ['Local comercial', null]],
+  campoClass: 'p2campoTexto',
+}, 'p2act');
+
+// con una columna que sí se autocalifica ({resp})
+folletoTabla({
+  columnas: [{ titulo: 'País', color: '#6366f1' }, { titulo: 'Capital', color: '#16a34a' }],
+  filas: [['Ecuador', { resp: 'Quito' }], ['Perú', { resp: 'Lima' }]],
+}, 'p3act');
+function pregunta3() {
+  let core = folletoValidarTabla('p3act');
+  document.getElementById('pre3a').value = (core * 2).toFixed(2);
+}
+
+// sin encabezado, con fila-título fusionada (colSpan) y una columna
+// fusionada verticalmente (rowspan), más anchos de columna fijos
+folletoTabla({
+  columnas: [],
+  sinEncabezado: true,
+  filas: [
+    [{ texto: 'Nombre del proyecto', bg: '#fdba74', color: '#7c2d12', colSpan: 2 }],
+    [{ texto: 'Origen', bg: '#fb923c', color: '#fff' }, { campo: 'p1campoTexto', rowspan: 2 }],
+    [{ texto: '¿Cómo funciona?', bg: '#fb923c', color: '#fff' }],
+  ],
+  anchosCol: ['32%', '68%'],
+}, 'p4act');</code></pre>
+          </article>
+
+          <article class="cat-widget" id="w-tablamarcar">
+            <h3>folletoTablaMarcar <span class="cat-tag">se autocalifica</span></h3>
+            <p class="cat-desc">
+              Tabla para <b>marcar con X o ✓</b> ("Marca con una X las estructuras que…"): la
+              1.ª columna es la etiqueta de cada fila y las demás son casillas que se marcan y
+              desmarcan con un clic. Cada fila trae <code>resp</code> con las columnas que deben
+              quedar marcadas (por título o por número, 1 = primera marcable); sin <code>resp</code>
+              la fila es R.A. <code>marca</code>: <code>'X'</code> (por defecto) o <code>'✓'</code>.
+              Acepta <code>fondo</code> por columna, <code>ajustarAncho</code> y <code>anchosCol</code>
+              igual que folletoTabla. Califica fila por fila con el mismo motor de los widgets de
+              marcar (fila sin marcar = 0).
+            </p>
+            <div class="cat-demo-grid">
+              <div class="cat-demo">
+                <h4>Con X</h4>
+                <div class="cat-demo-body" id="demo-tablamarcar-a"></div>
+                <div class="cat-validar-row">
+                  <button class="cat-btn" id="btn-tablamarcar-a">Validar</button>
+                  <span class="cat-resultado" id="res-tablamarcar-a">sin calificar</span>
+                </div>
+              </div>
+              <div class="cat-demo">
+                <h4>Con ✓ y fondo por columna</h4>
+                <div class="cat-demo-body" id="demo-tablamarcar-b"></div>
+                <div class="cat-validar-row">
+                  <button class="cat-btn" id="btn-tablamarcar-b">Validar</button>
+                  <span class="cat-resultado" id="res-tablamarcar-b">sin calificar</span>
+                </div>
+              </div>
+            </div>
+            <pre class="cat-code"><code>folletoTablaMarcar({
+  columnas: [
+    { titulo: 'Función / Estructura', color: '#d4eefc', textColor: '#00aeef' },
+    { titulo: 'Riñón', color: '#e3f0dd', textColor: '#40ad49', fondo: '#f4f9f2' },
+    { titulo: 'Vejiga', color: '#d3d3e7', textColor: '#24408f', fondo: '#eeeef6' },
+  ],
+  filas: [
+    { texto: 'Filtración de la sangre', resp: ['Riñón'] },
+    { texto: 'Almacenamiento de orina', resp: ['Vejiga'] },
+  ],
+  marca: 'X', // o '✓'
+  ajustarAncho: true,
+}, 'p2tabla');
+function pregunta2() {
+  let core = folletoValidarTablaMarcar('p2tabla');
+  document.getElementById('pre2a').value = (core * 2).toFixed(2);
+}</code></pre>
+          </article>
+
+          <article class="cat-widget" id="w-exactas">
+            <h3>folletoValidarExactas <span class="cat-tag">se autocalifica</span></h3>
+            <p class="cat-desc">
+              Versión nativa del <code>validarExactas</code> del framework viejo: no dibuja nada,
+              valida campos que ya pusiste en el HTML con ids seguidos (<code>p1num0</code>,
+              <code>p1num1</code>…). Recibe las respuestas en el mismo orden y el prefijo del id
+              (con o sin <code>#</code>). Lee el <code>value</code> de input / textarea / select, o
+              el texto si es un div (<code>esDiv</code>). Ignora mayúsculas, tildes y espacios de
+              más; cada respuesta puede ser un array de alternativas. Pinta <code>.bien</code> /
+              <code>.mal</code> y los limpia al volver a escribir.
+            </p>
+            <div class="cat-demo-grid">
+              <div class="cat-demo" style="grid-column: 1 / -1">
+                <h4>Ordena del 1 al 3</h4>
+                <div class="cat-demo-body flex flex-wrap gap-3 items-center">
+                  <label class="flex items-center gap-2">Germinación <input id="demo-ex0" maxlength="1" class="w-10 h-10 rounded-full border-2 border-stone-300 text-center font-bold" /></label>
+                  <label class="flex items-center gap-2">Semilla <input id="demo-ex1" maxlength="1" class="w-10 h-10 rounded-full border-2 border-stone-300 text-center font-bold" /></label>
+                  <label class="flex items-center gap-2">Planta adulta <input id="demo-ex2" maxlength="1" class="w-10 h-10 rounded-full border-2 border-stone-300 text-center font-bold" /></label>
+                </div>
+                <div class="cat-validar-row">
+                  <button class="cat-btn" id="btn-exactas">Validar</button>
+                  <span class="cat-resultado" id="res-exactas">sin calificar</span>
+                </div>
+              </div>
+            </div>
+            <pre class="cat-code"><code>// HTML: &lt;input id="p1num0"&gt; &lt;input id="p1num1"&gt; ... (ids seguidos)
+function pregunta1() {
+  let core = folletoValidarExactas(['2', '1', '3'], '#p1num');   // 0 a 1
+  document.getElementById('pre1a').value = (core * 5).toFixed(2);
+  return core * 5;
+}
+// alternativas aceptadas y lectura de un div:
+folletoValidarExactas([['Golgi', 'aparato de Golgi'], 'núcleo'], 'p2resp', true);</code></pre>
+          </article>
+
+          <article class="cat-widget" id="w-opcionesselect">
+            <h3>folletoAsignarOpcionesSelect <span class="cat-tag">se valida con folletoValidarExactas</span></h3>
+            <p class="cat-desc">
+              Versión nativa de <code>asignarOpcionesAselect</code>: llena <b>todos</b> los
+              <code>&lt;select&gt;</code> del selector con una opción inicial deshabilitada
+              (<code>'selecciona⮟'</code>) y las opciones del array mezcladas (distinto orden en
+              cada select). Cada opción lleva su <code>value</code>, así que se califica directo con
+              <code>folletoValidarExactas</code>. Opciones: <code>placeholder</code> y
+              <code>mezclar: false</code> (respeta el orden, útil para números).
+            </p>
+            <div class="cat-demo-grid">
+              <div class="cat-demo" style="grid-column: 1 / -1">
+                <h4>Elige el organelo</h4>
+                <div class="cat-demo-body space-y-2">
+                  <p>Produce la energía de la célula: <select class="demo-opsel border-2 border-stone-300 rounded-lg px-2 py-1" id="demo-opsel0"></select></p>
+                  <p>Guarda el ADN: <select class="demo-opsel border-2 border-stone-300 rounded-lg px-2 py-1" id="demo-opsel1"></select></p>
+                </div>
+                <div class="cat-validar-row">
+                  <button class="cat-btn" id="btn-opsel">Validar</button>
+                  <span class="cat-resultado" id="res-opsel">sin calificar</span>
+                </div>
+              </div>
+            </div>
+            <pre class="cat-code"><code>// HTML: &lt;select class="p1select" id="p1sel0"&gt;&lt;/select&gt; &lt;select class="p1select" id="p1sel1"&gt;&lt;/select&gt;
+folletoAsignarOpcionesSelect(['Mitocondria', 'Núcleo', 'Ribosomas'], '.p1select');
+// números en orden y "?" como opción inicial:
+folletoAsignarOpcionesSelect(['1', '2', '3'], '.p2select', { placeholder: '?', mezclar: false });
+function pregunta1() {
+  let core = folletoValidarExactas(['Mitocondria', 'Núcleo'], '#p1sel');
+  document.getElementById('pre1a').value = (core * 2).toFixed(2);
+}</code></pre>
+          </article>
+
+          <article class="cat-widget" id="w-evaluartabla">
+            <h3>folletoEvaluarTabla <span class="cat-tag">R.A., no se autocalifica</span></h3>
+            <p class="cat-desc">
+              Autoevaluación con columnas fijas Sí / No / Debo mejorar — el
+              estudiante marca un círculo por fila. <code>items: [string]</code>
+              (un criterio por fila).
+            </p>
+            <div class="cat-demo-grid">
+              <div class="cat-demo" style="grid-column: 1 / -1">
+                <div class="cat-demo-body" id="demo-evaluartabla"></div>
+              </div>
+            </div>
+            <pre class="cat-code"><code>var criterios = [
+  'Expliqué mis ideas con claridad.',
+  'Escuché las opiniones de mis compañeros.',
+  'Propuse al menos una solución concreta.',
+];
+folletoEvaluarTabla(criterios, 'p5act');</code></pre>
+          </article>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="cat-cat" id="texto">
+          <h2>6. Texto y lectura</h2>
+
+          <article class="cat-widget" id="w-lectura">
+            <h3>folletoLectura</h3>
+            <p class="cat-desc">
+              Recuadro de un texto para leer: título + párrafos + cita, con imagen(es)
+              opcional(es) flotantes. <code>config: {titulo, imagen, parrafos, cita, clase}</code> —
+              cada párrafo puede ser un string simple o <code>{texto, imagen}</code> si
+              ESE párrafo en particular lleva su propia imagen.
+            </p>
+            <div class="cat-demo-grid">
+              <div class="cat-demo" style="grid-column: 1 / -1">
+                <div class="cat-demo-body" id="demo-lectura"></div>
+              </div>
+            </div>
+            <pre class="cat-code"><code>folletoLectura({
+  titulo: '¿Por qué reciclar cambia el futuro?',
+  parrafos: [
+    'Cada año se producen millones de toneladas de residuos que podrían reutilizarse. Reciclar no solo reduce la basura: también ahorra energía y agua.',
+    'Separar los materiales en casa es el primer paso de una cadena que termina dándoles una segunda vida útil.',
+  ],
+  cita: 'Adaptado de un artículo de divulgación ambiental, 2024.',
+}, 'p1lectura');</code></pre>
+          </article>
+
+          <article class="cat-widget" id="w-respnumeradas">
+            <h3>folletoRespuestasNumeradas <span class="cat-tag">R.A., no se autocalifica</span></h3>
+            <p class="cat-desc">
+              Filas de respuesta abierta con un número grande de color a la
+              izquierda. <code>n</code>: cuántas filas. <code>campoClass</code>: la
+              clase <code>p{N}campoTexto</code> que fija el alto del campo (el número
+              es la ALTURA en filas, no el número de la pregunta).
+            </p>
+            <div class="cat-demo-grid">
+              <div class="cat-demo" style="grid-column: 1 / -1">
+                <div class="cat-demo-body" id="demo-respnumeradas"></div>
+              </div>
+            </div>
+            <pre class="cat-code"><code>// 3 respuestas abiertas, cada campo de 2 filas de alto
+folletoRespuestasNumeradas(3, 'p2act', 'p2campoTexto');</code></pre>
+          </article>
+
+          <article class="cat-widget" id="w-resptituladas">
+            <h3>folletoRespuestasTituladas <span class="cat-tag">R.A., no se autocalifica</span></h3>
+            <p class="cat-desc">
+              Tarjetas con un rótulo en negrita de color + campo de texto — para
+              varias respuestas cortas con su propio título cada una.
+              <code>items: [{titulo, color, campoClass, bg?}]</code>.
+            </p>
+            <div class="cat-demo-grid">
+              <div class="cat-demo" style="grid-column: 1 / -1">
+                <div class="cat-demo-body" id="demo-resptituladas"></div>
+              </div>
+            </div>
+            <pre class="cat-code"><code>var items = [
+  { titulo: 'Recomendación 1:', color: '#7c3aed', campoClass: 'p3campoTexto', bg: '#fefce8' },
+  { titulo: 'Recomendación 2:', color: '#f97316', campoClass: 'p3campoTexto' },  // sin bg = blanco
+];
+folletoRespuestasTituladas(items, 'p3act');</code></pre>
+          </article>
+
+          <article class="cat-widget" id="w-oraciones">
+            <h3>folletoOracionesConEspacio</h3>
+            <p class="cat-desc">
+              Oración con un hueco embebido en medio del texto (no en una caja
+              aparte). Con <code>opciones</code> el hueco es un <code>&lt;select&gt;</code>
+              con esas opciones fijas; sin <code>opciones</code>, es una raya
+              subrayada libre para escribir encima. <code>items: [{antes, despues, opciones?}]</code>.
+            </p>
+            <div class="cat-demo-grid">
+              <div class="cat-demo">
+                <h4>Con select (opciones fijas)</h4>
+                <div class="cat-demo-body" id="demo-oraciones-a"></div>
+              </div>
+              <div class="cat-demo">
+                <h4>Raya libre (sin opciones)</h4>
+                <div class="cat-demo-body" id="demo-oraciones-b"></div>
+              </div>
+            </div>
+            <pre class="cat-code"><code>// con select
+folletoOracionesConEspacio([
+  { antes: 'El vidrio, a diferencia del plástico, ', despues: ' indefinidamente sin perder calidad.', opciones: ['se puede reciclar', 'se degrada', 'se evapora'] },
+], 'p2act');
+
+// raya libre, para completar con una idea propia
+folletoOracionesConEspacio([
+  { antes: 'Si todos separáramos la basura en casa, ', despues: '.' },
+], 'p2act');</code></pre>
+          </article>
+
+          <article class="cat-widget" id="w-rutina">
+            <h3>folletoRutinaBurbujas <span class="cat-tag">R.A., no se autocalifica</span></h3>
+            <p class="cat-desc">
+              Rutina de pensamiento en tarjetas ("Veo/Siento/Pienso/Me pregunto" y
+              similares). <code>columnas</code> (opcional): un número fuerza una
+              cuadrícula fija (ej. 2) en vez de acomodarse libremente al ancho.
+              <code>item.icon</code> (opcional): ícono real del folleto en vez del
+              título en texto de color.
+            </p>
+            <div class="cat-demo-grid">
+              <div class="cat-demo">
+                <h4>Libre (flex-wrap)</h4>
+                <div class="cat-demo-body" id="demo-rutina-a"></div>
+              </div>
+              <div class="cat-demo">
+                <h4>2 columnas fijas</h4>
+                <div class="cat-demo-body" id="demo-rutina-b"></div>
+              </div>
+            </div>
+            <pre class="cat-code"><code>var rutina = [
+  { titulo: 'Veo',         pregunta: '¿Qué observo del problema?', color: '#65a30d' },
+  { titulo: 'Siento',      pregunta: '¿Cómo me siento ante esto?', color: '#ea580c' },
+  { titulo: 'Pienso',      pregunta: '¿Qué pienso al respecto?',   color: '#0d9488' },
+  { titulo: 'Me pregunto', pregunta: '¿Qué dudas tengo?',          color: '#4338ca' },
+];
+folletoRutinaBurbujas(rutina, 'p5act', 'p5campoTexto');       // libre
+folletoRutinaBurbujas(rutina, 'p5act', 'p5campoTexto', 2);    // 2 columnas fijas</code></pre>
+          </article>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="cat-cat" id="multimedia">
+          <h2>7. Multimedia</h2>
+
+          <article class="cat-widget" id="w-subirimagen">
+            <h3>folletoSubirImagen</h3>
+            <p class="cat-desc">
+              Recuadro para subir una imagen (JPEG/PNG, máx. 3 MB) con vista previa —
+              para "¿Cómo se ve?", "Dibújalo y súbelo", etc. <code>fileNum</code> debe
+              ser único por página si hay más de un subir-imagen.
+              <code>label</code> (opcional): píldora de texto debajo del recuadro.
+            </p>
+            <div class="cat-demo-grid">
+              <div class="cat-demo">
+                <div class="cat-demo-body" id="demo-subirimagen"></div>
+              </div>
+            </div>
+            <pre class="cat-code"><code>folletoSubirImagen(1, 'p6img', '¿Cómo se ve?');
+// HTML: solo el contenedor vacío, ej. &lt;div id="p6img"&gt;&lt;/div&gt;</code></pre>
+          </article>
+
+          <article class="cat-widget" id="w-lienzo">
+            <h3>folletoLienzo</h3>
+            <p class="cat-desc">
+              Mini "Paint": lápiz libre, línea, rectángulo, círculo, borrador,
+              colores, grosor y relleno — para "diseña/dibuja un esquema" cuando un
+              campo de texto no alcanza. Funciona con Pointer Events (mouse, táctil
+              y lápiz). <code>config: {alto, colores}</code>, ambos opcionales.
+            </p>
+            <div class="cat-demo-grid">
+              <div class="cat-demo" style="grid-column: 1 / -1">
+                <div class="cat-demo-body" id="demo-lienzo"></div>
+              </div>
+            </div>
+            <pre class="cat-code"><code>folletoLienzo('p7lienzo', { alto: 260 });
+// HTML: solo el contenedor vacío, ej. &lt;div id="p7lienzo"&gt;&lt;/div&gt;</code></pre>
+          </article>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="cat-cat" id="insignias">
+          <h2>8. Insignias</h2>
+          <article class="cat-widget" id="w-badge">
+            <h3>folletoBadgeLectura</h3>
+            <p class="cat-desc">
+              Círculo de color + letra + texto, para encabezar preguntas de
+              comprensión lectora. <code>tipo</code>: <code>'literal'</code>,
+              <code>'inferencial'</code> o <code>'critica'</code>.
+            </p>
+            <div class="cat-demo-grid">
+              <div class="cat-demo"><div id="demo-badge-l"></div></div>
+              <div class="cat-demo"><div id="demo-badge-i"></div></div>
+              <div class="cat-demo"><div id="demo-badge-c"></div></div>
+            </div>
+            <pre class="cat-code"><code>folletoBadgeLectura('literal', 'badgeL1');
+folletoBadgeLectura('inferencial', 'badgeI1');
+folletoBadgeLectura('critica', 'badgeC1');
+// HTML: solo el contenedor vacío, ej. &lt;div id="badgeL1"&gt;&lt;/div&gt;</code></pre>
+          </article>
+
+          <article class="cat-widget" id="w-titulosec">
+            <h3>folletoTituloSeccion</h3>
+            <p class="cat-desc">
+              Títulos de sección de Creando juntos calcados del PDF: círculo con ícono
+              (<code>img/ico_sec_*.png</code>) sobre una píldora de color con borde punteado y texto
+              blanco; "Paso a paso" y "Recursos" van con su ícono suelto y el texto de color. La
+              píldora y el texto son HTML/CSS (nítidos, responsive e imprimibles). Tipos:
+              <code>sumergete</code>, <code>entrana</code>, <code>imaginacion</code>,
+              <code>daforma</code>, <code>prueba</code>, <code>pasoapaso</code>, <code>recursos</code>.
+              Opcional <code>{ texto }</code> para otro rótulo.
+            </p>
+            <div class="cat-demo-grid">
+              <div class="cat-demo" style="grid-column: 1 / -1">
+                <div class="cat-demo-body flex flex-col gap-3">
+                  <div id="demo-ts-sumergete"></div><div id="demo-ts-entrana"></div>
+                  <div id="demo-ts-imaginacion"></div><div id="demo-ts-daforma"></div>
+                  <div id="demo-ts-recursos"></div><div id="demo-ts-pasoapaso"></div>
+                  <div id="demo-ts-prueba"></div>
+                </div>
+              </div>
+            </div>
+            <pre class="cat-code"><code>// HTML: &lt;div id="tSumergete" class="mb-3"&gt;&lt;/div&gt; (contenedor vacío)
+folletoTituloSeccion('sumergete', 'tSumergete');
+folletoTituloSeccion('entrana', 'tEntrana');
+folletoTituloSeccion('imaginacion', 'tImaginacion');
+folletoTituloSeccion('daforma', 'tDaforma');
+folletoTituloSeccion('recursos', 'tRecursos');
+folletoTituloSeccion('pasoapaso', 'tPasoapaso');
+folletoTituloSeccion('prueba', 'tPrueba');</code></pre>
+          </article>
+        </section>
+      </main>
+    </div>
+
+    <script src="js/folleto-widgets.js?v=142"></script>
+    <script>
+      function marcarResultado(spanId, score) {
+        var el = document.getElementById(spanId);
+        el.textContent = 'Resultado: ' + (score * 10).toFixed(2) + ' / 10';
+        el.className = 'cat-resultado ' + (score >= 0.99 ? 'ok' : score > 0 ? 'parcial' : 'mal');
+      }
+
+      // ---------- 1. Seleccionar ----------
+      var itemsEncerrar = [
+        { title: 'Reutilizar el agua de lluvia', resp: '1' },
+        { title: 'Dejar la llave abierta', resp: '0' },
+        { title: 'Cerrar la llave al enjabonarse', resp: '1' },
+      ];
+      folletoEncerrarSimple(itemsEncerrar, 'demo-encerrar-a', false);
+      folletoEncerrarSimple(itemsEncerrar, 'demo-encerrar-b', true);
+      folletoEncerrarSimple(itemsEncerrar, 'demo-encerrar-c', false, true);
+      document.getElementById('btn-encerrar-a').addEventListener('click', () => marcarResultado('res-encerrar-a', folletoValidarEncerrarSimple('demo-encerrar-a')));
+      document.getElementById('btn-encerrar-b').addEventListener('click', () => marcarResultado('res-encerrar-b', folletoValidarEncerrarSimple('demo-encerrar-b')));
+      document.getElementById('btn-encerrar-c').addEventListener('click', () => marcarResultado('res-encerrar-c', folletoValidarEncerrarSimple('demo-encerrar-c')));
+
+      var opcionesVisto = [
+        { title: 'Reducir el consumo de energía', resp: '1' },
+        { title: 'Dejar luces encendidas todo el día', resp: '0' },
+        { title: 'Usar transporte compartido', resp: '1' },
+        { title: 'Comprar más de lo necesario', resp: '0' },
+      ];
+      folletoMarcarVisto(opcionesVisto, 'demo-visto-a');
+      folletoMarcarVisto(opcionesVisto, 'demo-visto-b', { multiple: true, marca: 'X' });
+      document.getElementById('btn-visto-a').addEventListener('click', () => marcarResultado('res-visto-a', folletoValidarMarcarVisto('demo-visto-a')));
+      document.getElementById('btn-visto-b').addEventListener('click', () => marcarResultado('res-visto-b', folletoValidarMarcarVisto('demo-visto-b')));
+
+      folletoMarcarImagenes(
+        [
+          { ico: '🚲', label: 'Bicicleta', ok: true },
+          { ico: '🚗', label: 'Auto a gasolina', ok: false },
+          { ico: '☀️', label: 'Panel solar', ok: true },
+          { ico: '🏭', label: 'Fábrica con humo', ok: false },
+        ],
+        'demo-marcarimg',
+      );
+      document.getElementById('btn-marcarimg').addEventListener('click', () => marcarResultado('res-marcarimg', folletoValidarMarcarImagenes('demo-marcarimg')));
+
+      folletoSubrayarOpciones(
+        ['Crear una campaña escolar.', 'Reducir el uso de plásticos.', 'Organizar una feria ambiental.'],
+        'demo-subrayar-a',
+      );
+      folletoSubrayarOpciones(
+        [
+          { title: 'El reciclaje reduce la basura.', resp: '1' },
+          { title: 'Quemar basura no contamina.', resp: '0' },
+        ],
+        'demo-subrayar-b',
+        false,
+        'letra',
+      );
+      folletoSubrayarOpciones(
+        ['Cerrar la llave al lavarte los dientes.', 'Separar los residuos orgánicos.', 'Reutilizar frascos de vidrio.'],
+        'demo-subrayar-c',
+        true,
+        'numero',
+      );
+      document.getElementById('btn-subrayar-b').addEventListener('click', () => marcarResultado('res-subrayar-b', folletoValidarSubrayarOpciones('demo-subrayar-b')));
+
+      var ideasChecklist = [
+        'Organizar una campaña de reciclaje.',
+        'Crear carteles informativos.',
+        'Hacer una huerta escolar.',
+        'Reducir el uso de plástico en el bar escolar.',
+      ];
+      folletoChecklistAbierto(ideasChecklist, 'demo-checklist-a');
+      folletoChecklistAbierto(ideasChecklist, 'demo-checklist-b', 2);
+
+      folletoListaChecklist(
+        [
+          {
+            titulo: '¿Por qué ocurre el problema?',
+            claseCaja: 'bg-amber-50 border-2 border-amber-200',
+            claseTitulo: 'text-amber-800',
+            opciones: ['Falta de información', 'Poca costumbre de reciclar', 'No hay contenedores suficientes'],
+          },
+          {
+            titulo: '¿Qué consecuencias tiene?',
+            claseCaja: 'bg-lime-50 border-2 border-lime-200',
+            claseTitulo: 'text-lime-800',
+            opciones: ['Más basura en botaderos', 'Contaminación del agua', 'Menor vida útil de los materiales'],
+          },
+        ],
+        'demo-listachecklist',
+      );
+
+      // ---------- 2. Verdadero/Falso ----------
+      folletoVerdaderoFalso(
+        [
+          { enunciado: 'El reciclaje ayuda a reducir la contaminación.', correcta: 'V' },
+          { enunciado: 'Toda la basura orgánica tarda lo mismo en descomponerse que el plástico.', correcta: 'F' },
+          { enunciado: 'Separar la basura facilita su reciclaje.', correcta: 'V' },
+        ],
+        'demo-vf',
+      );
+      document.getElementById('btn-vf').addEventListener('click', () => marcarResultado('res-vf', folletoValidarVerdaderoFalso('demo-vf')));
+
+      folletoVerdaderoFalso(
+        [
+          { enunciado: 'El vidrio se puede reciclar indefinidamente sin perder calidad.', correcta: 'V' },
+          { enunciado: 'Separar la basura no cambia en nada el proceso de reciclaje.', correcta: 'F' },
+          { enunciado: 'Los rellenos sanitarios son la única forma de procesar residuos.', correcta: 'F' },
+        ],
+        'demo-vf-justificacion',
+        null,
+        { justificacion: true },
+      );
+      document.getElementById('btn-vf-justificacion').addEventListener('click', () =>
+        marcarResultado('res-vf-justificacion', folletoValidarVerdaderoFalso('demo-vf-justificacion')),
+      );
+
+      // ---------- 3. Unir líneas ----------
+      folletoUnirLineas(
+        [
+          { literal: 'Reciclar', enunciado: 'Transformar un material usado en uno nuevo.' },
+          { literal: 'Reducir', enunciado: 'Consumir menos recursos desde el inicio.' },
+          { literal: 'Reutilizar', enunciado: 'Dar un nuevo uso a algo antes de desecharlo.' },
+        ],
+        'demo-unir',
+      );
+      document.getElementById('btn-unir').addEventListener('click', () => marcarResultado('res-unir', folletoValidarUnirLineas('demo-unir')));
+
+      folletoUnirLineas(
+        [
+          { literal: 'Deshielo del permafrost', enunciado: 'Liberación de metano y CO₂' },
+          { literal: 'Aumento del calentamiento en el Ártico', enunciado: 'Amplificación ártica' },
+          { literal: 'Hallazgos de microorganismos en el hielo', enunciado: 'Avances en criobiología y astrobiología' },
+        ],
+        'demo-unir-titulos',
+        null,
+        { tituloIzquierda: 'Causa', tituloDerecha: 'Efecto', colorTituloIzquierda: '#fb923c', colorTituloDerecha: '#38bdf8' },
+      );
+      document.getElementById('btn-unir-titulos').addEventListener('click', () =>
+        marcarResultado('res-unir-titulos', folletoValidarUnirLineas('demo-unir-titulos')),
+      );
+
+      // ---------- 3.5 Asignar literal ----------
+      folletoAsignarLiteral(
+        [
+          { literal: 'a', texto: 'Separar los residuos en orgánicos e inorgánicos.' },
+          { literal: 'b', texto: 'Reducir el uso de plásticos de un solo uso.' },
+          { literal: 'c', texto: 'Reutilizar envases de vidrio para almacenar alimentos.' },
+        ],
+        [
+          { texto: 'Permite que cada tipo de residuo tenga un destino adecuado.', correcta: 'a' },
+          { texto: 'Disminuye la cantidad de basura que termina en el ambiente.', correcta: 'b' },
+          { texto: 'Alarga la vida útil de un envase antes de desecharlo.', correcta: 'c' },
+        ],
+        'demo-asignar-literal',
+      );
+      document.getElementById('btn-asignar-literal').addEventListener('click', () =>
+        marcarResultado('res-asignar-literal', folletoValidarAsignarLiteral('demo-asignar-literal')),
+      );
+
+      // ---------- 4. Ordenar secuencia ----------
+      folletoOrdenarSecuencia(
+        [
+          { id: 'A', texto: 'Separar los materiales reciclables.' },
+          { id: 'B', texto: 'Llevarlos al contenedor correspondiente.' },
+          { id: 'C', texto: 'Lavar los envases antes de reciclarlos.' },
+        ],
+        'demo-ordenar-a',
+      );
+      document.getElementById('btn-ordenar-a').addEventListener('click', () => marcarResultado('res-ordenar-a', folletoValidarOrdenarSecuencia(['C', 'A', 'B'], 'demo-ordenar-a')));
+
+      folletoOrdenarSecuencia(
+        [
+          { id: '1', texto: 'La contaminación del aire en las ciudades.' },
+          { id: '2', texto: 'La acumulación de plástico en los océanos.' },
+          { id: '3', texto: 'El desperdicio de agua potable.' },
+        ],
+        'demo-ordenar-b',
+        { modoRango: true },
+      );
+
+      // ---------- 5. Tablas ----------
+      folletoTabla(
+        {
+          columnas: [{ titulo: 'Lugar', color: '#ec4899' }, { titulo: '¿Qué consumo tiene?', color: '#38bdf8' }],
+          filas: [['Vivienda', null], ['Local comercial', null]],
+          campoClass: 'p2campoTexto',
+        },
+        'demo-tabla-a',
+      );
+
+      folletoTabla(
+        {
+          columnas: [{ titulo: 'País', color: '#6366f1' }, { titulo: 'Capital', color: '#16a34a' }],
+          filas: [
+            ['Ecuador', { resp: 'Quito' }],
+            ['Perú', { resp: 'Lima' }],
+          ],
+        },
+        'demo-tabla-b',
+      );
+      document.getElementById('btn-tabla-b').addEventListener('click', () => marcarResultado('res-tabla-b', folletoValidarTabla('demo-tabla-b')));
+
+      folletoTabla(
+        {
+          columnas: [],
+          sinEncabezado: true,
+          filas: [
+            [{ texto: 'Nombre del proyecto', bg: '#fdba74', color: '#7c2d12', colSpan: 2 }],
+            [{ texto: 'Origen', bg: '#fb923c', color: '#fff' }, { campo: 'p1campoTexto', rowspan: 2 }],
+            [{ texto: '¿Cómo funciona?', bg: '#fb923c', color: '#fff' }],
+          ],
+          anchosCol: ['32%', '68%'],
+        },
+        'demo-tabla-c',
+      );
+
+      folletoTablaMarcar(
+        {
+          columnas: [
+            { titulo: 'Función / Estructura', color: '#d4eefc', textColor: '#00aeef' },
+            { titulo: 'Riñón', color: '#e3f0dd', textColor: '#40ad49' },
+            { titulo: 'Uréter', color: '#fee6d3', textColor: '#f27921' },
+            { titulo: 'Vejiga', color: '#d3d3e7', textColor: '#24408f' },
+          ],
+          filas: [
+            { texto: 'Filtración de la sangre', resp: ['Riñón'] },
+            { texto: 'Transporte de orina a la vejiga', resp: ['Uréter'] },
+            { texto: 'Almacenamiento de orina', resp: ['Vejiga'] },
+          ],
+          ajustarAncho: true,
+        },
+        'demo-tablamarcar-a',
+      );
+      folletoTablaMarcar(
+        {
+          columnas: [
+            { titulo: 'Característica', color: '#6366f1' },
+            { titulo: 'Planta', color: '#16a34a', fondo: '#f0fdf4' },
+            { titulo: 'Animal', color: '#f97316', fondo: '#fff7ed' },
+          ],
+          filas: [
+            { texto: 'Hace fotosíntesis', resp: ['Planta'] },
+            { texto: 'Tiene células eucariotas', resp: ['Planta', 'Animal'] },
+            { texto: 'Se desplaza en busca de alimento', resp: [2] },
+          ],
+          marca: '✓',
+          ajustarAncho: true,
+        },
+        'demo-tablamarcar-b',
+      );
+      document.getElementById('btn-tablamarcar-a').addEventListener('click', () => marcarResultado('res-tablamarcar-a', folletoValidarTablaMarcar('demo-tablamarcar-a')));
+      folletoAsignarOpcionesSelect(['Mitocondria', 'Núcleo', 'Ribosomas'], '.demo-opsel');
+      document.getElementById('btn-opsel').addEventListener('click', () => marcarResultado('res-opsel', folletoValidarExactas(['Mitocondria', 'Núcleo'], '#demo-opsel')));
+      document.getElementById('btn-exactas').addEventListener('click', () => marcarResultado('res-exactas', folletoValidarExactas(['2', '1', '3'], '#demo-ex')));
+      document.getElementById('btn-tablamarcar-b').addEventListener('click', () => marcarResultado('res-tablamarcar-b', folletoValidarTablaMarcar('demo-tablamarcar-b')));
+
+      folletoEvaluarTabla(
+        ['Expliqué mis ideas con claridad.', 'Escuché las opiniones de mis compañeros.', 'Propuse al menos una solución concreta.'],
+        'demo-evaluartabla',
+      );
+
+      // ---------- 6. Texto y lectura ----------
+      folletoLectura(
+        {
+          titulo: '¿Por qué reciclar cambia el futuro?',
+          parrafos: [
+            'Cada año se producen millones de toneladas de residuos que podrían reutilizarse. Reciclar no solo reduce la basura: también ahorra energía y agua.',
+            'Separar los materiales en casa es el primer paso de una cadena que termina dándoles una segunda vida útil.',
+          ],
+          cita: 'Adaptado de un artículo de divulgación ambiental, 2024.',
+        },
+        'demo-lectura',
+      );
+
+      folletoRespuestasNumeradas(3, 'demo-respnumeradas', 'p2campoTexto');
+
+      folletoRespuestasTituladas(
+        [
+          { titulo: 'Recomendación 1:', color: '#7c3aed', campoClass: 'p3campoTexto', bg: '#fefce8' },
+          { titulo: 'Recomendación 2:', color: '#f97316', campoClass: 'p3campoTexto' },
+        ],
+        'demo-resptituladas',
+      );
+
+      folletoOracionesConEspacio(
+        [
+          {
+            antes: 'El vidrio, a diferencia del plástico, ',
+            despues: ' indefinidamente sin perder calidad.',
+            opciones: ['se puede reciclar', 'se degrada', 'se evapora'],
+          },
+        ],
+        'demo-oraciones-a',
+      );
+      folletoOracionesConEspacio([{ antes: 'Si todos separáramos la basura en casa, ', despues: '.' }], 'demo-oraciones-b');
+
+      var rutina = [
+        { titulo: 'Veo', pregunta: '¿Qué observo del problema?', color: '#65a30d' },
+        { titulo: 'Siento', pregunta: '¿Cómo me siento ante esto?', color: '#ea580c' },
+        { titulo: 'Pienso', pregunta: '¿Qué pienso al respecto?', color: '#0d9488' },
+        { titulo: 'Me pregunto', pregunta: '¿Qué dudas tengo?', color: '#4338ca' },
+      ];
+      folletoRutinaBurbujas(rutina, 'demo-rutina-a', 'p5campoTexto');
+      folletoRutinaBurbujas(rutina, 'demo-rutina-b', 'p5campoTexto', 2);
+
+      // ---------- 7. Multimedia ----------
+      folletoSubirImagen(101, 'demo-subirimagen', '¿Cómo se ve?');
+      folletoLienzo('demo-lienzo', { alto: 220 });
+
+      // ---------- 8. Insignias ----------
+      ['sumergete', 'entrana', 'imaginacion', 'daforma', 'recursos', 'pasoapaso', 'prueba'].forEach(t => folletoTituloSeccion(t, 'demo-ts-' + t));
+      folletoBadgeLectura('literal', 'demo-badge-l');
+      folletoBadgeLectura('inferencial', 'demo-badge-i');
+      folletoBadgeLectura('critica', 'demo-badge-c');
+
+      // Esta página no carga builder.js (solo necesitaríamos su inyección de
+      // navbar/modal, no relevante aquí) — pero varios widgets dejan un
+      // contenedor .p{N}campoTexto vacío esperando que builder.js lo
+      // convierta en <textarea> (ver la nota "OJO" en folletoRutinaBurbujas
+      // del propio folleto-widgets.js). Se replica ese mismo paso mínimo
+      // aquí para que las demos de "respuesta abierta" se vean completas.
+      document.querySelectorAll('[class*="campoTexto"]').forEach(function (el) {
+        if (el.querySelector('textarea')) return;
+        el.innerHTML = '<textarea class="form-control no-redimensionar" rows="2" placeholder="Escribir"></textarea>';
+      });
+    </script>
+  </body>
+</html>

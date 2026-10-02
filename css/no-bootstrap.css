@@ -1,0 +1,1029 @@
+/* Fuente manuscrita para el título "Creando juntos" (ver .txt-creando-juntos
+   más abajo), fiel al recorte del PDF. @import debe ir primero en el
+   archivo (antes de cualquier otra regla) para que el navegador lo respete. */
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@700&display=swap');
+
+/* =========================================================================
+   NO-BOOTSTRAP SHIM
+   Reemplaza (sin cargar bootstrap.css) únicamente las clases que
+   funciones.js / builder.js / activities.js inyectan por su cuenta y que
+   antes dependían del look de Bootstrap: la barra de herramientas flotante
+   (#navbar), el modal de "Guardar actividad", los iconos glyphicon (se
+   usa el mismo archivo de fuente que ya estaba en fonts/, solo se
+   redefinen los estilos) y los botones/alerts/formularios que aparecen
+   dentro de ese modal. El resto del contenido de cada actividad se
+   maqueta con utilidades de Tailwind directamente en el HTML.
+   Nunca se edita funciones.js/builder.js — este archivo solo les da estilo
+   nuevo a las clases que ellos ya usan.
+   ========================================================================= */
+
+/* ---------- Glyphicons (icono de la barra) ---------- */
+@font-face {
+  font-family: 'Glyphicons Halflings';
+  src: url('../fonts/glyphicons-halflings-regular.woff2') format('woff2'),
+    url('../fonts/glyphicons-halflings-regular.woff') format('woff'),
+    url('../fonts/glyphicons-halflings-regular.ttf') format('truetype');
+}
+
+.glyphicon {
+  position: relative;
+  top: 1px;
+  display: inline-block;
+  font-family: 'Glyphicons Halflings';
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+}
+
+.glyphicon-question-sign::before {
+  content: '\e085';
+}
+
+.glyphicon-floppy-save::before {
+  content: '\e175';
+}
+
+.glyphicon-envelope::before {
+  content: '\2709';
+}
+
+.glyphicon-play::before {
+  content: '\e072';
+}
+
+.glyphicon-refresh::before {
+  content: '\e031';
+}
+
+.glyphicon-check::before {
+  content: '\e067';
+}
+
+.glyphicon-resize-full::before {
+  content: '\e096';
+}
+
+.glyphicon-info-sign::before {
+  content: '\e086';
+}
+
+.glyphicon-remove-sign::before {
+  content: '\e083';
+}
+
+.glyphicon-remove-circle::before {
+  content: '\e088';
+}
+
+.glyphicon-blackboard::before {
+  content: '\e218';
+}
+
+/* ---------- Layout base que usaban las clases de Bootstrap ---------- */
+* {
+  box-sizing: border-box;
+}
+
+.container {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 16px;
+  position: relative;
+}
+
+.display-none {
+  display: none !important;
+}
+
+/* ---------- Panel (contenedor de cada actividad) ---------- */
+.panel {
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 12px 34px rgba(15, 23, 42, 0.1);
+  overflow: hidden;
+  margin: 70px 0 48px;
+  border: 1px solid #eef0f4;
+}
+
+@media (max-width: 640px) {
+  .panel {
+    margin-top: 64px;
+  }
+}
+
+/* ---------- Encabezado (Tema / título / página / nota) ----------
+   builder.js reemplaza el contenido de .panel-heading con una <table
+   class="encabezadoInfo"> (Tema N — título | Pág X, y una 2da fila con la
+   Nota). Nada de esto tenía estilo propio en los CSS que se cargan aquí
+   (vivía en custom.css, que ya no se usa), así que el texto quedaba
+   plano y sin contenedor, chocando con la barra flotante. */
+/* Este encabezado es para FOLLETOS específicamente: azul bien aclarado
+   (casi blanco, pero dentro de la misma gama azul de la barra de
+   herramientas y el modal), para mantener la paleta de marca sin competir
+   con el café del letrero "Unidad N" (fidelidad al recorte del PDF). En
+   un libro de unidades (no folleto) sin insignia café, este bloque puede
+   volver al degradé azul fuerte de antes. */
+.panel-heading {
+  background: linear-gradient(120deg, #f5f9ff, #e8f1ff);
+  padding: 18px 150px 20px 22px;
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid #dce8fb;
+}
+
+/* "Página" arriba a la derecha y "Nota" justo debajo, las dos juntas en
+   una columna a la derecha (ancladas con position:absolute a
+   .panel-heading). El título/insignia "Unidad" van en flujo normal a la
+   izquierda, con espacio a la derecha (ver padding de .panel-heading)
+   para no meterse debajo de esa columna. "Alumno" queda como una tarjeta
+   propia debajo del título, a lo ancho. */
+.encabezadoInfo,
+.encabezadoInfo tbody {
+  display: block;
+  width: 100%;
+}
+
+.encabezadoInfo tr {
+  display: block;
+}
+
+.encabezadoInfo td {
+  padding: 0;
+}
+
+.encabezadoInfo tr:first-child td:first-child {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  min-width: 0;
+}
+
+/* "Página" y "Nota" se anclan al CENTRO vertical del encabezado (no a un
+   top: fijo en px) — así, sin importar si el título wrapea en 1 línea o
+   en 4 (lo dejamos libre de wrapear cuanto necesite), la parejita
+   Página/Nota siempre queda centrada y junta en la columna derecha, en
+   vez de quedar pegada arriba con un hueco vacío abajo, o de chocar con
+   el título cuando crece. */
+.encabezadoInfo tr:first-child td:last-child {
+  position: absolute;
+  top: 50%;
+  right: 22px;
+  transform: translateY(calc(-100% - 3px));
+  z-index: 1;
+  /* builder.js le pone width:100px en línea, más angosto que el propio
+     texto de la pastilla ("Pág 42" no cabe en 100px) — eso desalineaba
+     el borde derecho real del contenido con el right:22px calculado. */
+  width: auto !important;
+  max-width: none !important;
+}
+
+/* Ojo: builder.js arma 3 <tr> en total (título+página, nota, y un 3ro
+   oculto con el nombre del alumno) — "Nota" es la 2da fila, NO la
+   última. */
+.encabezadoInfo tr:nth-child(2) td:first-child {
+  display: none;
+  /* celda vacía que trae builder.js en esa fila */
+}
+
+.encabezadoInfo tr:nth-child(2) td:last-child {
+  position: absolute;
+  top: 50%;
+  right: 22px;
+  transform: translateY(3px);
+  z-index: 1;
+  width: auto !important;
+  max-width: none !important;
+}
+
+/* ---------- Insignia "Unidad N" (imagen ico_unidadN.png) ----------
+   Solo en Postlectura: cada uniNact1.js pone directo el <img> dentro de
+   .unidad-tag (ver ese archivo). En STEAMission/Para grandes problemas
+   (uniNact2.js) no se usa: el propio ícono de sección ya trae el
+   título. Sin fondo/caja propia: el recorte ya trae su diseño. */
+.unidad-tag {
+  display: inline-flex;
+  align-items: center;
+  margin: 4px 4px 4px 2px;
+}
+
+.unidad-img {
+  display: block;
+  height: clamp(56px, 9vw, 84px);
+  width: auto;
+  max-width: 40vw;
+  filter: drop-shadow(0 6px 10px rgba(15, 23, 42, 0.3));
+}
+
+.tituloActividad {
+  font-weight: 800;
+  color: #1d4ed8;
+  font-size: clamp(1.15rem, 3.4vw, 1.5rem);
+  line-height: 1.35;
+  /* sin esto, al ser un solo <span> dentro de un flex con wrap, el título
+     entero saltaba como bloque a una línea nueva en vez de quedarse
+     junto a la insignia y solo partir sus propias palabras cuando ya no
+     cabe. OJO con flex-basis: la decisión de "cabe en esta línea o salto
+     a la siguiente" la hace el navegador ANTES de encoger, usando el
+     flex-basis como tamaño ideal — poner un basis grande (260px) hacía
+     que en pantallas angostas el título completo "no cupiera" y saltara
+     entero, sin llegar a intentar encogerse. Con basis:0 el navegador
+     siempre lo deja en la misma línea que la insignia y luego lo estira
+     (flex-grow) o lo encoge (flex-shrink) según el espacio real; el
+     texto ya wrapea solo por dentro, como texto normal. */
+  flex: 1 1 0%;
+  min-width: 110px;
+}
+
+.tema-inclusion {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tema-logo-inclusion {
+  display: block;
+  height: clamp(32px, 5.5vw, 48px);
+  width: auto;
+  flex: none;
+}
+
+.txt-inclusion {
+  font-size: clamp(1.15rem, 3.4vw, 1.5rem);
+  color: #db2777;
+}
+
+.txt-inclusion-social {
+  color: #1d4ed8;
+}
+
+.txt-creando-juntos {
+  font-family: 'Caveat', 'Segoe Script', cursive;
+  font-weight: 700;
+  font-size: clamp(1.6rem, 5.5vw, 2.4rem);
+  color: #FAFDFB !important;
+  text-shadow: 1px 2px 0 #047857, 2px 3px 5px rgba(4, 120, 87, 0.35);
+}
+
+/* Fondo del encabezado para la actividad "Creando juntos" (uni1act1),
+   calcado del verde del recorte del PDF — .panel-heading por defecto es
+   celeste (ver no-bootstrap.css) porque sirve para todas las actividades
+   del folleto; esta clase la pisa solo cuando el JS de esa actividad la
+   agrega (ver uni1act1.js). */
+.panel-heading-creando-juntos {
+  background: linear-gradient(120deg, #b6d058, #e3e35c) !important;
+  border-bottom: 1px solid #8fb23f;
+}
+
+.notificacion {
+  display: inline-block;
+  white-space: nowrap;
+  border-radius: 999px;
+  padding: 5px 14px;
+  font-weight: 700;
+  font-size: clamp(0.85rem, 2vw, 1rem);
+  flex: none;
+}
+
+.notificacion.pagina {
+  background: #fff;
+  border: 1px solid #bfdbfe;
+  color: #1d4ed8;
+}
+
+.notificacion.nota {
+  background: #fff;
+  border: 1px solid #bfdbfe;
+  color: #1d4ed8;
+  font-weight: 800;
+  /* Los proyectos (Para grandes problemas/STEAMission) reemplazan el
+     puntaje numérico por una frase larga ("Proyecto — revisado por el
+     docente"). Con nowrap heredado de .notificacion, esa frase se
+     recorta/desplaza distinto en pantalla vs. al imprimir según el ancho
+     de página disponible — se permite el wrap para que se vea igual
+     siempre. */
+  white-space: normal;
+  text-align: center;
+}
+
+.notificacion.nota #txtNota {
+  font-weight: 800;
+}
+
+/* Al mismo nivel vertical que "Nota" (esquina inferior derecha), pero
+   pegado a la izquierda del encabezado. */
+/* Tarjeta propia debajo del título, a lo ancho de la columna izquierda
+   (no se mete debajo de "Página"/"Nota", que están ancladas aparte a la
+   derecha). */
+.nombreEstudiante {
+  display: inline-block;
+  margin-top: 14px;
+  background: #fff;
+  border: 1px solid #dce8fb;
+  border-radius: 10px;
+  padding: 7px 14px;
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: #334155;
+}
+
+.panel-body {
+  padding: 28px 28px 36px;
+}
+
+@media (max-width: 640px) {
+  .panel-body {
+    padding: 18px 16px 28px;
+  }
+}
+
+/* ---------- Barra de herramientas flotante (#navbar) ----------
+   OJO: css/newCSS/misEstilos.css (que se debe seguir cargando, ahí viven
+   los estilos reales de los widgets de funciones.js) trae su PROPIA
+   versión de .navbar / #toggle-btn-navbar / #toggle-btn-navbar-Ocultar /
+   "#navbar > ul > li > button" (fondo teal #1d9ab0, posición absoluta del
+   botón "X" en left:55px, borde plateado en cada botón). Todo lo de abajo
+   la neutraliza explícitamente con !important — si no, esas reglas se
+   filtran (fondo teal visible detrás de las tarjetas blancas, "X" que se
+   monta sobre el panel de ayuda, etc.). */
+#navbar,
+#toggle-btn-navbar,
+#toggle-btn-navbar-Ocultar {
+  outline: none !important;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#navbar *,
+#navbar *:focus,
+#navbar *:focus-visible,
+#toggle-btn-navbar:focus,
+#toggle-btn-navbar:focus-visible {
+  outline: none !important;
+  box-shadow: none;
+}
+
+#navbar {
+  position: fixed !important;
+  top: 18px !important;
+  left: 16px !important;
+  width: auto !important;
+  height: auto !important;
+  background: transparent !important;
+  padding: 0 !important;
+  text-align: left !important;
+  z-index: 500 !important;
+  display: block !important;
+  /* Colapsado por defecto: solo se activa cuando builder.js le agrega la
+     clase "visible" al hacer clic en el botón hamburguesa (#toggle-btn-
+     navbar). Esa lógica de mostrar/ocultar ya existe en builder.js — aquí
+     solo se anima la transición entre los dos estados (nada de
+     display:none/block, que no se puede animar; se usa opacity + escala +
+     pointer-events). */
+  opacity: 0;
+  transform-origin: top left;
+  transform: translateY(-6px) scale(0.85);
+  pointer-events: none;
+  transition: opacity 0.22s ease, transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+#navbar.visible {
+  opacity: 1;
+  /* "none" (no translateY(0) scale(1)) a propósito: CUALQUIER transform
+     distinto de none crea un "containing block" nuevo para los hijos con
+     position:fixed (como .nota-ayuda/.infoAyuda que builder.js cuelga
+     dentro de #navbar > ul > li), y eso los hacía colapsar a 0x0 en vez
+     de ubicarse respecto a la ventana. La transición anima igual desde
+     translateY(-6px) scale(0.85) hasta "none" sin problema. */
+  transform: none;
+  pointer-events: auto;
+}
+
+#navbar .nav {
+  list-style: none;
+  margin: 0;
+  padding: 10px;
+  display: flex;
+  flex-flow: column nowrap;
+  align-items: center;
+  gap: 10px;
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 14px 30px rgba(37, 99, 235, 0.16);
+  border: 1px solid #dbeafe;
+  position: relative;
+}
+
+/* Cada icono entra con una animación escalonada (uno tras otro) en vez de
+   aparecer todos de golpe. */
+#navbar .nav>li {
+  list-style: none;
+  line-height: 0;
+  opacity: 0;
+  transform: translateY(-8px) scale(0.7);
+  transition: opacity 0.22s ease, transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+#navbar.visible .nav>li {
+  opacity: 1;
+  transform: none;
+  /* mismo motivo que en #navbar.visible: sin containing block extra */
+}
+
+#navbar.visible .nav>li:nth-child(1) {
+  transition-delay: 0.03s;
+}
+
+#navbar.visible .nav>li:nth-child(2) {
+  transition-delay: 0.07s;
+}
+
+#navbar.visible .nav>li:nth-child(3) {
+  transition-delay: 0.11s;
+}
+
+#navbar.visible .nav>li:nth-child(4) {
+  transition-delay: 0.15s;
+}
+
+#navbar.visible .nav>li:nth-child(5) {
+  transition-delay: 0.19s;
+}
+
+/* misEstilos.css agrega un borde plateado a cada botón dentro de <li> */
+#navbar>ul>li>button {
+  border: none !important;
+}
+
+#navbar .btn.button {
+  box-sizing: border-box !important;
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  cursor: pointer;
+  color: #fff;
+  background: #3b82f6;
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+#navbar .btn.button:hover {
+  transform: translateY(-2px) scale(1.04);
+  filter: brightness(1.05);
+}
+
+#navbar .btn.button:active {
+  transform: translateY(0) scale(0.97);
+}
+
+/* Misma familia tonal (violeta/índigo/celeste) para que se vea cohesivo,
+   con pequeños cambios de tono para diferenciar cada acción. */
+/* misma gama azul del logo de la editorial (Prolipa), en degradé de
+   claro a oscuro bajando por la columna de iconos */
+#navbar .btnHelp {
+  background: linear-gradient(150deg, #93c5fd, #60a5fa);
+}
+
+#navbar .button_1 {
+  background: linear-gradient(150deg, #60a5fa, #3b82f6);
+}
+
+#navbar .button_2 {
+  background: linear-gradient(150deg, #3b82f6, #2563eb);
+}
+
+#navbar .button_3 {
+  background: linear-gradient(150deg, #2563eb, #1d4ed8);
+}
+
+#navbar .btn_Ayudas {
+  background: linear-gradient(150deg, #1d4ed8, #1e3a8a);
+}
+
+/* El botón "X" venía con position:absolute;bottom:-30px;left:55px desde
+   misEstilos.css, lo que lo hacía invadir el panel de ayuda. Se vuelve a
+   integrar al flujo normal de la columna de iconos. */
+#toggle-btn-navbar-Ocultar {
+  position: static !important;
+  bottom: auto !important;
+  left: auto !important;
+  margin-top: 2px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(150deg, #fca5a5, #f87171) !important;
+  color: #fff;
+  width: 42px;
+  height: 30px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(239, 68, 68, 0.25);
+}
+
+#toggle-btn-navbar {
+  position: fixed !important;
+  top: 18px !important;
+  left: 16px !important;
+  z-index: 499 !important;
+  width: 42px !important;
+  height: 42px !important;
+  padding: 0 !important;
+  border-radius: 13px !important;
+  border: none !important;
+  background: linear-gradient(150deg, #2563eb, #1d4ed8) !important;
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+  opacity: 1;
+  transform: scale(1) rotate(0deg);
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.18s ease;
+  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.3) !important;
+}
+
+#toggle-btn-navbar:hover {
+  transform: scale(1.06);
+  background: linear-gradient(150deg, #2563eb, #1d4ed8) !important;
+}
+
+/* builder.js le agrega/quita esta clase al abrir/cerrar el navbar: se
+   anima con opacidad + un pequeño giro en vez de desaparecer de golpe con
+   display:none (display se deja al final del frame, tras la transición,
+   para no bloquear la animación de salida). */
+#toggle-btn-navbar.hidden {
+  opacity: 0 !important;
+  transform: scale(0.5) rotate(90deg) !important;
+  pointer-events: none;
+  transition: transform 0.2s ease, opacity 0.15s ease;
+}
+
+/* ---------- Tooltip de los iconos de la barra (data-info) ----------
+   builder.js ya agrega class="mytooltip" data-info="..." a cada botón,
+   pero ese estilo vivía en custom.css (que no se carga en este proyecto,
+   sin Bootstrap). Se reimplementa aquí, solo con CSS (::before con
+   content: attr(data-info)), con una animación suave de aparición. */
+#navbar .mytooltip {
+  position: relative;
+}
+
+#navbar .mytooltip::before {
+  content: attr(data-info);
+  position: absolute;
+  top: 50%;
+  left: calc(100% + 14px);
+  transform: translate(-6px, -50%);
+  white-space: nowrap;
+  background: #1e1b3a;
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 7px 12px;
+  border-radius: 10px;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.28);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.16s ease, transform 0.16s ease, visibility 0.16s;
+  z-index: 600;
+}
+
+/* florecita/flecha del tooltip apuntando al icono */
+#navbar .mytooltip::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: calc(100% + 6px);
+  transform: translateY(-50%);
+  border: 6px solid transparent;
+  border-right-color: #1e1b3a;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.16s ease, visibility 0.16s;
+  z-index: 600;
+}
+
+#navbar .mytooltip:hover::before,
+#navbar .mytooltip:hover::after {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(0, -50%);
+}
+
+#navbar .mytooltip:hover::before {
+  transform: translate(0, -50%);
+}
+
+/* toolbar-tooltips.js agrega esta clase al hacer clic (se oculta al
+   instante, sin esperar a que el mouse se retire) y mientras el panel de
+   ese botón siga abierto (no se vuelve a mostrar hasta que se cierre). */
+#navbar .mytooltip.no-tip::before,
+#navbar .mytooltip.no-tip::after {
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* ---------- Modal (Guardar actividad) ---------- */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(30, 27, 58, 0.6);
+  backdrop-filter: blur(2px);
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.modal.in,
+.modal.show {
+  display: flex;
+}
+
+.modal-dialog {
+  width: 100%;
+  max-width: 400px;
+  animation: modalPop 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes modalPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.9) translateY(8px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal-content {
+  background: #fff;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.35);
+}
+
+.modal-header {
+  padding: 26px 22px 14px;
+  background: linear-gradient(150deg, #3b82f6, #2563eb 55%, #1d4ed8);
+  color: #fff;
+  position: relative;
+  text-align: center;
+}
+
+.modal-header::before {
+  content: '📝';
+  display: block;
+  font-size: 2rem;
+  margin-bottom: 6px;
+  filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.2));
+}
+
+.modal-title {
+  margin: 0 30px;
+  font-size: 1.02rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.modal-header .close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+  border: none;
+  color: #fff;
+  font-size: 1.2rem;
+  cursor: pointer;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease;
+}
+
+.modal-header .close:hover {
+  background: rgba(255, 255, 255, 0.36);
+}
+
+.modal-body {
+  padding: 24px 24px 6px;
+}
+
+.modal-footer {
+  padding: 16px 24px 24px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.modal-footer .btn {
+  flex: 1;
+  justify-content: center;
+}
+
+/* ---------- Formulario dentro del modal ---------- */
+.form-horizontal .form-group {
+  display: flex;
+  flex-flow: column nowrap;
+  gap: 6px;
+  margin: 0 0 6px;
+}
+
+#lbl_nombre {
+  font-weight: 700;
+  color: #1d4ed8;
+  font-size: 0.85rem;
+}
+
+.col-sm-2 {
+  flex: 0 0 auto;
+}
+
+.col-sm-10 {
+  flex: 1;
+  min-width: 200px;
+}
+
+.form-control {
+  width: 100%;
+  border: 2px solid #bfdbfe;
+  background: #f0f6ff;
+  border-radius: 12px;
+  padding: 11px 14px;
+  font-size: 1rem;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background: #fff;
+}
+
+.alert {
+  border-radius: 10px;
+  padding: 8px 34px 8px 12px;
+  margin-top: 8px;
+  position: relative;
+  font-size: 0.85rem;
+}
+
+.alert-danger {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.alert .close {
+  position: absolute;
+  right: 8px;
+  top: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+}
+
+.error-color {
+  color: #dc2626;
+}
+
+/* ---------- Botones genéricos (.btn-*) ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  border-radius: 12px;
+  padding: 11px 18px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: filter 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+/* Guardar (azul) y Cerrar/Cancelar (rojo) del modal "Guardar actividad" —
+   antes verde/lila-fantasma; con el mismo peso visual para que el
+   estudiante distinga claramente confirmar vs. cancelar. */
+.btn-success {
+  background: linear-gradient(150deg, #60a5fa, #2563eb);
+  color: #fff;
+  box-shadow: 0 6px 14px rgba(37, 99, 235, 0.3);
+}
+
+.btn-default {
+  background: linear-gradient(150deg, #f87171, #dc2626);
+  color: #fff;
+  box-shadow: 0 6px 14px rgba(220, 38, 38, 0.3);
+}
+
+.btn-danger {
+  background: #ef4444;
+  color: #fff;
+}
+
+/* ---------- Barra de ayuda (nota-informativa) ---------- */
+.nota-ayuda {
+  display: none;
+  /* helper.js la muestra/oculta agregando/quitando .nota-visible */
+  position: fixed;
+  top: 18px;
+  left: 90px;
+  z-index: 480;
+  width: min(520px, calc(100vw - 110px));
+  max-height: calc(100vh - 36px);
+  background: #fff;
+  border-radius: 20px;
+  border-top: 6px solid #3b82f6;
+  box-shadow: 0 20px 40px rgba(37, 99, 235, 0.22);
+  padding: 20px 38px 20px 22px;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: #334155;
+}
+
+.nota-ayuda.nota-visible {
+  display: block;
+  animation: notaAyudaBlind 0.35s ease-out;
+}
+
+@keyframes notaAyudaBlind {
+  from {
+    clip-path: inset(0 0 100% 0);
+    opacity: 0;
+  }
+
+  to {
+    clip-path: inset(0 0 0% 0);
+    opacity: 1;
+  }
+}
+
+/* El panel entero puede quedar más alto que la ventana con listas largas
+   de ayudas; #mensaje es lo único que debe scrollear (los botones
+   Escuchar/Detener/cerrar quedan siempre visibles arriba). */
+.nota-ayuda #mensaje {
+  max-height: calc(100vh - 130px);
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.nota-ayuda #mensaje b {
+  color: #1d4ed8;
+}
+
+.nota-ayuda .btnAudiotext {
+  border: none;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-radius: 10px;
+  padding: 6px 14px;
+  margin: 0 8px 14px 0;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.nota-ayuda .close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: #fee2e2;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  color: #ef4444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---------- Recorrido guiado por icono (.infoAyuda, del botón ℹ️) ----------
+   builder.js arma cada caja con estilos EN LÍNEA (fondo gris, ancho 250px,
+   y un glyphicon-remove-circle rojo de 2.5rem flotado a la derecha para
+   cerrar) pensados para el look de Bootstrap; sin él, ese icono de cierre
+   queda gigante y montado sobre el texto. Se sobreescribe todo con
+   !important porque un estilo en línea solo se le puede ganar así. */
+.infoAyuda {
+  position: fixed !important;
+  top: 18px !important;
+  left: 90px !important;
+  width: min(320px, calc(100vw - 110px)) !important;
+  background: #fff !important;
+  border: none !important;
+  border-top: 6px solid #3b82f6 !important;
+  border-radius: 20px !important;
+  box-shadow: 0 20px 40px rgba(37, 99, 235, 0.22) !important;
+  padding: 18px 40px 18px 20px !important;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: #334155;
+  z-index: 700 !important;
+}
+
+/* el icono grande (glyphicon) que va al inicio del texto de cada tarjeta */
+.infoAyuda>.glyphicon:first-child {
+  display: block;
+  font-size: 1.6rem;
+  color: #3b82f6;
+  margin-bottom: 6px;
+}
+
+.cerrarAyudas {
+  float: none !important;
+  position: absolute !important;
+  top: 12px !important;
+  right: 12px !important;
+  width: 24px !important;
+  height: 24px !important;
+  font-size: 13px !important;
+  border-radius: 50% !important;
+  background: #fee2e2 !important;
+  color: #ef4444 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer;
+}
+
+/* ---------- Campo de puntaje por pregunta (.nota-abierta) ----------
+   Cada pregunta trae un input#preNa (helper.js lo deja readonly) que
+   guarda/muestra el puntaje de esa pregunta. Es correcto que se vea (el
+   docente lo usa para calificar a mano las respuestas abiertas), pero no
+   tenía ningún estilo propio: era un input pelado mostrando "0" suelto.
+   Se convierte en una pastillita discreta, alineada con el número de
+   pregunta. */
+.nota-abierta {
+  width: 44px;
+  height: 26px;
+  border: 2px solid #bfdbfe;
+  background: #f0f6ff;
+  color: #1d4ed8;
+  font-weight: 800;
+  font-size: 0.8rem;
+  text-align: center;
+  border-radius: 999px;
+  margin: 0 8px 4px 0;
+  vertical-align: middle;
+  outline: none;
+}
+
+.nota-abierta.backnoabierta {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #047857;
+}
+
+/* ---------- Cajas de respuesta abierta (textarea.no-redimensionar) ----------
+   funciones.js/builder.js las crea (addText, generateQuestionsList,
+   createQuestionsList, etc.) dentro de cualquier div "p{N}campoTexto" —
+   tampoco tenían estilo propio en los CSS que se cargan aquí.
+   misEstilos.css (framework, no se toca) le mete a esta misma clase
+   `box-shadow: 0px -20px 20px #e0e1e3 inset`, que se ve como un degradado
+   gris sucio en la mitad inferior de la caja — se anula aquí. */
+textarea.no-redimensionar,
+textarea.form-control {
+  width: 100%;
+  border: 2px solid #bfdbfe;
+  background: #f0f6ff;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  color: #334155;
+  resize: none;
+  box-shadow: none !important;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+textarea.no-redimensionar:focus,
+textarea.form-control:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background: #fff;
+}
+
+/* EndActivity() agrega esta clase al calificar: deja el texto visible
+   pero ya no editable a simple vista de "borrador". */
+textarea.textarea-blanco {
+  background: #fff;
+  border-color: #e2e8f0;
+}

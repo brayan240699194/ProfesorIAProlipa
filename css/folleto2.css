@@ -1,0 +1,1118 @@
+/* =========================================================================
+   FOLLETO 2 — sistema visual de las actividades (Postlectura, Para grandes
+   problemas soluciones brillantes, STEAMission). El layout usa utilidades
+   de Tailwind directamente en el HTML; este archivo solo cubre lo que
+   Tailwind no resuelve con clases sueltas: animaciones, texturas
+   (esquina doblada, washi-tape), el widget de arrastrar-para-ordenar y
+   ajustes de impresión.
+   ========================================================================= */
+
+/* -------- arreglo GLOBAL del bug de "arrastre nativo / selección" --------
+   Hasta ahora cada tarjeta nueva (V/F, unir-líneas, evaluar, subir-imagen,
+   encerrar...) necesitó su propio user-select:none/pointer-events:none
+   por separado, y cada vez aparecía en OTRO widget o cruzando el borde
+   entre dos preguntas (el enunciado de texto plano entre ellas nunca
+   tuvo la propiedad) — incluso el encabezado (barra "Unidad X", título,
+   navbar), que queda AFUERA de .panel-body, podía arrastrarse igual. En
+   vez de seguir parchando elemento por elemento, se desactiva la
+   selección de texto en TODA la página (body) — ningún enunciado ni el
+   encabezado necesitan copiarse — así un arrastre real del mouse nunca
+   puede iniciar una selección de texto ni (al cruzar una imagen) un
+   arrastre nativo de imagen, sin importar dónde empiece, hasta dónde
+   llegue o cuántas preguntas/unidades cruce. Se reactiva explícitamente
+   donde el estudiante sí escribe (inputs/textareas) para no romper la
+   edición normal de esos campos. */
+body {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+input,
+textarea,
+[contenteditable] {
+  user-select: text;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+}
+
+/* -------- tamaño base de la letra (solo pantalla) --------
+   Sin esto se usaba el 16px por defecto del navegador y casi todo el
+   contenido va en text-sm de Tailwind (0.875rem = 14px), que se veía
+   pequeño. Como Tailwind y los widgets miden en rem, subir el tamaño
+   raíz agranda TODO en proporción (textos, títulos, tarjetas, tablas)
+   sin tocar cada actividad. Solo en pantalla: al imprimir (Guardar /
+   Calificar -> PDF) se mantiene el tamaño de siempre para no sumar hojas. */
+@media screen {
+  html { font-size: 17px; }
+}
+@media screen and (min-width: 640px) {
+  html { font-size: 18px; }
+}
+
+/* -------- subir una imagen (folletoSubirImagen) --------
+   Recuadro punteado con cámara + indicación; al elegir un archivo, la
+   vista previa reemplaza el ícono. Reemplaza el input/label sueltos con
+   estilos en línea que traía el framework (gris plano, ancho fijo de
+   800px que rompía el layout, mix-blend-mode raro) por un recuadro
+   responsive del mismo lenguaje visual que el resto del folleto — pero
+   sigue usando mostrar() de funciones.js para leer el archivo, no se
+   reemplaza esa lógica. */
+.f-subir-img {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border: 3px dashed #cbd5e1;
+  border-radius: 18px;
+  background: #f8fafc;
+  cursor: pointer;
+  user-select: none;
+  overflow: hidden;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.f-subir-img:hover { border-color: #6366f1; background: #eef2ff; }
+.f-subir-img input[type='file'] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.f-subir-img-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: #64748b;
+  pointer-events: none;
+}
+.f-subir-img-icon { font-size: 2.5rem; }
+.f-subir-img-hint { font-size: 0.85rem; font-weight: 700; }
+.f-subir-img-preview {
+  display: none;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #fff;
+  pointer-events: none;
+}
+.f-subir-img.f-subir-img-tiene-imagen { border-style: solid; border-color: #a5b4fc; }
+.f-subir-img.f-subir-img-tiene-imagen .f-subir-img-empty { display: none; }
+.f-subir-img.f-subir-img-tiene-imagen .f-subir-img-preview { display: block; }
+.f-subir-img-label {
+  margin-top: 10px;
+  text-align: center;
+  background: #f97316;
+  color: #fff;
+  font-weight: 800;
+  border-radius: 999px;
+  padding: 8px 20px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* -------- "banner" de listón para sub-preguntas dentro de un ejercicio --------
+   Calca la cajita en forma de cinta con puntas (como una entrada de boleto)
+   que el folleto usa para resaltar la pregunta puntual dentro de un
+   ejercicio de opción múltiple (ver "¿Cómo se puede interpretar...?" en
+   Postlectura). Reutilizable en cualquier actividad con ese mismo patrón. */
+.f-pregunta-banner {
+  position: relative;
+  margin: 12px auto 16px;
+  padding: 12px 34px;
+  max-width: 92%;
+  width: fit-content;
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #0f766e;
+  background: #ecfdf5;
+  border: 2px solid #14b8a6;
+  clip-path: polygon(0% 50%, 4% 0%, 96% 0%, 100% 50%, 96% 100%, 4% 100%);
+}
+
+/* -------- títulos de sección (folletoTituloSeccion) --------
+   Calcados del PDF: círculo con ícono encima (z-index) del extremo
+   izquierdo de una píldora de color con borde punteado blanco, texto
+   blanco en negrita y sombra suave hacia abajo-derecha. Tamaños en rem
+   para que escalen con el texto; se achican un poco en celular. */
+.f-titulo-sec { display: inline-flex; align-items: center; max-width: 100%; }
+.f-titulo-sec-ico {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  width: 2.9rem;
+  height: 2.9rem;
+  border-radius: 999px;
+  filter: drop-shadow(1px 2px 2px rgba(0, 0, 0, 0.35));
+}
+.f-titulo-sec-pildora {
+  margin-left: -0.85rem;
+  padding: 0.28rem 1.1rem 0.28rem 1.3rem;
+  border: 1px dotted rgba(255, 255, 255, 0.95);
+  border-radius: 0.3rem 0.65rem 0.65rem 0.3rem;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.02rem;
+  line-height: 1.25;
+  letter-spacing: 0.005em;
+  box-shadow: 3px 5px 8px rgba(0, 0, 0, 0.12);
+}
+.f-titulo-sec-suelto { display: inline-flex; align-items: center; gap: 0.6rem; }
+.f-titulo-sec-suelto-ico { height: 3rem; width: auto; flex: none; }
+.f-titulo-sec-suelto-txt { font-weight: 700; font-size: 1.02rem; }
+@media (max-width: 640px) {
+  .f-titulo-sec-ico { width: 2.5rem; height: 2.5rem; }
+  .f-titulo-sec-pildora, .f-titulo-sec-suelto-txt { font-size: 0.95rem; }
+  .f-titulo-sec-suelto-ico { height: 2.6rem; }
+}
+/* Al imprimir, misEstilos.css achica los textos de .panel-body (span a
+   0.72rem): se devuelve el tamaño del rótulo para que el título siga
+   siendo título, y la sombra se suprime (ensucia el PDF). */
+@media print {
+  /* Compactos: con 7 títulos por actividad, unos pocos px de más por
+     título sumaban una hoja extra al PDF (uni6act1 pasaba de 2 a 3). */
+  .panel-body .f-titulo-sec-pildora,
+  .panel-body .f-titulo-sec-suelto-txt { font-size: 0.8rem !important; line-height: 1.15 !important; }
+  .panel-body .f-titulo-sec-pildora { padding: 0.12rem 0.8rem 0.12rem 1rem; margin-left: -0.6rem; box-shadow: none; }
+  .panel-body .f-titulo-sec-ico { width: 1.6rem; height: 1.6rem; max-height: none !important; }
+  .panel-body .f-titulo-sec-suelto-ico { height: 1.7rem; max-height: none !important; }
+  .panel-body .f-titulo-sec-wrap { margin-top: 6px !important; margin-bottom: 4px !important; }
+}
+
+/* -------- tabla para completar (folletoTabla) --------
+   Neutro hasta calificar: los campos autocalificados (con {resp}) solo
+   se pintan verde/rojo al llamar folletoValidarTabla; las celdas libres
+   (R.A., sin {resp}) nunca cambian de color, no se autocalifican. */
+.f-tabla-input.f-tabla-bien { border-color: #16a34a !important; background: #f0fdf4; }
+.f-tabla-input.f-tabla-mal { border-color: #dc2626 !important; background: #fef2f2; }
+
+/* -------- tabla para marcar con X o ✓ (folletoTablaMarcar) --------
+   Casilla neutra (gris) hasta marcar; al marcar aparece el símbolo en
+   índigo (nunca verde, que se leería como "ya está bien"). El verde/rojo
+   solo aparece al llamar folletoValidarTablaMarcar. Sin transform en
+   :hover (ver nota junto a .f-img-card:hover). */
+.f-marcar-celda {
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 0.6rem;
+  border: 2px dashed #cbd5e1;
+  background: rgba(255, 255, 255, 0.75);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+.f-marcar-celda:hover { border-color: #818cf8; }
+.f-marcar-celda:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.35); }
+.f-marcar-signo {
+  font-weight: 900;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: #4f46e5;
+  opacity: 0;
+  transform: scale(0.4);
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.f-marcar-celda.marcada { border-style: solid; border-color: #6366f1; background: #fff; }
+.f-marcar-celda.marcada .f-marcar-signo { opacity: 1; transform: scale(1); }
+.f-marcar-celda.bien { border-style: solid; border-color: #16a34a !important; background: #f0fdf4 !important; }
+.f-marcar-celda.bien .f-marcar-signo { color: #16a34a; }
+.f-marcar-celda.mal { border-style: solid; border-color: #dc2626 !important; background: #fef2f2 !important; }
+.f-marcar-celda.mal .f-marcar-signo { color: #dc2626; }
+
+/* folletoAsignarLiteral: casilla de letra coloreada por literal, neutra
+   hasta calificar. */
+.f-asignar-select { transition: transform 0.15s ease, box-shadow 0.15s ease; }
+.f-asignar-select:hover { transform: scale(1.08); }
+.f-asignar-select:focus { outline: none; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.35); }
+.f-asignar-select.f-asignar-bien { border-color: #16a34a !important; background: #f0fdf4 !important; color: #16a34a !important; animation: fAsignarPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.f-asignar-select.f-asignar-mal { border-color: #dc2626 !important; background: #fef2f2 !important; color: #dc2626 !important; animation: fAsignarShake 0.4s ease; }
+@keyframes fAsignarPop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+@keyframes fAsignarShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+/* Toda la FRANJA (no solo la casilla) se tiñe al calificar, más un
+   ícono grande ✓/✕ al final — un solo borde de color se pierde de
+   vista; la franja completa lo hace imposible de pasar por alto. */
+.f-asignar-row { transition: background 0.2s ease, border-color 0.2s ease; }
+.f-asignar-row.f-asignar-bien { background: #f0fdf4 !important; border-color: #16a34a !important; }
+.f-asignar-row.f-asignar-mal { background: #fef2f2 !important; border-color: #dc2626 !important; }
+.f-asignar-row .f-asignar-icono { width: 0; }
+.f-asignar-row.f-asignar-bien .f-asignar-icono,
+.f-asignar-row.f-asignar-mal .f-asignar-icono {
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 1rem;
+  color: #fff;
+  animation: fAsignarIconoPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.f-asignar-row.f-asignar-bien .f-asignar-icono { background: #16a34a; }
+.f-asignar-row.f-asignar-bien .f-asignar-icono::before { content: '✓'; }
+.f-asignar-row.f-asignar-mal .f-asignar-icono { background: #dc2626; }
+.f-asignar-row.f-asignar-mal .f-asignar-icono::before { content: '✕'; }
+@keyframes fAsignarIconoPop {
+  0% { transform: scale(0); }
+  70% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+/* folletoOracionesConEspacio: hueco (select o input) con `correcta`
+   definida, neutro hasta calificar. */
+.f-oracion-select.f-oracion-bien,
+.f-oracion-input.f-oracion-bien { border-color: #16a34a !important; color: #16a34a !important; }
+.f-oracion-select.f-oracion-mal,
+.f-oracion-input.f-oracion-mal { border-color: #dc2626 !important; color: #dc2626 !important; }
+
+.folleto-dogear {
+  position: absolute;
+  width: 46px;
+  height: 46px;
+  right: 0;
+  top: 0;
+  z-index: 3;
+  background: linear-gradient(135deg, transparent 50%, rgba(0, 0, 0, 0.12) 50.5%),
+    linear-gradient(315deg, #efe6d3 50%, transparent 50.5%);
+  border-radius: 0 20px 0 14px;
+  pointer-events: none;
+}
+
+.folleto-tape {
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.14);
+  transform: rotate(-1.2deg);
+  position: relative;
+}
+.folleto-tape::before,
+.folleto-tape::after {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 24px;
+  top: -7px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px dashed rgba(255, 255, 255, 0.85);
+}
+.folleto-tape::before { left: -8px; transform: rotate(-8deg); }
+.folleto-tape::after { right: -8px; transform: rotate(8deg); }
+
+.folleto-clip {
+  position: absolute;
+  top: -16px;
+  left: 20px;
+  font-size: 22px;
+  transform: rotate(-18deg);
+  filter: drop-shadow(0 2px 1px rgba(0, 0, 0, 0.25));
+}
+
+/* -------- tarjetas para marcar imágenes/íconos con un check -------- */
+.f-img-card {
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+/* OJO: nunca usar transform (translateY/scale) en :hover de una tarjeta
+   clicable — mueve su propio cuadro de hit-test. Si el cursor queda cerca
+   del borde que se desplaza, el cuadro "se escapa" del cursor, dispara
+   mouseleave, vuelve a su lugar, el cursor vuelve a estar encima, dispara
+   mouseenter de nuevo… un ciclo infinito mouseenter/mouseleave que traba
+   la pestaña entera SIN lanzar ningún error de JS (no pasa en touch/móvil
+   porque ahí no existe :hover). Por eso el "levantado" al pasar el mouse
+   se hace con box-shadow (no cambia la geometría), nunca con transform. */
+.f-img-card:hover { box-shadow: 0 10px 18px rgba(0, 0, 0, 0.15); }
+/* Arreglo GLOBAL (cualquier <img> de la página, no solo las de tarjetas):
+   un mouse real (a diferencia de un toque o un clic sintético) puede
+   iniciar el arrastre nativo de imágenes del navegador si el cursor se
+   mueve un poco mientras está presionado — eso puede dejar la página
+   "pegada" en modo arrastre sin ningún error de JS, y no pasa en
+   touch/móvil porque ahí no hay drag nativo de imágenes. Esto incluye
+   las imágenes del encabezado (ícono "Unidad N", logo de STEAMission,
+   ícono de Postlectura/Para grandes problemas...), que quedan fuera de
+   cualquier tarjeta ".f-img-card"/".f-pop" pero tienen el mismo riesgo.
+   pointer-events:none hace que el clic pase de largo hasta quien sí lo
+   maneja (la tarjeta, el label, o nadie si la imagen es solo decorativa)
+   y user-drag lo desactiva por si acaso. Ninguna imagen del proyecto
+   necesita recibir clics directamente — todas están envueltas en un
+   elemento que sí los maneja (tarjeta, label, etc.), así que aplicar
+   esto a TODAS las <img> del sitio es seguro. */
+img {
+  pointer-events: none;
+  -webkit-user-drag: none;
+  user-drag: none;
+}
+.f-img-card .f-check {
+  opacity: 0;
+  transform: scale(0.4);
+  transition: all 0.18s ease;
+}
+.f-img-card.marcada .f-check {
+  opacity: 1;
+  transform: scale(1);
+}
+.f-img-card.marcada { outline: 3px solid #6366f1; outline-offset: 2px; }
+.f-img-card.bien { outline: 3px solid #16a34a !important; }
+.f-img-card.mal { outline: 3px solid #dc2626 !important; }
+
+/* -------- encerrar (tarjetas de texto de opción única/múltiple) --------
+   Al marcar, se "dibuja" un óvalo tipo lápiz alrededor de la tarjeta (como
+   si el estudiante la encerrara a mano) en color neutro (ámbar). Nunca se
+   usa verde/rojo en ese momento — esos colores solo aparecen al calificar
+   (.bien / .mal), para no insinuar que la respuesta ya está correcta. */
+.f-encerrar-opt {
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+/* Sin translateY en :hover — ver nota junto a .f-img-card:hover en este
+   mismo archivo (ciclo infinito mouseenter/mouseleave que traba la
+   pestaña en desktop). scale() sí es seguro porque crece/encoge desde el
+   centro: el cursor que ya estaba adentro nunca queda afuera del cuadro. */
+.f-encerrar-opt:hover { transform: scale(1.02); box-shadow: 0 6px 14px rgba(0, 0, 0, 0.1); }
+.f-encerrar-opt:active { transform: scale(0.98); }
+
+/* Variante "óvalo de color" (folletoEncerrarSimple con ovalos=true) — para
+   calcar preguntas del folleto donde cada opción es un óvalo dibujado a
+   mano de un color distinto, en vez de una tarjeta rectangular blanca. */
+.f-encerrar-ovalo {
+  border: 2.5px solid var(--f-ovalo, #f97316);
+  border-radius: 999px;
+  padding: 16px 30px;
+  font-weight: 700;
+  color: #44403c;
+}
+
+.f-encerrar-opt .f-encerrar-ring {
+  position: absolute;
+  inset: -7px -8px;
+  border: 3px solid #f59e0b;
+  border-radius: 50% / 62%;
+  opacity: 0;
+  pointer-events: none;
+}
+.f-encerrar-opt.marcada .f-encerrar-ring {
+  opacity: 1;
+  animation: fEncerrarDraw 0.5s ease-out forwards;
+}
+.f-encerrar-opt.bien .f-encerrar-ring {
+  opacity: 1;
+  border-color: #16a34a;
+  animation: fEncerrarDraw 0.5s ease-out forwards;
+}
+.f-encerrar-opt.mal .f-encerrar-ring {
+  opacity: 1;
+  border-color: #dc2626;
+  border-style: dashed;
+  animation: fEncerrarDraw 0.5s ease-out forwards;
+}
+
+.f-encerrar-opt .f-encerrar-badge {
+  position: absolute;
+  top: -11px;
+  right: -11px;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 900;
+  transform: scale(0) rotate(-30deg);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.f-encerrar-opt.bien .f-encerrar-badge {
+  background: #16a34a;
+  transform: scale(1) rotate(0deg);
+  transition-delay: 0.35s;
+}
+.f-encerrar-opt.bien .f-encerrar-badge::before { content: '✓'; }
+.f-encerrar-opt.mal .f-encerrar-badge {
+  background: #dc2626;
+  transform: scale(1) rotate(0deg);
+  transition-delay: 0.1s;
+}
+.f-encerrar-opt.mal .f-encerrar-badge::before { content: '✕'; }
+
+.f-encerrar-opt.marcada { background: #fffbeb; animation: fEncerrarCardPop 0.4s ease; }
+.f-encerrar-opt.bien { background: #f0fdf4; animation: fEncerrarPop 0.4s ease 0.35s; }
+.f-encerrar-opt.mal { animation: fEncerrarShake 0.4s ease; }
+
+/* El óvalo ya tiene su propio color de fondo (no #fffbeb como las tarjetas
+   blancas) y el anillo ámbar se notaba poco sobre esos pasteles — al
+   marcar, en vez de (o además de) el anillo, se engrosa el borde del
+   propio óvalo y aparece una insignia ✓ sólida del mismo color, mucho más
+   notorio que solo el anillo fino. Se excluye :not(.bien):not(.mal) para
+   que, ya calificado, mande el verde/rojo de la insignia de acierto. */
+.f-encerrar-ovalo.marcada:not(.bien):not(.mal) {
+  border-width: 5px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+}
+.f-encerrar-ovalo.marcada:not(.bien):not(.mal) .f-encerrar-badge {
+  opacity: 1;
+  transform: scale(1) rotate(0deg);
+  background: var(--f-ovalo, #6366f1);
+}
+.f-encerrar-ovalo.marcada:not(.bien):not(.mal) .f-encerrar-badge::before { content: '✓'; }
+
+@keyframes fEncerrarDraw {
+  0% {
+    clip-path: inset(0 100% 0 0 round 50% / 62%);
+    transform: scale(0.85) rotate(-12deg);
+  }
+  55% {
+    clip-path: inset(0 0 0 0 round 50% / 62%);
+    transform: scale(1.08) rotate(4deg);
+  }
+  100% {
+    clip-path: inset(0 0 0 0 round 50% / 62%);
+    transform: scale(1) rotate(-2deg);
+  }
+}
+@keyframes fEncerrarCardPop {
+  0% { transform: scale(1) rotate(0deg); }
+  30% { transform: scale(1.06) rotate(-1.5deg); }
+  60% { transform: scale(0.98) rotate(1deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+@keyframes fEncerrarPop {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+@keyframes fEncerrarShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+/* -------- "Coloca un ✓" en una opción (folletoMarcarVisto) --------
+   Calca el folleto: tarjetas en 2 columnas con fondo pastel (una pareja
+   de colores por fila) y una casilla cuadrada a la derecha de cada
+   opción, igual que el recuadro vacío del PDF. Elección única: marcar
+   una desmarca las demás. Neutro (casilla vacía) hasta calificar. */
+.f-visto-opt {
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 14px;
+  padding: 8px 16px 8px 8px;
+  font-weight: 600;
+  transition: box-shadow 0.15s ease;
+}
+/* Sin translateY en :hover — ver nota junto a .f-img-card:hover. */
+.f-visto-opt:hover { box-shadow: 0 6px 14px rgba(0, 0, 0, 0.1); }
+.f-visto-box {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: #fff;
+  border: 2px solid #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.f-visto-text { flex: 1; }
+.f-visto-check {
+  color: #6366f1;
+  font-size: 1.05rem;
+  font-weight: 900;
+  opacity: 0;
+  transform: scale(0.4);
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.f-visto-opt.marcada .f-visto-box { border-color: #6366f1; }
+.f-visto-opt.marcada .f-visto-check { opacity: 1; transform: scale(1); }
+
+/* Calificación: no se rellena la tarjeta de plano, solo se le pinta el
+   borde (y la casilla) de verde o rojo — nada de texto ni insignias. */
+.f-visto-opt.correcto,
+.f-visto-opt.incorrecto { box-shadow: 0 0 0 2px var(--f-sello) inset; }
+.f-visto-opt.correcto { --f-sello: #16a34a; }
+.f-visto-opt.incorrecto { --f-sello: #dc2626; }
+.f-visto-opt.correcto .f-visto-box,
+.f-visto-opt.incorrecto .f-visto-box { border-color: var(--f-sello); }
+.f-visto-opt.correcto .f-visto-check,
+.f-visto-opt.incorrecto .f-visto-check { color: var(--f-sello); }
+
+/* -------- secuencia arrastrable (ordenar) --------
+   Los <li> sin arrastrar animan su transform (los corre folletoOrdenarSecuencia
+   con translateY para abrir espacio); el que se arrastra NO tiene transición
+   — debe seguir al cursor 1:1 sin retraso — y se eleva (sombra + z-index)
+   para que se note claramente que "está en el aire". */
+.f-secuencia { list-style: none; margin: 0; padding: 0; }
+.f-secuencia li { cursor: grab; touch-action: none; transition: transform 0.15s ease; }
+.f-secuencia li:active { cursor: grabbing; }
+.f-secuencia li.f-secuencia-dragging {
+  position: relative;
+  z-index: 5;
+  transition: none;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.2);
+}
+.f-secuencia li.bien4 { outline: 3px solid #16a34a; }
+.f-secuencia li.mal4 { outline: 3px solid #dc2626; }
+
+/* -------- animación de entrada -------- */
+@keyframes fPop {
+  0% { opacity: 0; transform: translateY(12px) scale(0.97); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.f-pop { animation: fPop 0.4s ease both; }
+.f-pop:nth-child(2) { animation-delay: 0.05s; }
+.f-pop:nth-child(3) { animation-delay: 0.1s; }
+.f-pop:nth-child(4) { animation-delay: 0.15s; }
+.f-pop:nth-child(5) { animation-delay: 0.2s; }
+.f-pop:nth-child(6) { animation-delay: 0.25s; }
+
+/* -------- checklist con check circular animado (lluvia de ideas) -------- */
+.f-check-opt {
+  transition: box-shadow 0.15s ease, background-color 0.15s ease;
+}
+.f-check-opt:hover { box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08); }
+.f-check-opt.marcado { background-color: rgba(99, 102, 241, 0.1) !important; }
+.f-check-box {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 2px solid #cbd5e1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 900;
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.f-check-opt.marcado .f-check-box {
+  background-color: #6366f1;
+  border-color: #6366f1;
+  transform: scale(1.15);
+}
+.f-check-opt.marcado .f-check-box::before { content: '✓'; }
+
+/* -------- evaluación Sí/No/Debo mejorar (STEAMission) -------- */
+/* user-select:none en la fila entera: sin esto, un clic real (que
+   siempre trae un pelín de arrastre) puede iniciar una selección nativa
+   de texto sobre el criterio y "trabar" la página sin ningún error de
+   JS — el mismo bug ya visto y corregido en .f-vf-row/.f-unir-item. */
+.f-eval-row { user-select: none; transition: background 0.15s ease; }
+.f-eval-row:hover { background: #eef2ff !important; }
+.f-eval-cell {
+  cursor: pointer;
+  user-select: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+.f-eval-cell:hover { transform: scale(1.15); }
+.f-eval-cell.f-eval-selected {
+  background: currentColor;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+  animation: fEvalPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.f-eval-cell.f-eval-selected::after {
+  content: '✓';
+  color: #fff;
+  font-weight: 900;
+  font-size: 0.95rem;
+}
+
+/* Casilla ✓/X de marcado libre (sin autocalificación, el docente revisa
+   manualmente) — una sola casilla que cicla vacío→✓→✕→vacío al hacer
+   clic, calcando el cuadrito vacío del PDF. Ver preg. 3 de uni4act1.js. */
+.f-marcaropt-ciclo {
+  transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+.f-marcaropt-ciclo:hover { transform: scale(1.08); }
+.f-marcaropt-ciclo.f-marcaropt-check { background: #16a34a; color: #fff; border-color: #16a34a !important; }
+.f-marcaropt-ciclo.f-marcaropt-x { background: #dc2626; color: #fff; border-color: #dc2626 !important; }
+@keyframes fEvalPop {
+  0% { transform: scale(0.6); }
+  60% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+
+/* -------- "Actividad calificada por tu docente" (.c-d) --------
+   misEstilos.css la deja a 1.7rem (pensada para otro contexto/pantalla) —
+   se ve enorme junto a las preguntas. No se toca misEstilos.css (es del
+   framework compartido); se sobreescribe aquí con !important. */
+.c-d {
+  font-size: 0.9rem !important;
+  margin-left: 8px !important;
+}
+
+/* -------- líneas de cuaderno para las cajas de texto (.bookText) --------
+   El proyecto ya tenía esta idea en css/styles.css (no cargado aquí) —
+   se porta a folleto2.css para que aplique a TODO ".p*campoTexto.bookText"
+   sin tener que cargar ese archivo suelto. */
+.bookText {
+  position: relative;
+  overflow: hidden;
+}
+.bookText::after {
+  content: '';
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  top: 10px;
+  bottom: 10px;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(71, 85, 105, 0.22) 0,
+    rgba(71, 85, 105, 0.22) 1px,
+    transparent 1px,
+    transparent 32px
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+.bookText textarea {
+  position: relative;
+  z-index: 1;
+  background: transparent !important;
+  line-height: 32px;
+}
+
+/* -------- "unir con líneas" (folletoUnirLineas) --------
+   Dos columnas de tarjetas con un puntito a cada lado; al hacer clic en
+   una tarjeta izquierda y luego una derecha, se dibuja una línea real
+   (SVG) entre sus puntos. Neutro (índigo/paleta) mientras no se
+   califica; verde/rojo solo después de folletoValidarUnirLineas. */
+.f-unir-wrap { min-height: 40px; }
+.f-unir-titulo {
+  display: block;
+  text-align: center;
+  font-weight: 800;
+  font-size: 0.85rem;
+  color: #fff;
+  background: #6366f1;
+  border-radius: 999px;
+  padding: 4px 12px;
+}
+.f-unir-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  /* Encima de las tarjetas (no detrás): el punto está pegado al borde
+     de la tarjeta, así que el tramo final de la línea entra un poco en
+     su área — si el SVG quedara detrás, ese tramo se vería "cortado"
+     antes de llegar al círculo. */
+  z-index: 2;
+}
+.f-unir-item {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fff;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 10px 14px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 0.9rem;
+  transition: border-color 0.15s ease, transform 0.15s ease, background 0.15s ease;
+}
+.f-unir-left { justify-content: space-between; }
+/* El punto de cada columna va SIEMPRE del lado que mira al hueco central
+   (izquierda: borde derecho: derecha: borde izquierdo) — así la línea
+   recta entre dos puntos nunca tiene que atravesar por encima/debajo de
+   una tarjeta, sin importar qué tan lejos estén sus filas. */
+/* Sin translateY en :hover — ver nota junto a .f-img-card:hover. */
+.f-unir-item:hover { box-shadow: 0 6px 14px rgba(0, 0, 0, 0.1); }
+.f-unir-dot {
+  position: relative;
+  z-index: 3;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: #cbd5e1;
+  flex: none;
+  transition: background 0.15s ease, transform 0.2s ease;
+}
+.f-unir-item.f-unir-selected { border-color: #6366f1; }
+.f-unir-item.f-unir-selected .f-unir-dot { background: #6366f1; transform: scale(1.3); }
+.f-unir-item.f-unir-matched .f-unir-dot { background: #6366f1; }
+.f-unir-item.f-unir-bien { border-color: #16a34a; background: #f0fdf4; }
+.f-unir-item.f-unir-bien .f-unir-dot { background: #16a34a; }
+.f-unir-item.f-unir-mal { border-color: #dc2626; background: #fef2f2; }
+.f-unir-item.f-unir-mal .f-unir-dot { background: #dc2626; }
+.f-unir-img {
+  display: block;
+  width: 190px;
+  height: 110px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex: none;
+  margin: 0 auto 6px;
+}
+.f-unir-right .f-unir-text { display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%; }
+.f-unir-right.f-unir-item { min-height: 150px; }
+
+/* -------- "subraya" una opción (folletoSubrayarOpciones) --------
+   En vez de un checkbox: al hacer clic se dibuja una línea animada bajo
+   el texto, como si el estudiante lo subrayara a mano. */
+.f-subraya-opt {
+  cursor: pointer;
+  user-select: none;
+  padding: 8px 10px;
+  border-radius: 8px;
+  transition: background 0.15s ease;
+}
+.f-subraya-opt:hover { background: #f8fafc; }
+.f-subraya-marcador {
+  display: inline-block;
+  min-width: 1.4em;
+  font-weight: 700;
+  color: #78716c;
+}
+.f-subraya-text {
+  display: inline;
+  font-size: 0.95rem;
+  /* text-decoration (no ::after con position:absolute): un ::after en un
+     span que se envuelve a varias líneas (móvil) solo se ancla a la
+     ÚLTIMA línea — se veía la raya solo bajo la última palabra. Con
+     text-decoration el subrayado nativo sí sigue cada línea envuelta. */
+  text-decoration-line: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 3px;
+  text-underline-offset: 4px;
+  transition: color 0.2s ease, text-decoration-color 0.3s ease;
+}
+.f-subraya-opt.marcado .f-subraya-text {
+  color: #4338ca;
+  font-weight: 700;
+  text-decoration-color: #4f46e5;
+}
+.f-subraya-opt.correcto .f-subraya-text { color: #16a34a; text-decoration-color: #16a34a; }
+.f-subraya-opt.incorrecto .f-subraya-text { color: #dc2626; text-decoration-color: #dc2626; }
+
+/* -------- "encierra" una palabra directo sobre el texto de lectura
+   (folletoLectura con encerrable: true) -------- */
+.f-encerrar-word {
+  cursor: pointer;
+  border-radius: 999px;
+  padding: 0 2px;
+  border: 2px solid transparent;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+.f-encerrar-word.marcado {
+  border-color: #ea580c;
+  color: #c2410c;
+  font-weight: 700;
+}
+
+/* -------- paso numerado (Para grandes problemas / STEAMission) --------
+   Cuadrado redondeado de número con "burbujas" decorativas detrás +
+   etiqueta en forma de píldora, calcando el diseño del folleto (número
+   en un cuadrado de esquinas redondeadas, NO un círculo; texto en una
+   cápsula del mismo color; ambos flotando sobre unos puntos translúcidos
+   más claros). El color lo fija --f-step (inline, por paso). */
+.f-step-row { position: relative; }
+.f-step-dot {
+  position: absolute;
+  border-radius: 999px;
+  background: var(--f-step);
+  opacity: 0.28;
+  z-index: 0;
+}
+.f-step-dot-a { width: 20px; height: 20px; top: -8px; left: 14px; }
+.f-step-dot-b { width: 13px; height: 13px; bottom: -6px; left: 34px; }
+.f-step-dot-c { width: 15px; height: 15px; top: 50%; left: calc(100% + 6px); transform: translateY(-50%); }
+.f-step-num {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 10px;
+  background: var(--f-step);
+  color: #fff;
+  font-weight: 900;
+  font-size: 1.05rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+.f-step-label {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  background: var(--f-step);
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.95rem;
+  border-radius: 999px;
+  padding: 7px 20px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* Variante "flecha" (pasos de STEAMission: Identificar/Indagar/Diseñar/
+   Implementar/Evaluar/Difundir) — en el folleto esos pasos NO usan el
+   cuadro+píldora de "Para grandes problemas": solo un recuadro simple
+   con el número (el .f-step-num de base ya sirve tal cual) y la etiqueta
+   es texto en negrita del mismo color, sin píldora de fondo ni puntos
+   decorativos detrás. */
+.f-step-row.f-step-flecha .f-step-dot { display: none; }
+.f-step-row.f-step-flecha .f-step-label {
+  background: none;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0;
+  color: var(--f-step);
+  font-weight: 900;
+  font-size: 1.15rem;
+}
+
+/* -------- Verdadero o Falso (folletoVerdaderoFalso) -------- */
+.f-vf-btn {
+  cursor: pointer;
+  user-select: none;
+  background: #fff;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+}
+.f-vf-btn:active { transform: scale(0.9); }
+.f-vf-btn.activo {
+  background: var(--f-vf, #6366f1) !important;
+  color: #fff !important;
+}
+.f-vf-toggle.bien { outline: 3px solid #16a34a; outline-offset: 2px; }
+.f-vf-toggle.mal { outline: 3px solid #dc2626; outline-offset: 2px; }
+/* La sola píldora V/F no era suficientemente notoria (feedback del
+   usuario): al calificar, toda la franja del enunciado toma un borde
+   grueso de color y una insignia ✓/✕ grande a la izquierda, no solo la
+   píldora pequeña de la derecha. */
+.f-vf-row {
+  position: relative;
+  user-select: none;
+  transition: box-shadow 0.15s ease, background 0.15s ease, padding-left 0.2s ease;
+}
+.f-vf-row.bien,
+.f-vf-row.mal {
+  padding-left: 44px;
+  box-shadow: inset 0 0 0 3px currentColor;
+}
+.f-vf-row.bien { color: #16a34a; background: #f0fdf4 !important; }
+.f-vf-row.mal { color: #dc2626; background: #fef2f2 !important; }
+.f-vf-badge {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  transform: translateY(-50%) scale(0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 900;
+  font-size: 0.9rem;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.f-vf-row.bien .f-vf-badge,
+.f-vf-row.mal .f-vf-badge {
+  transform: translateY(-50%) scale(1);
+}
+/* Colores explícitos (no currentColor): en la insignia, currentColor se
+   resuelve contra SU PROPIO color de texto (#fff, para que el ✓/✕ se vea
+   blanco), no el verde/rojo del padre — usarlo para el fondo pintaba la
+   insignia blanca sobre blanco, invisible. */
+.f-vf-row.bien .f-vf-badge { background: #16a34a; }
+.f-vf-row.mal .f-vf-badge { background: #dc2626; }
+.f-vf-row.bien .f-vf-badge::before { content: '✓'; }
+.f-vf-row.mal .f-vf-badge::before { content: '✕'; }
+
+/* -------- realce de las opciones clicables del framework
+   (EncerrarSimple / SelSimple / MarcarSimple) para que se vean como
+   tarjetas invitantes ANTES de hacer clic, no solo texto plano. El
+   estado "ya marcado" lo sigue pintando funciones.js con sus propias
+   clases (.pintar / .Encerrar1 / .Marcar1), esto solo mejora el reposo
+   y el hover. -------- */
+.EncerrarSimpleCaja,
+.SelSimple > div,
+.MarcarSimpleCaja > div {
+  background: #fff;
+  border: 2px solid #e7e5e4;
+  padding: 8px 16px !important;
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+/* Sin translateY en :hover — ver nota junto a .f-img-card:hover. */
+.EncerrarSimpleCaja:hover,
+.SelSimple > div:hover,
+.MarcarSimpleCaja > div:hover {
+  border-color: #a5b4fc;
+  box-shadow: 0 6px 14px rgba(99, 102, 241, 0.18);
+}
+
+/* -------- impresión / colores forzados -------- */
+.print-color,
+.print-color * {
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* -------- lienzo para dibujar (folletoLienzo) -------- */
+.f-lienzo { margin: 8px 0; }
+.f-lienzo-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-bottom: none;
+  border-radius: 14px 14px 0 0;
+  padding: 8px 10px;
+}
+.f-lienzo-group { display: flex; gap: 4px; }
+.f-lienzo-tool {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.f-lienzo-tool:hover { background: #eef2ff; }
+.f-lienzo-tool.activo { border-color: #6366f1; background: #eef2ff; }
+.f-lienzo-color {
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  border: 2px solid #fff;
+  outline: 2px solid transparent;
+  cursor: pointer;
+  transition: outline-color 0.15s ease;
+}
+.f-lienzo-color.activo { outline-color: #6366f1; }
+.f-lienzo-relleno {
+  border: 2px solid transparent;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #475569;
+  padding: 0 10px;
+  height: 34px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.f-lienzo-relleno:hover { background: #eef2ff; }
+.f-lienzo-relleno.activo { border-color: #6366f1; background: #eef2ff; color: #4338ca; }
+.f-lienzo-grosor { width: 90px; accent-color: #6366f1; }
+.f-lienzo-limpiar {
+  margin-left: auto;
+  border: none;
+  border-radius: 8px;
+  background: #fee2e2;
+  color: #b91c1c;
+  font-weight: 700;
+  font-size: 0.8rem;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.f-lienzo-limpiar:hover { background: #fecaca; }
+.f-lienzo-canvas {
+  display: block;
+  width: 100%;
+  background: #fff;
+  border: 2px solid #e2e8f0;
+  border-radius: 0 0 14px 14px;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+/* -------- festejo al calificar (confeti + banner de nota) --------
+   z-index por encima del modal (.modal usa 1000): antes quedaban detrás
+   del fondo oscuro semitransparente del modal y apenas se distinguían. */
+.f-confeti-contenedor {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1100;
+  overflow: hidden;
+}
+.f-confeti-pieza {
+  position: absolute;
+  top: -12px;
+  width: 9px;
+  height: 14px;
+  opacity: 0.9;
+  animation: fConfetiCaer linear forwards;
+}
+@keyframes fConfetiCaer {
+  to {
+    transform: translateY(105vh) rotate(720deg);
+    opacity: 0.3;
+  }
+}
+.f-banner-nota {
+  position: fixed;
+  top: 18px;
+  left: 50%;
+  transform: translate(-50%, -30px);
+  z-index: 1101;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.22);
+  padding: 12px 16px;
+  max-width: min(420px, calc(100vw - 32px));
+  opacity: 0;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s ease;
+}
+.f-banner-nota-visible {
+  transform: translate(-50%, 0);
+  opacity: 1;
+}
+.f-banner-emoji { font-size: 1.8rem; flex: none; }
+.f-banner-texto { font-size: 0.88rem; color: #334155; line-height: 1.35; }
+.f-banner-texto b { color: #15803d; font-size: 0.98rem; }
+.f-banner-cerrar {
+  flex: none;
+  border: none;
+  background: none;
+  font-size: 1.2rem;
+  line-height: 1;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+.f-banner-cerrar:hover { color: #475569; }

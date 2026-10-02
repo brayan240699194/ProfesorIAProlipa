@@ -1,0 +1,205 @@
+<!doctype html>
+<html>
+
+<head>
+  <title>Nuevas energías</title>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="css/newCSS/misEstilos.css" rel="stylesheet" media="all" />
+  <link href="css/animate.css" rel="stylesheet" />
+  <link href="css/hover.css" rel="stylesheet" media="all" />
+  <link href="css/no-bootstrap.css?v=54" rel="stylesheet" />
+  <link href="css/folleto2.css?v=113" rel="stylesheet" />
+</head>
+
+<body class="bg-stone-50">
+  <div class="container">
+    <div class="panel border-aplicacion print-color" id="activity">
+      <div class="panel-heading bg-aplicacion"></div>
+      <div class="panel-body relative">
+
+        <!-- Fase -->
+        <div class="flex flex-wrap items-center gap-2 mb-2">
+          <span class="inline-block bg-orange-400 text-white font-bold text-sm rounded-md px-4 py-1">Fase 1</span>
+          <span class="text-orange-500 font-semibold text-sm">El pasado y el futuro de la energía</span>
+        </div>
+
+        <h3 class="text-center text-[#0066b3] font-extrabold text-xl sm:text-2xl mb-3">
+          Nuevas energías
+        </h3>
+
+        <div class="bg-white border border-stone-200 shadow-sm rounded-xl p-3 mb-2 text-sm">
+          <b class="text-green-600">Objetivo general:</b> Diseñar e implementar propuestas comunicativas, científicas,
+          tecnológicas y éticas que promuevan el uso de energías asequibles y no contaminantes.
+        </div>
+        <div class="bg-white border border-stone-200 shadow-sm rounded-xl p-3 mb-6 text-sm">
+          <b class="text-green-600">Objetivo de Biología:</b> Analizar las causas, consecuencias y desigualdades
+          relacionadas con el acceso a la energía asequible y no contaminante mediante la creación de un mapa
+          interactivo que muestre la desigualdad energética en el Ecuador.
+        </div>
+
+        <!-- 1. Identificar -->
+        <div class="flex items-center gap-2 mb-2 break-inside-avoid break-after-avoid">
+          <div class="f-step-row f-step-flecha inline-flex items-center gap-3" style="--f-step: #6850a1">
+            <span class="f-step-num">1</span>
+            <span class="f-step-label">Identificar</span>
+          </div>
+        </div>
+        <div id="p1lectura" class="mb-4"></div>
+
+        <!-- 2. Indagar -->
+        <div class="flex items-center gap-2 mt-6 mb-2 break-inside-avoid break-after-avoid">
+          <div class="f-step-row f-step-flecha inline-flex items-center gap-3" style="--f-step: #00accd">
+            <span class="f-step-num">2</span>
+            <span class="f-step-label">Indagar</span>
+          </div>
+        </div>
+        <p class="text-sm mb-3"><b>Indaguen</b> y <b>respondan</b> las preguntas.</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="bg-white border-2 rounded-2xl p-3" style="border-color: #8cc63e">
+            <div class="flex items-center gap-2 mb-2 break-inside-avoid break-after-avoid">
+              <input type="text" class="nota-abierta" id="pre1a" />
+              <p class="text-sm flex-1">
+                <b class="numPregunta">a)</b> ¿Cuáles son las principales fuentes de energía en el Ecuador y su
+                impacto ambiental?
+                <i class="c-d"></i>
+              </p>
+            </div>
+            <div class="p3campoTexto bookText"></div>
+          </div>
+          <div class="bg-white border-2 rounded-2xl p-3" style="border-color: #24b3d2">
+            <div class="flex items-center gap-2 mb-2 break-inside-avoid break-after-avoid">
+              <input type="text" class="nota-abierta" id="pre2a" />
+              <p class="text-sm flex-1">
+                <b class="numPregunta">b)</b> ¿Cómo afecta la falta de acceso a la energía en las comunidades
+                rurales y vulnerables en el Ecuador?
+                <i class="c-d"></i>
+              </p>
+            </div>
+            <div class="p3campoTexto bookText"></div>
+          </div>
+          <div class="bg-white border-2 rounded-2xl p-3" style="border-color: #00a9aa">
+            <div class="flex items-center gap-2 mb-2 break-inside-avoid break-after-avoid">
+              <input type="text" class="nota-abierta" id="pre3a" />
+              <p class="text-sm flex-1">
+                <b class="numPregunta">c)</b> ¿Qué desigualdades se observan en la distribución y el costo de la
+                energía en el país?
+                <i class="c-d"></i>
+              </p>
+            </div>
+            <div class="p3campoTexto bookText"></div>
+          </div>
+          <div class="bg-white border-2 rounded-2xl p-3" style="border-color: #2179a9">
+            <div class="flex items-center gap-2 mb-2 break-inside-avoid break-after-avoid">
+              <input type="text" class="nota-abierta" id="pre4a" />
+              <p class="text-sm flex-1">
+                <b class="numPregunta">d)</b> ¿Qué enfermedades están relacionadas con el uso de biomasa para
+                cocinar?
+                <i class="c-d"></i>
+              </p>
+            </div>
+            <div class="p3campoTexto bookText"></div>
+          </div>
+        </div>
+
+        <!-- 3. Diseñar -->
+        <div class="flex items-center gap-2 mt-6 mb-2 break-inside-avoid break-after-avoid">
+          <div class="f-step-row f-step-flecha inline-flex items-center gap-3" style="--f-step: #ab208e">
+            <span class="f-step-num">3</span>
+            <span class="f-step-label">Diseñar</span>
+          </div>
+        </div>
+        <div class="text-sm space-y-2">
+          <p class="flex gap-2"><b class="flex-none text-[#0066b3]">a)</b><span><b>Elaboren</b> un diagrama de flujo
+              que conecte las causas de la desigualdad en el acceso a la energía en el Ecuador (por ejemplo,
+              infraestructura deficiente, costos elevados) y las consecuencias (salud, educación, desarrollo
+              económico).</span></p>
+          <p class="flex gap-2"><b class="flex-none text-[#0066b3]">b)</b><span><b>Averigüen</b> cuáles son las zonas
+              con mayor desigualdad de acceso a energía asequible y no contaminante, datos socioeconómicos y de
+              salud.</span></p>
+        </div>
+
+        <!-- 4. Implementar -->
+        <div class="flex items-center gap-2 mt-6 mb-2 break-inside-avoid break-after-avoid">
+          <div class="f-step-row f-step-flecha inline-flex items-center gap-3" style="--f-step: #f5821f">
+            <span class="f-step-num">4</span>
+            <span class="f-step-label">Implementar</span>
+          </div>
+        </div>
+        <p class="text-sm mb-2"><b class="text-[#f37346]">Materiales:</b> Aplicación de google my maps, datos
+          recopilados, computadora con acceso a Internet.</p>
+        <div class="text-sm space-y-2 overflow-auto">
+          <div class="flex gap-2 items-start">
+            <p class="flex gap-2 flex-1"><b class="flex-none text-[#0066b3]">a)</b><span><b>Ingresen</b> al siguiente
+                enlace <a href="https://cal.lat/p/xDnxhy" target="_blank" rel="noopener noreferrer"
+                  class="text-sky-500">https://cal.lat/p/xDnxhy</a> o <b>escaneen</b> el código QR y
+                <b>observen</b> el video sobre el uso de la aplicación google my maps.</span></p>
+            <img src="img/img3_p11_act1.png" alt="Código QR para acceder al video sobre el uso de google my maps."
+              class="w-16 h-16 flex-none" onerror="this.style.display='none'" />
+          </div>
+          <p class="flex gap-2"><b class="flex-none text-[#0066b3]">b)</b><span><b>Diseñen</b> un mapa interactivo en
+              la aplicación de google my maps, que muestre las áreas con mayor necesidad de acceso a energía
+              asequible y no contaminante, superponiendo datos socioeconómicos y de salud en el Ecuador.</span></p>
+          <img src="img/img2_p11_act1.jpg" alt="Lupa sobre la pantalla de una computadora con la página de Google Maps."
+            class="float-right w-full sm:w-[300px] h-auto rounded-[2rem] ml-3 mb-3 print:[.panel-body_&]:!max-h-none"
+            onerror="this.style.display='none'" />
+          <p class="flex gap-2"><b class="flex-none text-[#0066b3]">c)</b><span><b>Creen</b> una nueva capa y
+              <b>representen</b> las áreas con bajo acceso a electricidad. <b>Pueden</b> usar un degradado de color
+              (por ejemplo, rojo para muy bajo acceso, amarillo para acceso limitado) o símbolos para indicar el
+              porcentaje de hogares sin electricidad.</span></p>
+          <p class="flex gap-2"><b class="flex-none text-[#0066b3]">d)</b><span><b>Creen</b> otra capa para mostrar
+              las zonas donde el uso de biomasa para cocinar es predominante.</span></p>
+          <p class="flex gap-2"><b class="flex-none text-[#0066b3]">e)</b><span><b>Superpongan</b> una capa con datos
+              de salud relacionadas con la calidad del aire interior.</span></p>
+          <p class="flex gap-2"><b class="flex-none text-[#0066b3]">f)</b><span>Basados en el mapa,
+              <b>identifiquen</b> y <b>enumeren</b> de 3 a 5 áreas geográficas o tipos de comunidades que presentan
+              la mayor necesidad de intervención en términos de acceso a energía limpia y asequible.</span></p>
+          <p class="flex gap-2"><b class="flex-none text-[#0066b3]">g)</b><span><b>Enlisten</b> las posibles energías
+              renovables que podrían implementar estos sectores, así como opciones ecológicas para la cocción de
+              alimentos.</span></p>
+        </div>
+
+        <!-- 5. Evaluar (break-inside-avoid: al imprimir no se parte la tabla entre dos hojas) -->
+        <div class="break-inside-avoid">
+          <div class="flex items-center gap-2 mt-6 mb-2 break-inside-avoid break-after-avoid">
+            <div class="f-step-row f-step-flecha inline-flex items-center gap-3" style="--f-step: #ef4d74">
+              <span class="f-step-num">5</span>
+              <span class="f-step-label">Evaluar</span>
+            </div>
+          </div>
+          <p class="text-sm mb-2"><b>Evalúen</b> su trabajo y <b>completen</b> la siguiente tabla.</p>
+          <div id="p2evaltabla"></div>
+          <div class="mt-3">
+            <b class="text-rose-600 text-sm block mb-1">Debo mejorar</b>
+            <div class="p2campoTexto bookText"></div>
+          </div>
+        </div>
+
+        <!-- 6. Difundir -->
+        <div class="flex items-center gap-2 mt-6 mb-2 break-inside-avoid break-after-avoid">
+          <div class="f-step-row f-step-flecha inline-flex items-center gap-3" style="--f-step: #8dc63f">
+            <span class="f-step-num">6</span>
+            <span class="f-step-label">Difundir</span>
+          </div>
+        </div>
+        <p class="text-sm"><b>Presenten</b> el mapa en la página web de su institución educativa.
+          <b>Desarrollen</b> mensajes clave para sensibilizar a la comunidad sobre la importancia del acceso a la
+          energía y las desigualdades existentes.</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/no-bootstrap.js"></script>
+  <script src="js/helper.js"></script>
+  <script src="js/activities.js"></script>
+  <script src="js/new-js/builder.js"></script>
+  <script src="js/new-js/funciones.js"></script>
+  <script src="js/Utilitario.js"></script>
+  <script src="js/folleto-widgets.js?v=138"></script>
+  <script src="js/toolbar-tooltips.js?v=64"></script>
+  <script src="js/uni2act2.js?v=5"></script>
+</body>
+
+</html>

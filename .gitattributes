@@ -1,0 +1,21 @@
+# Fin de línea uniforme (evita conflictos entre Windows y GitHub)
+* text=auto
+*.html text eol=lf
+*.js   text eol=lf
+*.mjs  text eol=lf
+*.css  text eol=lf
+*.md   text eol=lf
+*.toml text eol=lf
+# Binarios: no se tocan
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.webp binary
+*.svg  text eol=lf
+*.eot  binary
+*.ttf  binary
+*.woff binary
+*.woff2 binary
+*.wav  binary
+*.mp3  binary
