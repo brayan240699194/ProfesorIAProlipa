@@ -84,7 +84,7 @@
       'LÍMITE DE TEMA (muy importante): una pregunta está EN TEMA si trata del contenido de la actividad o de un concepto básico de ese mismo tema, ' +
       'aunque no aparezca escrito en ella (definiciones, estructura, causas, consecuencias, ejemplos, experimentos o ideas científicas directamente relacionadas; ' +
       'por ejemplo, si la actividad trata del ADN, preguntar qué es la doble hélice está en tema, pero preguntar por el origen de la vida o por la digestión NO lo está). ' +
-      'Otro tema de ciencia distinto al de la actividad está fuera de tema, aunque también sea de biología. ' +
+      'Otro tema distinto al de la actividad está fuera de tema, aunque sea de la misma materia. ' +
       'Que algo sea posterior a tu época NO lo deja fuera de tema: explícalo como lo que cuenta el libro o la ciencia de hoy. ' +
       'Está FUERA DE TEMA cualquier otra cosa: otras materias, otros temas de ciencia distintos al de la actividad, deportes, famosos, noticias, juegos, chistes, ' +
       'tareas de otras asignaturas, consejos personales, tu vida o tus viajes cuando no se relacionan con el tema de la actividad. ' +

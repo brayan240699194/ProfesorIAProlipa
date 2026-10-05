@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#1e3a8a" />
+  <link rel="icon" type="image/png" href="img/prolipa-icono.png" />
+  <title>Juegos</title>
+  <!-- Menú de juegos: lo abre el botón "Juego" de cada actividad (js/toolbar-tooltips.js) en un marco sobre
+       la actividad. Cada juego lleva el tema (?tema=) y, dentro de la actividad, recibe su texto por postMessage. -->
+  <style>
+    :root {
+      --fondo: #eff6ff; --tarjeta: #ffffff; --texto: #1f2937; --suave: #64748b; --borde: #dbeafe;
+      --acento: #2563eb; --heroe: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #38bdf8 100%);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) { --fondo: #0b1530; --tarjeta: #14224a; --texto: #e2e8f0; --suave: #94a3b8; --borde: #24386b; --acento: #60a5fa; }
+    }
+    :root[data-theme="dark"] { --fondo: #0b1530; --tarjeta: #14224a; --texto: #e2e8f0; --suave: #94a3b8; --borde: #24386b; --acento: #60a5fa; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--fondo); color: var(--texto); }
+    button, a { font: inherit; }
+    a:focus-visible, button:focus-visible { outline: 3px solid #f59e0b; outline-offset: 3px; }
+    [hidden] { display: none !important; }
+    .heroe { position: relative; padding: 28px 16px 70px; background: var(--heroe); color: #fff; text-align: center; overflow: hidden; }
+    .heroe::after { content: "🧬 🦠 🌿 🧫 🔬 🫀 🧠"; position: absolute; left: 0; right: 0; bottom: 18px; font-size: 1.4rem; letter-spacing: 16px; opacity: .2; white-space: nowrap; }
+    .logo { display: inline-grid; place-items: center; width: 74px; height: 74px; border-radius: 22px; background: #fff; box-shadow: 0 10px 24px rgba(15, 23, 42, .25); animation: flota 3s ease-in-out infinite; }
+    .logo img { width: 56px; height: 56px; object-fit: contain; }
+    @keyframes flota { 50% { transform: translateY(-5px) rotate(-3deg); } }
+    h1 { margin: 12px 0 0; font-size: clamp(1.6rem, 6vw, 2.2rem); letter-spacing: -.02em; }
+    .heroe p { margin: 6px 0 0; color: rgba(255, 255, 255, .9); }
+    .tema { display: inline-flex; gap: 8px; align-items: center; margin-top: 12px; padding: 7px 14px; border-radius: 999px; background: rgba(255, 255, 255, .18); border: 1px solid rgba(255, 255, 255, .3); font-size: .9rem; font-weight: 700; }
+    .cerrar { position: absolute; top: 14px; right: 14px; width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(255, 255, 255, .22); color: #fff; font-size: 1.15rem; font-weight: 800; cursor: pointer; transition: transform .15s, background .15s; }
+    .cerrar:hover { transform: rotate(90deg); background: rgba(255, 255, 255, .35); }
+    main { max-width: 900px; margin: -48px auto 0; padding: 0 16px 32px; position: relative; }
+    .juegos { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+    .juego { position: relative; display: flex; flex-direction: column; border-radius: 26px; background: var(--tarjeta); border: 1px solid var(--borde); box-shadow: 0 16px 40px rgba(37, 99, 235, .16); color: inherit; text-decoration: none; overflow: hidden; transition: transform .2s, box-shadow .2s; animation: entra .5s cubic-bezier(.2, .9, .3, 1.2) backwards; }
+    .juego:nth-child(2) { animation-delay: .1s; }
+    @keyframes entra { from { transform: translateY(24px) scale(.96); opacity: 0; } }
+    .juego:hover { transform: translateY(-6px); box-shadow: 0 22px 48px rgba(37, 99, 235, .26); }
+    .ilustracion { position: relative; height: 170px; display: grid; place-items: center; overflow: hidden; }
+    .cabeza .ilustracion { background: radial-gradient(circle at 50% 120%, #1e3a8a, #0b1530); }
+    .gallina .ilustracion { background: linear-gradient(180deg, #2563eb, #7dd3fc); }
+    .ilustracion .grande { font-size: 4.2rem; filter: drop-shadow(0 8px 14px rgba(0, 0, 0, .35)); }
+    .sombreros { position: absolute; top: 18px; left: 0; right: 0; display: flex; justify-content: center; gap: 10px; }
+    .sombreros span { padding: 6px 10px; border-radius: 12px; background: rgba(255, 255, 255, .92); font-size: .8rem; font-weight: 800; color: #0f172a; animation: flota 2.6s ease-in-out infinite; }
+    .sombreros span:nth-child(2) { animation-delay: -.8s; box-shadow: 0 0 0 3px #38bdf8; }
+    .sombreros span:nth-child(3) { animation-delay: -1.6s; }
+    .cabeza .grande { margin-top: 46px; }
+    .montes { position: absolute; bottom: 0; left: 0; right: 0; height: 70px; }
+    .gallina .grande { position: absolute; left: 16%; bottom: 52px; font-size: 3.4rem; animation: salta 2.8s ease-in-out infinite; }
+    @keyframes salta { 0%, 25% { transform: translate(0, 0); } 55% { transform: translate(90px, -50px) rotate(10deg); } 85%, 100% { transform: translate(180px, 0); } }
+    .ondas { position: absolute; left: 6%; bottom: 80px; font-size: 1.6rem; animation: flota 1.2s ease-in-out infinite; }
+    .info { padding: 18px 20px 20px; }
+    .info h2 { margin: 0; font-size: 1.4rem; }
+    .info p { margin: 6px 0 0; color: var(--suave); line-height: 1.45; font-size: .95rem; }
+    .etiquetas { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+    .etiquetas span { padding: 4px 10px; border-radius: 999px; background: color-mix(in srgb, var(--acento) 12%, var(--tarjeta)); color: var(--acento); font-size: .78rem; font-weight: 800; }
+    .jugar { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 16px; padding: 13px; border-radius: 16px; background: linear-gradient(135deg, #2563eb, #0ea5e9); color: #fff; font-weight: 800; box-shadow: 0 10px 22px rgba(37, 99, 235, .3); }
+    .firma { display: flex; justify-content: center; margin-top: 24px; }
+    .firma span { display: inline-flex; padding: 6px 12px; border-radius: 12px; background: #fff; border: 1px solid var(--borde); }
+    .firma img { display: block; height: 30px; width: auto; }
+    /* Pantalla de carga al elegir un juego */
+    #cargando { position: fixed; inset: 0; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; background: var(--heroe); color: #fff; font-weight: 700; font-size: 1.05rem; opacity: 0; pointer-events: none; transition: opacity .2s; }
+    #cargando.ver { opacity: 1; pointer-events: auto; }
+    #cargando .grande { font-size: 4rem; animation: flota 1.2s ease-in-out infinite; }
+    #cargando .giro { width: 38px; height: 38px; border-radius: 50%; border: 4px solid rgba(255, 255, 255, .3); border-top-color: #fff; animation: gira .8s linear infinite; }
+    @keyframes gira { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+  </style>
+</head>
+
+<body>
+  <header class="heroe">
+    <button type="button" class="cerrar" id="b-volver" hidden aria-label="Volver a la actividad">✕</button>
+    <div class="logo" aria-hidden="true"><img src="img/prolipa-icono.png" alt="" /></div>
+    <h1 id="titulo">Juegos</h1>
+    <p>Elige cómo quieres responder: con tu cabeza o con tu voz</p>
+    <div class="tema" id="tema" hidden>📘 <span id="tema-texto"></span></div>
+  </header>
+
+  <main>
+    <div class="juegos">
+      <a class="juego cabeza" id="j-cabeza" href="biocabeza.html">
+        <div class="ilustracion" aria-hidden="true">
+          <div class="sombreros"><span>⚡ Mitocondria</span><span>🧠 Núcleo</span><span>🔩 Ribosoma</span></div>
+          <span class="grande">🙂</span>
+        </div>
+        <div class="info">
+          <h2>🎩 BioCabeza</h2>
+          <p>Mueve la cabeza frente a la cámara hasta quedar bajo la respuesta correcta y quédate quieto.</p>
+          <div class="etiquetas"><span>📷 Cámara</span><span>3 opciones</span><span>Sin hablar</span></div>
+          <span class="jugar">▶ Jugar</span>
+        </div>
+      </a>
+      <a class="juego gallina" id="j-gallina" href="biosalto.html">
+        <div class="ilustracion" aria-hidden="true">
+          <svg class="montes" viewBox="0 0 300 70" preserveAspectRatio="none"><path d="M0 70 L0 16 Q40 6 90 16 L96 70 Z" fill="#475569" /><path d="M0 16 Q40 6 90 16 L90 24 Q45 14 0 24 Z" fill="#22c55e" /><path d="M200 70 L206 16 Q250 6 300 16 L300 70 Z" fill="#475569" /><path d="M206 16 Q250 6 300 16 L300 24 Q250 14 206 24 Z" fill="#22c55e" /></svg>
+          <span class="ondas">🗣️</span>
+          <span class="grande">🐔</span>
+        </div>
+        <div class="info">
+          <h2>🐔 BioSalto</h2>
+          <p>Di la respuesta en voz alta: si aciertas, la gallina salta a la otra montaña; si no, ¡cae al barranco!</p>
+          <div class="etiquetas"><span>🎤 Micrófono</span><span>Una palabra</span><span>📱 QR si no hay micrófono</span></div>
+          <span class="jugar">▶ Jugar</span>
+        </div>
+      </a>
+    </div>
+    <div class="firma"><span><img src="img/logo%20prolipa.png" alt="Prolipa · Vanguardia en educación" /></span></div>
+  </main>
+
+  <div id="cargando" role="status" aria-live="polite"><span class="grande" id="cargando-ico">🐔</span><div class="giro"></div><span id="cargando-texto">Cargando…</span></div>
+
+  <script src="js/juegos/config.js"></script>
+  <script>
+    (function () {
+      // Cada juego recibe el tema por la dirección (?tema=). Dentro de una
+      // actividad, el juego vuelve a pedirle su texto a la actividad al cargar.
+      var params = new URLSearchParams(location.search);
+      var tema = (params.get('tema') || '').slice(0, 80);
+      var embebido = window.parent !== window;
+      function pintar() {
+        var q = tema ? '?tema=' + encodeURIComponent(tema) : '';
+        document.getElementById('j-cabeza').href = 'biocabeza.html' + q;
+        document.getElementById('j-gallina').href = 'biosalto.html' + q;
+        document.getElementById('tema').hidden = !tema;
+        document.getElementById('tema-texto').textContent = tema;
+      }
+      pintar();
+      // Solo las tarjetas de los juegos activos (js/juegos/config.js o lo que indique la actividad).
+      function filtrar(ids) {
+        document.getElementById('j-cabeza').hidden = ids.indexOf('biocabeza') < 0;
+        document.getElementById('j-gallina').hidden = ids.indexOf('biosalto') < 0;
+      }
+      var cfg = window.JUEGOS_CONFIG || {};
+      filtrar(['biocabeza', 'biosalto'].filter(function (k) { return cfg[k] !== false; }));
+      // Al elegir un juego: pantalla de carga (aquí y en el marco de la actividad) y luego cambia de página.
+      [['j-cabeza', 'BioCabeza', '🎩'], ['j-gallina', 'BioSalto', '🐔']].forEach(function (j) {
+        document.getElementById(j[0]).addEventListener('click', function (e) {
+          if (e.ctrlKey || e.metaKey || e.shiftKey || e.button) return;
+          e.preventDefault();
+          var destino = this.href;
+          document.getElementById('cargando-ico').textContent = j[2];
+          document.getElementById('cargando-texto').textContent = 'Cargando ' + j[1] + '…';
+          document.getElementById('cargando').classList.add('ver');
+          if (embebido) window.parent.postMessage({ tipo: 'juego:navegando', nombre: j[1] }, '*');
+          setTimeout(function () { location.href = destino; }, 180);
+        });
+      });
+      // Al volver con "atrás" del navegador, la página puede venir de la caché con la carga puesta.
+      window.addEventListener('pageshow', function () { document.getElementById('cargando').classList.remove('ver'); });
+      if (embebido) {
+        var volver = document.getElementById('b-volver');
+        volver.hidden = false;
+        volver.addEventListener('click', function () { window.parent.postMessage({ tipo: 'juego:cerrar' }, '*'); });
+        window.addEventListener('message', function (e) {
+          if (e.source !== window.parent || !e.data || e.data.tipo !== 'juego:actividad') return;
+          if (e.data.tema) { tema = String(e.data.tema).slice(0, 80); pintar(); }
+          if (Array.isArray(e.data.juegos)) filtrar(e.data.juegos);
+          // La materia la detecta la actividad (js/materia.js).
+          if (e.data.materia && e.data.materia.nombre) { var t = 'Juegos de ' + String(e.data.materia.nombre).slice(0, 40); document.getElementById('titulo').textContent = t; document.title = t; }
+        });
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape') window.parent.postMessage({ tipo: 'juego:cerrar' }, '*'); });
+        window.parent.postMessage({ tipo: 'juego:listo' }, '*');
+      }
+    })();
+  </script>
+</body>
+
+</html>

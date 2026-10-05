@@ -32,19 +32,29 @@ window.ENTREVISTA_CONFIG = {
   // Datos del libro que se mencionan a la IA (nunca datos del estudiante).
   libro: {
     id: 'bio1-bgu',
-    nombre: 'Biología 1 · BGU',
+    // Vacío = la materia se detecta sola del texto de cada actividad (js/materia.js):
+    // copia el libro a otra materia y el profesor se adapta solo. Escribe un
+    // nombre (ej. 'Biología 1 · BGU') solo si quieres fijarlo.
+    nombre: '',
     publico: 'estudiantes de bachillerato de 15 a 16 años',
   },
 
   // ---------- La clase ----------
   entrevista: {
-    activo: true, // el docente puede apagarlo (por ejemplo, en una evaluación)
+    // true = el profesor con IA aparece en TODAS las actividades · false = no aparece.
+    // Solo en una actividad: <body data-entrevista="no"> (o "si"), que manda sobre esto.
+    activo: true, // false el docente puede apagarlo (por ejemplo, en una evaluación)
     maxPreguntas: 10, // por actividad y por sesión
     maxPalabras: 40, // largo de cada explicación: 2 o 3 frases (≈ 15 s de voz); la pizarra completa la idea
     maxCaracteres: 260, // largo de cada pregunta del estudiante
     historialTurnos: 8, // mensajes anteriores que se envían a la IA
     enviarAlTerminarDictado: true, // al callar el estudiante, la pregunta se envía sola
-    saludoAlCargar: true, // burbuja de saludo junto al bot al abrir cada actividad
+    // true = al abrir cada actividad el profesor aparece MINIMIZADO: solo una
+    // pestaña pequeña con su cara en el borde derecho (sin el personaje grande
+    // ni la burbuja de saludo); al tocarla se abre la clase y al cerrarla vuelve
+    // a minimizarse. false = el personaje completo abajo a la derecha.
+    minimizado: true,
+    saludoAlCargar: true, // burbuja de saludo junto al bot al abrir cada actividad (sin minimizado)
     burbujaSegundos: 8,
   },
 

@@ -16,18 +16,25 @@
      GEMINI_MODELO         por defecto gemini-3.5-flash-lite
      VOZ_MODELOS           modelos de voz separados por coma, en orden
      LIMITE_CHAT_POR_HORA, LIMITE_CIERRE_POR_HORA, LIMITE_VOZ_POR_HORA,
-     LIMITE_TRANSCRIBIR_POR_HORA   por IP (un colegio suele salir por una sola IP)
+     LIMITE_TRANSCRIBIR_POR_HORA, LIMITE_PREGUNTAS_POR_HORA
+                           por IP (un colegio suele salir por una sola IP)
 
    Rutas (POST con JSON):
      /api/entrevista/chat    { datos, historial, pregunta } → { enTema, texto, pizarra, siguientes }
      /api/entrevista/cierre  { datos, historial }           → { despedida, aprendizajes, … }
      /api/voz                { texto, voz }                 → { audio (base64), mime }
      /api/transcribir        { audio (base64 WAV) }         → { texto }
+     /api/biocabeza/preguntas { tema, cantidad, nivel, contexto, libro, publico } → { tema, preguntas }
+     /api/biosalto/preguntas  { tema, cantidad, nivel, contexto, libro, publico } → { tema, preguntas }
      GET /api/salud                                         → { ok, modelo }
    ========================================================================= */
 import '../reglas.js'; // define globalThis.EntrevistaReglas (mismas reglas que el navegador)
+import '../../biocabeza/reglas.js'; // define globalThis.BioCabezaReglas (juego BioCabeza)
+import '../../biosalto/reglas.js'; // define globalThis.BioSaltoReglas (juego BioSalto)
 
 const R = globalThis.EntrevistaReglas;
+const B = globalThis.BioCabezaReglas;
+const S = globalThis.BioSaltoReglas;
 const URL_GOOGLE = 'https://generativelanguage.googleapis.com/v1beta/models/';
 const VOZ_POR_DEFECTO = 'gemini-3.8-flash-lite-tts,gemini-3.8-flash-tts,gemini-3.1-flash-tts-preview,gemini-2.5-flash-preview-tts';
 const texto = R.texto;
@@ -44,6 +51,7 @@ export function crearServidor(env) {
     cierre: Number(env.LIMITE_CIERRE_POR_HORA || 200),
     voz: Number(env.LIMITE_VOZ_POR_HORA || 900),
     transcribir: Number(env.LIMITE_TRANSCRIBIR_POR_HORA || 600),
+    preguntas: Number(env.LIMITE_PREGUNTAS_POR_HORA || 300),
   };
 
   // ---------- CORS: solo las páginas del libro ----------
@@ -225,10 +233,37 @@ export function crearServidor(env) {
     if (audio.length < 1000 || !/^[A-Za-z0-9+/=]+$/.test(audio.slice(0, 200))) return [400, { error: 'audio inválido' }];
     try {
       const j = await conReintento(() => llamar(MODELO, {
-        contents: [{ role: 'user', parts: [{ text: R.TRANSCRIBIR }, { inlineData: { mimeType: 'audio/wav', data: audio } }] }],
+        // pista (BioSalto): la respuesta esperada; si lo que se oye suena como ella, se escribe bien.
+        contents: [{ role: 'user', parts: [{ text: R.TRANSCRIBIR + (texto(e.pista, 30) ? ' Si lo que dice suena como «' + texto(e.pista, 30) + '», escríbelo así, bien escrito; si dice otra palabra, escribe la que dijo.' : '') }, { inlineData: { mimeType: 'audio/wav', data: audio } }] }],
         generationConfig: { temperature: 0, maxOutputTokens: 600, thinkingConfig: pensamiento(MODELO) },
       }, 8000).then(comprobar));
       return [200, { texto: texto(textoDe(j).replace(/^["“]|["”]$/g, ''), 1000) }];
+    } catch (err) { return falla(err); }
+  }
+
+  // ---------- BioCabeza: preguntas de opción múltiple sobre un tema ----------
+  async function preguntas(e) {
+    const d = B.datos(e);
+    if (B.tieneDatosPersonales(d.tema)) return [400, { error: 'datos personales' }];
+    try {
+      let r = null;
+      for (let i = 0; i < 2 && !r; i++) {
+        r = B.normalizar(await generar(B.sistema(d), [{ rol: 'estudiante', texto: B.usuario(d) }], { json: true, maxTokens: 2500, temperatura: 0.8, ms: 9000 }), d.cantidad);
+      }
+      return r ? [200, r] : [502, { error: 'sin preguntas' }];
+    } catch (err) { return falla(err); }
+  }
+
+  // ---------- BioSalto: preguntas de respuesta de una palabra (se dicen por el micrófono) ----------
+  async function preguntasSalto(e) {
+    const d = S.datos(e);
+    if (S.tieneDatosPersonales(d.tema)) return [400, { error: 'datos personales' }];
+    try {
+      let r = null;
+      for (let i = 0; i < 2 && !r; i++) {
+        r = S.normalizarRespuesta(await generar(S.sistema(d), [{ rol: 'estudiante', texto: S.usuario(d) }], { json: true, maxTokens: 2500, temperatura: 0.8, ms: 9000 }), d.cantidad);
+      }
+      return r ? [200, r] : [502, { error: 'sin preguntas' }];
     } catch (err) { return falla(err); }
   }
 
@@ -237,6 +272,8 @@ export function crearServidor(env) {
     '/api/entrevista/cierre': { tipo: 'cierre', fn: cierre, max: 64 * 1024 },
     '/api/voz': { tipo: 'voz', fn: voz, max: 8 * 1024 },
     '/api/transcribir': { tipo: 'transcribir', fn: transcribir, max: 3 * 1024 * 1024 }, // ~60 s de WAV a 16 kHz
+    '/api/biocabeza/preguntas': { tipo: 'preguntas', fn: preguntas, max: 12 * 1024 },
+    '/api/biosalto/preguntas': { tipo: 'preguntas', fn: preguntasSalto, max: 12 * 1024 },
   };
 
   return async function atender(request, ip) {

@@ -9,11 +9,36 @@ según el tema de la actividad. Al terminar, se despide y deja un resumen de la 
 
 ## Activación: automática en todas las actividades
 
-`js/toolbar-tooltips.js` (bloque "Entrevista a un personaje con IA") inyecta `entrevista/entrevista.js?v=14` en todas
+`js/toolbar-tooltips.js` (bloque "Entrevista a un personaje con IA") inyecta `entrevista/entrevista.js?v=15` en todas
 las actividades que tienen `#activity` y la barra de builder.js. **No hay que agregar nada en cada HTML.**
 
 - Al cambiar archivos de `js/entrevista/` (menos `config.js`), sube el `?v=` de `entrevista.js` en
-  `toolbar-tooltips.js` y el de `toolbar-tooltips.js` en los HTML (hoy `?v=64`).
+  `toolbar-tooltips.js` y el de `toolbar-tooltips.js` en los HTML (hoy `?v=81`).
+
+## Materia automática (`js/materia.js`)
+
+La mascota, el profesor con IA y los dos juegos **se adaptan solos a la materia del libro**: no hay que configurar
+"Biología" en ningún lado. Si se copia la carpeta a un libro de Matemática, todos hablan de Matemática.
+
+- **Los temas ya eran automáticos:** cada IA lee el texto de la actividad abierta.
+- **La materia la deduce `js/materia.js`** sin internet, de más a menos seguro:
+  1. `<body data-materia="Matemática">` en una actividad: manda siempre.
+  2. **El libro entero:** suma lo que encuentra en las actividades abiertas de la carpeta y en la portada
+     (`index.html`, que solo se puede leer publicada o con un servidor). Necesita al menos dos actividades o la portada.
+     Así, una actividad que mezcla materias ("El origen de la vida" habla de moléculas; "Nuevas energías", de
+     circuitos) no confunde al libro. Se recuerda en el navegador, por carpeta.
+  3. El nombre de la materia escrito **como materia** en la página ("Objetivo de Biología", "Biología 1"). "Evolución
+     química" no cuenta.
+  4. Si aún no está seguro, no nombra ninguna materia y cada IA la deduce sola del texto de la actividad.
+- Reconoce Biología, Matemática, Física, Química, Lengua y Literatura, Estudios Sociales e Inglés.
+- `js/entrevista/config.js` → `libro.nombre` y `js/pet/config.js` → `nombreLibro` quedan **vacíos** (automático).
+  Si se escribe un nombre ahí, se usa ese.
+- La mascota suma a sus consejos de estudio los de la materia detectada (`mensajes.consejoPorMateria` en
+  `js/pet/config.js`).
+- **Lo que sigue siendo de Biología** y habría que cambiar a mano en un libro de otra materia:
+  - los personajes del profesor (Charles Darwin y Rosalind Franklin);
+  - las preguntas de ejemplo de los juegos (solo se usan sin IA);
+  - los nombres "BioCabeza" y "BioSalto".
 
 ## Archivos
 
@@ -89,6 +114,21 @@ La clase dura la sesión (si cambia de página y vuelve, sigue ahí). ⋯ → **
 - Se recuerda en el dispositivo: sigue oculto en las demás actividades, y sin burbuja de saludo, hasta que el
   estudiante lo vuelva a mostrar.
 - Para quitarlo del todo en un libro: `entrevista.activo: false` en `config.js`.
+
+## Minimizado al abrir la actividad
+
+- Con `entrevista.minimizado: true` (por defecto) en `config.js`, el profesor aparece **minimizado**: solo una
+  pestaña pequeña con su cara y la palabra "Clase" en el borde derecho. No se ve el personaje grande ni la burbuja de
+  saludo, así no ocupa la pantalla si nadie lo pidió.
+- Al tocar la pestaña se abre la clase; al cerrarla vuelve a minimizarse.
+- `minimizado: false` vuelve a mostrar al personaje completo abajo a la derecha, con su saludo.
+
+## Logo y convivencia con la mascota
+
+- La cabecera del panel lleva el **logo de Prolipa** (`img/prolipa-icono.png`, el mismo de los juegos y de la
+  mascota), junto a 🔊.
+- Mientras el panel de la clase está abierto, la **mascota** (`js/pet/`) se esconde, porque si no queda encima del
+  campo de la pregunta. Vuelve al cerrar el panel. Se hace con la clase `entrevista-abierta` en `<html>`.
 
 ## Solo el tema de la actividad
 
@@ -220,6 +260,8 @@ Comprueba que funciona en `https://tu-servidor/api/salud` (debe decir `"clave":"
 - `POST /api/entrevista/cierre`
 - `POST /api/voz` → `{ audio, mime }`. Los audios repetidos se guardan en memoria y se comparten entre estudiantes.
 - `POST /api/transcribir`
+- `POST /api/biocabeza/preguntas` → preguntas del juego BioCabeza (ver `js/biocabeza/README.md`)
+- `POST /api/biosalto/preguntas` → preguntas del juego BioSalto, la gallina (ver `js/biosalto/README.md`)
 - `GET /api/salud`
 
 Límites por IP y hora: `LIMITE_CHAT_POR_HORA`, `LIMITE_CIERRE_POR_HORA`, `LIMITE_VOZ_POR_HORA` y
@@ -235,7 +277,8 @@ entonces la voz pasa a la del dispositivo. Para una clase real, activa la **fact
 
 ## El docente decide
 
-- `entrevista.activo: false` quita el bot (por ejemplo, en una evaluación).
+- `entrevista.activo: false` quita el bot de todas las actividades (por ejemplo, en una evaluación). Para una sola
+  actividad: `<body data-entrevista="no">` (o `"si"` para encenderlo ahí aunque esté apagado en `config.js`).
 - `maxPreguntas` (10 por actividad y sesión), `maxPalabras` (45), `maxCaracteres` (300) y `microfono.maxSegundos` (30).
 
 ## Distribución del panel

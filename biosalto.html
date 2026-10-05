@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#1e3a8a" />
+  <link rel="icon" type="image/png" href="img/prolipa-icono.png" />
+  <title>BioSalto</title>
+  <!-- BioSalto: la gallina salta de montaña en montaña si dices la respuesta por el micrófono.
+       Se abre desde el menú de juegos (juegos.html, botón "Juego" de cada actividad). Ver js/biosalto/README.md -->
+  <style>
+    :root {
+      /* Azul y celeste de Prolipa; verde y rojo solo para "correcto" e "incorrecto". */
+      --fondo: #eff6ff; --tarjeta: #ffffff; --texto: #1f2937; --suave: #64748b; --borde: #dbeafe; --campo: #f8fbff;
+      --acento: #2563eb; --acento-texto: #ffffff; --bien: #16a34a; --mal: #dc2626; --aviso: #b45309;
+      --heroe: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #38bdf8 100%);
+      --boton: linear-gradient(135deg, #2563eb, #0ea5e9); --sombra-azul: rgba(37, 99, 235, .32);
+      --celeste: #38bdf8;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --fondo: #0b1530; --tarjeta: #14224a; --texto: #e2e8f0; --suave: #94a3b8; --borde: #24386b; --campo: #0f1b3d;
+        --acento: #60a5fa; --acento-texto: #0b1530; --bien: #4ade80; --mal: #f87171; --aviso: #fbbf24;
+        --heroe: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 50%, #0284c7 100%);
+      }
+    }
+    :root[data-theme="dark"] {
+      --fondo: #0b1530; --tarjeta: #14224a; --texto: #e2e8f0; --suave: #94a3b8; --borde: #24386b; --campo: #0f1b3d;
+      --acento: #60a5fa; --acento-texto: #0b1530; --bien: #4ade80; --mal: #f87171; --aviso: #fbbf24;
+      --heroe: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 50%, #0284c7 100%);
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body { margin: 0; overflow: hidden; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background: #7dd3fc; color: var(--texto); -webkit-tap-highlight-color: transparent; }
+    button { font: inherit; cursor: pointer; }
+    button:focus-visible, input:focus-visible { outline: 3px solid #f59e0b; outline-offset: 2px; }
+    [hidden] { display: none !important; }
+    /* Pantalla de carga: se ve desde el primer instante y se quita al terminar de iniciar el juego. */
+    #precarga { position: fixed; inset: 0; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #38bdf8 100%); color: #fff; font: 700 1.05rem system-ui, sans-serif; transition: opacity .35s; }
+    #precarga.fuera { opacity: 0; pointer-events: none; }
+    #precarga .grande { font-size: 4rem; animation: flota-carga 1.2s ease-in-out infinite; }
+    #precarga .giro { width: 38px; height: 38px; border-radius: 50%; border: 4px solid rgba(255, 255, 255, .3); border-top-color: #fff; animation: gira-carga .8s linear infinite; }
+    @keyframes flota-carga { 50% { transform: translateY(-8px); } }
+    @keyframes gira-carga { to { transform: rotate(360deg); } }
+
+    /* ---------- Escena: cielo, montañas y barranco ----------
+       5 paisajes que cambian con cada salto (data-paisaje en #escenario, lo pone biosalto.js).
+       Los colores son propiedades registradas (@property): así cambian con una transición suave. */
+    @property --c1 { syntax: '<color>'; inherits: true; initial-value: #1e40af; }
+    @property --c2 { syntax: '<color>'; inherits: true; initial-value: #3b82f6; }
+    @property --c3 { syntax: '<color>'; inherits: true; initial-value: #7dd3fc; }
+    @property --c4 { syntax: '<color>'; inherits: true; initial-value: #bae6fd; }
+    @property --m1 { syntax: '<color>'; inherits: true; initial-value: #1d4ed8; }
+    @property --m2 { syntax: '<color>'; inherits: true; initial-value: #1e40af; }
+    @property --roca { syntax: '<color>'; inherits: true; initial-value: #475569; }
+    @property --roca-luz { syntax: '<color>'; inherits: true; initial-value: #64748b; }
+    @property --roca-sombra { syntax: '<color>'; inherits: true; initial-value: #334155; }
+    @property --pasto { syntax: '<color>'; inherits: true; initial-value: #22c55e; }
+    @property --pasto-luz { syntax: '<color>'; inherits: true; initial-value: #4ade80; }
+    @property --fondo1 { syntax: '<color>'; inherits: true; initial-value: #1e3a8a; }
+    @property --fondo2 { syntax: '<color>'; inherits: true; initial-value: #172554; }
+    @property --rio1 { syntax: '<color>'; inherits: true; initial-value: #bae6fd; }
+    @property --rio2 { syntax: '<color>'; inherits: true; initial-value: #38bdf8; }
+    @property --astro { syntax: '<color>'; inherits: true; initial-value: #fde047; }
+    @property --astro-borde { syntax: '<color>'; inherits: true; initial-value: #fef9c3; }
+    #escenario { position: fixed; inset: 0; overflow: hidden; background: linear-gradient(180deg, var(--c1) 0%, var(--c2) 35%, var(--c3) 75%, var(--c4) 100%); --estrellas: 0; --nubes: 1; transition: --c1 1.6s, --c2 1.6s, --c3 1.6s, --c4 1.6s, --m1 1.6s, --m2 1.6s, --roca 1.6s, --roca-luz 1.6s, --roca-sombra 1.6s, --pasto 1.6s, --pasto-luz 1.6s, --fondo1 1.6s, --fondo2 1.6s, --rio1 1.6s, --rio2 1.6s, --astro 1.6s, --astro-borde 1.6s; }
+    #escenario[data-paisaje="atardecer"] { --c1: #7c2d12; --c2: #ea580c; --c3: #fb923c; --c4: #fde68a; --m1: #9a3412; --m2: #7c2d12; --roca: #92400e; --roca-luz: #b45309; --roca-sombra: #78350f; --pasto: #eab308; --pasto-luz: #fde047; --fondo1: #7c2d12; --fondo2: #431407; --rio1: #fed7aa; --rio2: #fb923c; --astro: #f97316; --astro-borde: #fed7aa; }
+    #escenario[data-paisaje="nevado"] { --c1: #475569; --c2: #94a3b8; --c3: #cbd5e1; --c4: #f1f5f9; --m1: #94a3b8; --m2: #64748b; --roca: #475569; --roca-luz: #64748b; --roca-sombra: #334155; --pasto: #f8fafc; --pasto-luz: #ffffff; --fondo1: #334155; --fondo2: #1e293b; --rio1: #e0f2fe; --rio2: #bae6fd; --astro: #f8fafc; --astro-borde: #ffffff; }
+    #escenario[data-paisaje="selva"] { --c1: #065f46; --c2: #0d9488; --c3: #5eead4; --c4: #ccfbf1; --m1: #047857; --m2: #065f46; --roca: #3f3f46; --roca-luz: #52525b; --roca-sombra: #27272a; --pasto: #15803d; --pasto-luz: #22c55e; --fondo1: #064e3b; --fondo2: #022c22; --rio1: #99f6e4; --rio2: #2dd4bf; --astro: #fde047; --astro-borde: #fef9c3; }
+    #escenario[data-paisaje="noche"] { --c1: #020617; --c2: #1e1b4b; --c3: #312e81; --c4: #4338ca; --m1: #312e81; --m2: #1e1b4b; --roca: #1e293b; --roca-luz: #334155; --roca-sombra: #0f172a; --pasto: #166534; --pasto-luz: #15803d; --fondo1: #0f172a; --fondo2: #020617; --rio1: #a5b4fc; --rio2: #6366f1; --astro: #e2e8f0; --astro-borde: #f8fafc; }
+    #escenario[data-paisaje="noche"] { --estrellas: 1; --nubes: .25; }
+    #escenario[data-paisaje="nevado"] { --nubes: .6; }
+    .sol { position: absolute; top: 14%; right: 9%; width: 90px; height: 90px; border-radius: 50%; background: radial-gradient(circle, var(--astro-borde), var(--astro) 60%, transparent 72%); filter: blur(.3px); }
+    #escenario[data-paisaje="atardecer"] .sol { top: 30%; width: 140px; height: 140px; }
+    .estrellas { position: absolute; inset: 0 0 40% 0; opacity: var(--estrellas); transition: opacity 1.6s; pointer-events: none; background-image: radial-gradient(1.5px 1.5px at 10% 20%, #fff, transparent), radial-gradient(1px 1px at 25% 8%, #fff, transparent), radial-gradient(1.5px 1.5px at 40% 30%, #fff, transparent), radial-gradient(1px 1px at 55% 12%, #fff, transparent), radial-gradient(2px 2px at 70% 25%, #fff, transparent), radial-gradient(1px 1px at 82% 6%, #fff, transparent), radial-gradient(1.5px 1.5px at 92% 35%, #fff, transparent), radial-gradient(1px 1px at 5% 45%, #fff, transparent), radial-gradient(1.5px 1.5px at 33% 50%, #fff, transparent), radial-gradient(1px 1px at 63% 42%, #fff, transparent); animation: titila 3s ease-in-out infinite; }
+    @keyframes titila { 50% { filter: brightness(1.6); } }
+    .cartel { position: absolute; z-index: 21; left: 50%; top: 46%; transform: translateX(-50%); padding: 8px 20px; font-size: 1.15rem !important; border-radius: 999px; background: rgba(255, 255, 255, .92); color: #0f172a; font-weight: 800; font-size: .95rem; box-shadow: 0 8px 20px rgba(0, 0, 0, .25); pointer-events: none; animation: cartel 2.6s ease forwards; white-space: nowrap; }
+    @keyframes cartel { 0% { opacity: 0; transform: translate(-50%, -14px) scale(.9); } 12%, 80% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; transform: translate(-50%, -8px); } }
+    .nube-fondo { position: absolute; height: 34px; border-radius: 40px; background: rgba(255, 255, 255, .85); animation: viaja linear infinite; filter: opacity(var(--nubes)); transition: filter 1.6s; }
+    .nube-fondo::before, .nube-fondo::after { content: ""; position: absolute; background: inherit; border-radius: 50%; }
+    .nube-fondo::before { width: 46%; height: 150%; left: 14%; top: -60%; }
+    .nube-fondo::after { width: 34%; height: 120%; left: 50%; top: -40%; }
+    @keyframes viaja { from { transform: translateX(110vw); } to { transform: translateX(-40vw); } }
+    .lejanas { position: absolute; left: 0; right: 0; bottom: 18%; height: 40%; opacity: .55; }
+    /* Fondo del barranco: niebla y río */
+    #barranco { position: absolute; left: 0; right: 0; bottom: 0; height: 22%; background: linear-gradient(180deg, transparent, var(--fondo1) 55%, var(--fondo2)); z-index: 2; }
+    #barranco::after { content: ""; position: absolute; left: 0; right: 0; bottom: 8%; height: 14px; background: repeating-linear-gradient(90deg, var(--rio1) 0 40px, var(--rio2) 40px 80px); opacity: .7; filter: blur(2px); animation: rio 3s linear infinite; }
+    @keyframes rio { to { background-position: 160px 0; } }
+
+    #pista { position: absolute; left: 0; top: 0; height: 100%; z-index: 3; transition: transform .8s cubic-bezier(.45, .05, .25, 1); will-change: transform; }
+    .monte { position: absolute; bottom: 0; }
+    .monte svg { display: block; width: 100%; height: 100%; overflow: visible; }
+    .monte .r { fill: var(--roca); } .monte .rl { fill: var(--roca-luz); } .monte .rs { fill: var(--roca-sombra); } .monte .p { fill: var(--pasto); } .monte .pl { fill: var(--pasto-luz); }
+    .monte .decor { position: absolute; top: calc(var(--g, 96px) * -0.5); right: 8%; font-size: calc(var(--g, 96px) * 0.5); line-height: 1; filter: drop-shadow(0 4px 4px rgba(0, 0, 0, .25)); }
+
+    /* La gallina */
+    #gallina { position: absolute; z-index: 5; left: 0; top: 0; width: var(--g, 96px); height: var(--g, 96px); margin-left: calc(var(--g, 96px) / -2); margin-top: calc(var(--g, 96px) * -0.94); pointer-events: none; }
+    #gallina .cuerpo { width: 100%; height: 100%; transform-origin: 50% 95%; animation: respira 2.4s ease-in-out infinite; }
+    #gallina.escucha .cuerpo { animation: none; transform: scale(calc(1 + var(--nivel, 0) * .18), calc(1 - var(--nivel, 0) * .14)); transition: transform .08s; }
+    #gallina .ala { transform-origin: 40% 40%; transform-box: fill-box; }
+    #gallina.escucha .ala { animation: aletea .3s ease-in-out infinite; animation-play-state: var(--aleteo, paused); }
+    #gallina.vuela .ala, #gallina.cae .ala { animation: aletea .14s ease-in-out infinite; }
+    #gallina.mal .cara { animation: niega .4s 2; transform-box: fill-box; transform-origin: 50% 50%; }
+    @keyframes respira { 50% { transform: scale(1.03, .97); } }
+    @keyframes aletea { 50% { transform: rotate(-28deg); } }
+    @keyframes niega { 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
+    #gallina.aparece { animation: aparece-gallina .8s cubic-bezier(.2, .9, .3, 1.4); }
+    @keyframes aparece-gallina { 0% { opacity: 0; transform: translateY(-120px); } 60% { opacity: 1; } 100% { transform: none; } }
+    /* Ondas de voz alrededor de la gallina */
+    #ondas { position: absolute; z-index: 4; left: 0; top: 0; width: 1px; height: 1px; pointer-events: none; }
+    #ondas i { position: absolute; left: 50%; top: 50%; width: calc(var(--g, 96px) * 1.5); height: calc(var(--g, 96px) * 1.5); margin: calc(var(--g, 96px) * -0.75) 0 0 calc(var(--g, 96px) * -0.75); border-radius: 50%; border: 3px solid rgba(255, 255, 255, .8); transform: scale(calc(.6 + var(--nivel, 0) * 1.2)); opacity: calc(var(--nivel, 0) * 1.4); transition: transform .08s, opacity .08s; }
+    #ondas i:nth-child(2) { transform: scale(calc(.8 + var(--nivel, 0) * 1.7)); opacity: calc(var(--nivel, 0) * .9); }
+    #burbuja { position: absolute; z-index: 6; left: 0; top: 0; transform: translate(-50%, -100%); padding: 8px 14px; border-radius: 16px; background: #fff; color: #0f172a; font-weight: 800; font-size: 1.05rem; white-space: nowrap; box-shadow: 0 8px 20px rgba(15, 23, 42, .25); pointer-events: none; }
+    #burbuja::after { content: ""; position: absolute; left: 50%; bottom: -8px; margin-left: -8px; border: 8px solid transparent; border-top-color: #fff; border-bottom: 0; }
+    #burbuja.bien { background: #dcfce7; color: #166534; }
+    #burbuja.bien::after { border-top-color: #dcfce7; }
+    #burbuja.mal { background: #fee2e2; color: #991b1b; }
+    #burbuja.mal::after { border-top-color: #fee2e2; }
+    .plop { position: absolute; z-index: 6; transform: translate(-50%, -50%); font-size: 2.4rem; font-weight: 900; color: #fff; text-shadow: 0 4px 0 #1e3a8a, 0 8px 20px rgba(0, 0, 0, .4); animation: plop 1s ease-out forwards; pointer-events: none; }
+    @keyframes plop { 0% { opacity: 0; transform: translate(-50%, -20%) scale(.4); } 25% { opacity: 1; transform: translate(-50%, -60%) scale(1.2); } 100% { opacity: 0; transform: translate(-50%, -140%); } }
+
+    #confeti { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 30; }
+    #destello { position: absolute; inset: 0; pointer-events: none; z-index: 29; opacity: 0; transition: opacity .5s; }
+    #destello.bien { background: radial-gradient(circle, transparent 50%, rgba(34, 197, 94, .55)); opacity: 1; }
+    #destello.mal { background: radial-gradient(circle, transparent 50%, rgba(239, 68, 68, .55)); opacity: 1; }
+
+    /* Barra superior */
+    #hud { position: absolute; z-index: 20; top: max(10px, env(safe-area-inset-top)); left: 12px; right: 12px; display: flex; align-items: center; gap: 8px; color: #fff; font-weight: 800; font-size: .9rem; }
+    #hud .chip { display: inline-flex; align-items: center; gap: 6px; background: rgba(30, 58, 138, .7); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, .16); border-radius: 999px; padding: 6px 12px; white-space: nowrap; }
+    #hud .espacio { flex: 1; }
+    #hud button { width: 40px; height: 40px; flex: none; border-radius: 50%; border: 1px solid rgba(255, 255, 255, .16); background: rgba(30, 58, 138, .7); backdrop-filter: blur(8px); color: #fff; font-size: 1.1rem; transition: transform .15s; }
+    #hud button:hover { transform: scale(1.08); }
+    #progreso { display: flex; gap: 5px; }
+    #progreso i { width: 10px; height: 10px; border-radius: 50%; background: rgba(255, 255, 255, .3); transition: background .3s, transform .3s; }
+    #progreso i.actual { background: #fff; transform: scale(1.35); box-shadow: 0 0 0 3px rgba(255, 255, 255, .25); }
+    #progreso i.bien { background: #22c55e; }
+    #progreso i.mal { background: #ef4444; }
+    #puntos.sube { animation: sube .5s; }
+    @keyframes sube { 40% { transform: scale(1.25); background: rgba(56, 189, 248, .6); } }
+    #racha { background: linear-gradient(135deg, rgba(14, 165, 233, .9), rgba(37, 99, 235, .9)) !important; animation: late 1s infinite; }
+    @keyframes late { 50% { transform: scale(1.08); } }
+
+    /* Nube de preguntas */
+    #nube { position: absolute; z-index: 20; top: calc(max(10px, env(safe-area-inset-top)) + 54px); left: 50%; transform: translateX(-50%); width: min(92vw, 720px); background: #fff; color: #0f172a; border-radius: 30px; padding: 14px 20px 16px; text-align: center; box-shadow: 0 12px 34px rgba(30, 58, 138, .35); transition: box-shadow .3s; }
+    #nube.bien { box-shadow: 0 0 0 5px #22c55e, 0 12px 34px rgba(0, 0, 0, .3); }
+    #nube.mal { box-shadow: 0 0 0 5px #ef4444, 0 12px 34px rgba(0, 0, 0, .3); }
+    #nube .tema { font-size: .7rem; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: #2563eb; }
+    #pregunta { margin: 4px 0 0; font-size: clamp(1.1rem, 4.4vw, 1.9rem); line-height: 1.2; font-weight: 800; }
+    #pista-texto { display: flex; flex-direction: column; align-items: center; gap: 4px; margin: 6px 0 0; font-size: .95rem; color: #b45309; font-weight: 700; animation: entra-suave .3s; }
+    #pista-texto .letras { padding: 3px 12px; border-radius: 999px; background: #eff6ff; color: #1e3a8a; font-family: ui-monospace, Consolas, monospace; font-size: 1.05rem; letter-spacing: .08em; }
+    #retro { margin: 8px 0 0; font-size: clamp(.9rem, 3.2vw, 1.1rem); line-height: 1.35; font-weight: 600; animation: entra-suave .35s; }
+    #retro.bien { color: #15803d; }
+    #retro.mal { color: #b91c1c; }
+    #siguiente { margin-top: 10px; border: 0; border-radius: 999px; padding: 9px 20px; background: var(--boton); color: #fff; font-weight: 800; box-shadow: 0 6px 16px var(--sombra-azul); transition: transform .15s; }
+    #siguiente:hover { transform: translateY(-2px); }
+    #nube.entra { animation: entra .5s cubic-bezier(.2, .9, .3, 1.3); }
+    @keyframes entra { from { transform: translate(-50%, -24px) scale(.88); opacity: 0; } }
+    @keyframes entra-suave { from { transform: translateY(6px); opacity: 0; } }
+    .cargando { display: inline-block; animation: gira 1.4s linear infinite; }
+    @keyframes gira { to { transform: rotate(360deg); } }
+    .puntitos::after { content: ""; animation: puntitos 1.2s steps(4) infinite; }
+    @keyframes puntitos { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75% { content: "..."; } }
+
+    /* Panel del micrófono */
+    #panel-voz { position: absolute; z-index: 20; left: 50%; bottom: max(14px, env(safe-area-inset-bottom)); transform: translateX(-50%); width: min(94vw, 560px); display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 26px; background: rgba(255, 255, 255, .94); box-shadow: 0 12px 30px rgba(30, 58, 138, .35); }
+    #b-mic { position: relative; flex: none; width: 64px; height: 64px; border-radius: 50%; border: 0; background: var(--boton); color: #fff; font-size: 1.7rem; box-shadow: 0 8px 18px var(--sombra-azul); transition: transform .15s; }
+    #b-mic::before { content: ""; position: absolute; inset: -6px; border-radius: 50%; border: 4px solid var(--celeste); opacity: 0; transform: scale(calc(1 + var(--nivel, 0) * .5)); transition: transform .08s; }
+    #b-mic.activo::before { opacity: 1; }
+    #b-mic.activo { background: linear-gradient(135deg, #ef4444, #f97316); box-shadow: 0 8px 18px rgba(239, 68, 68, .35); }
+    #b-mic:disabled { opacity: .5; cursor: default; }
+    #b-mic:not(:disabled):hover { transform: scale(1.06); }
+    .voz-info { flex: 1; min-width: 0; }
+    #estado-voz { font-weight: 800; color: #1e3a8a; font-size: .98rem; }
+    #oido { margin-top: 2px; color: #64748b; font-size: .88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 1.2em; }
+    .nivel { margin-top: 6px; height: 8px; border-radius: 999px; background: #dbeafe; overflow: hidden; }
+    .nivel i { display: block; height: 100%; width: calc(var(--nivel, 0) * 100%); background: linear-gradient(90deg, #38bdf8, #2563eb); border-radius: inherit; transition: width .08s; }
+    .acciones-voz { display: flex; flex-direction: column; gap: 6px; }
+    .acciones-voz button { border: 1px solid #bfdbfe; background: #eff6ff; color: #1e3a8a; border-radius: 999px; padding: 6px 10px; font-size: .8rem; font-weight: 700; white-space: nowrap; }
+    .acciones-voz button:hover { border-color: #2563eb; }
+    #escribir { display: flex; gap: 6px; margin-top: 6px; }
+    #escribir input { flex: 1; min-width: 0; padding: 8px 10px; border-radius: 12px; border: 1px solid #bfdbfe; font: inherit; color: #0f172a; background: #fff; }
+    #escribir button { border: 0; border-radius: 12px; padding: 8px 12px; background: var(--boton); color: #fff; font-weight: 800; }
+
+    /* Puntos que flotan y cuenta regresiva */
+    .flota { position: fixed; z-index: 31; pointer-events: none; font-weight: 900; font-size: 1.8rem; color: #fff; text-shadow: 0 3px 0 #2563eb, 0 0 18px rgba(56, 189, 248, .9), 0 6px 16px rgba(0, 0, 0, .4); animation: flota-puntos 1.3s ease-out forwards; transform: translate(-50%, -50%); white-space: nowrap; }
+    .flota small { display: block; font-size: .9rem; text-align: center; }
+    @keyframes flota-puntos { 0% { opacity: 0; transform: translate(-50%, -30%) scale(.5); } 20% { opacity: 1; transform: translate(-50%, -60%) scale(1.15); } 100% { opacity: 0; transform: translate(-50%, -180%) scale(1); } }
+    #cuenta { position: absolute; inset: 0; z-index: 32; display: grid; place-items: center; pointer-events: none; }
+    #cuenta span { font-size: clamp(6rem, 30vw, 12rem); font-weight: 900; color: #fff; text-shadow: 0 8px 0 rgba(37, 99, 235, .95), 0 0 40px rgba(56, 189, 248, .8), 0 16px 40px rgba(0, 0, 0, .4); animation: cuenta .7s cubic-bezier(.2, .9, .3, 1.3); }
+    @keyframes cuenta { from { transform: scale(2.2); opacity: 0; } 60% { opacity: 1; } }
+
+    /* ---------- Pantallas (inicio, final) y diálogo QR ---------- */
+    .capa { position: fixed; inset: 0; z-index: 50; overflow-y: auto; padding: 24px 16px max(24px, env(safe-area-inset-bottom)); background: var(--fondo); display: flex; align-items: flex-start; justify-content: center; }
+    .capa.translucida { background: rgba(11, 21, 48, .72); backdrop-filter: blur(8px); align-items: center; }
+    .tarjeta { position: relative; width: 100%; max-width: 580px; margin: auto 0; background: var(--tarjeta); border: 1px solid var(--borde); border-radius: 26px; padding: 22px 20px; box-shadow: 0 18px 44px rgba(37, 99, 235, .16); animation: entra-tarjeta .5s cubic-bezier(.2, .9, .3, 1.2); }
+    @keyframes entra-tarjeta { from { transform: translateY(24px) scale(.97); opacity: 0; } }
+    .tarjeta h2 { margin: 0 0 6px; font-size: 1.3rem; }
+    .tarjeta p { margin: 6px 0 0; color: var(--suave); line-height: 1.45; }
+    .cerrar, .atras { position: absolute; z-index: 2; top: 12px; height: 38px; border-radius: 999px; border: 0; background: rgba(255, 255, 255, .22); color: #fff; font-weight: 800; transition: transform .15s, background .15s; }
+    .cerrar { right: 12px; width: 38px; font-size: 1.1rem; }
+    .cerrar:hover { transform: rotate(90deg); background: rgba(255, 255, 255, .35); }
+    .atras { left: 12px; padding: 0 14px; font-size: .85rem; }
+    .atras:hover { background: rgba(255, 255, 255, .35); }
+    #inicio .tarjeta { padding: 0; overflow: hidden; }
+    .heroe { position: relative; padding: 30px 22px 22px; background: var(--heroe); color: #fff; text-align: center; overflow: hidden; }
+    .heroe .escena-mini { position: relative; height: 96px; margin: 0 auto; width: 240px; }
+    .heroe .escena-mini svg { position: absolute; bottom: 0; left: 0; }
+    .heroe .escena-mini .g { position: absolute; left: 22px; bottom: 34px; width: 62px; height: 62px; animation: salta-mini 2.6s ease-in-out infinite; }
+    @keyframes salta-mini { 0%, 30% { transform: translate(0, 0); } 55% { transform: translate(70px, -46px) rotate(8deg); } 80%, 100% { transform: translate(140px, 0); } }
+    .heroe h1 { margin: 8px 0 0; font-size: 2rem; letter-spacing: -.02em; }
+    .heroe p { margin: 4px 0 0; color: rgba(255, 255, 255, .9); }
+    .cuerpo { padding: 20px; }
+    .pasos { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .pasos li { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 8px; border-radius: 16px; background: var(--campo); border: 1px solid var(--borde); font-size: .8rem; line-height: 1.3; text-align: center; color: var(--texto); }
+    .pasos li b { color: var(--acento); }
+    .pasos .ico { font-size: 1.6rem; }
+    .actividad { display: flex; gap: 10px; align-items: center; margin-top: 16px; padding: 12px 14px; border-radius: 16px; background: color-mix(in srgb, var(--acento) 10%, var(--tarjeta)); border: 1px solid color-mix(in srgb, var(--acento) 35%, var(--borde)); font-size: .86rem; line-height: 1.35; }
+    .actividad .ico { font-size: 1.6rem; }
+    .campo { display: block; margin-top: 18px; font-weight: 700; font-size: .9rem; }
+    .entrada { display: block; width: 100%; margin-top: 6px; padding: 12px 13px; border-radius: 14px; border: 1px solid var(--borde); background: var(--campo); color: var(--texto); font: inherit; transition: border-color .15s, box-shadow .15s; }
+    .entrada:focus { border-color: var(--acento); box-shadow: 0 0 0 3px color-mix(in srgb, var(--acento) 20%, transparent); outline: none; }
+    .fila { display: flex; gap: 10px; align-items: end; flex-wrap: wrap; }
+    .fila > * { flex: 1 1 140px; }
+    .segmentos { display: flex; gap: 4px; margin-top: 6px; padding: 4px; border-radius: 14px; background: var(--campo); border: 1px solid var(--borde); }
+    .segmentos button { flex: 1; border: 0; border-radius: 10px; padding: 8px 4px; background: transparent; color: var(--texto); font-weight: 700; font-size: .88rem; transition: background .15s, color .15s; }
+    .segmentos button[aria-pressed="true"] { background: var(--acento); color: var(--acento-texto); box-shadow: 0 3px 8px rgba(0, 0, 0, .15); }
+    .boton { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin-top: 18px; padding: 15px 16px; border-radius: 16px; border: 0; background: var(--boton); color: #fff; font-weight: 800; font-size: 1.08rem; box-shadow: 0 10px 22px var(--sombra-azul); overflow: hidden; transition: transform .15s, box-shadow .15s; }
+    .boton:not(.secundario)::before { content: ""; position: absolute; inset: 0; background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, .35) 50%, transparent 65%); transform: translateX(-120%); animation: brillo 3s ease-in-out infinite; }
+    @keyframes brillo { 60%, 100% { transform: translateX(120%); } }
+    .boton:hover { transform: translateY(-2px); box-shadow: 0 14px 26px rgba(37, 99, 235, .4); }
+    .boton.secundario { margin-top: 10px; background: transparent; color: var(--texto); border: 1px solid var(--borde); font-weight: 700; font-size: .95rem; box-shadow: none; }
+    .boton.secundario:hover { border-color: var(--acento); }
+    .boton:disabled { opacity: .7; cursor: progress; transform: none; }
+    .nota { margin-top: 14px; padding: 12px 14px; border-radius: 14px; font-size: .88rem; line-height: 1.4; border: 1px solid var(--aviso); background: color-mix(in srgb, var(--aviso) 8%, var(--tarjeta)); }
+    .firma { display: flex; justify-content: center; margin-top: 16px; }
+    .firma span { display: inline-flex; padding: 6px 12px; border-radius: 12px; background: #fff; border: 1px solid var(--borde); }
+    .firma img { display: block; height: 30px; width: auto; }
+    #qr .tarjeta { max-width: 380px; text-align: center; }
+    #qr-codigo { display: grid; place-items: center; margin: 16px auto 0; width: 244px; height: 244px; padding: 12px; background: #fff; border-radius: 18px; box-shadow: 0 8px 22px rgba(0, 0, 0, .12); }
+    #qr-codigo img { display: block; width: 220px; height: 220px; }
+
+    /* Final */
+    #final .tarjeta { text-align: center; }
+    .estrellas { display: flex; justify-content: center; gap: 8px; margin-top: 4px; font-size: 3rem; }
+    .estrellas span { filter: grayscale(1); opacity: .3; transform: scale(.6); transition: transform .4s cubic-bezier(.2, .9, .3, 1.6), opacity .3s, filter .3s; }
+    .estrellas span.llena { filter: none; opacity: 1; transform: scale(1); }
+    .estrellas span:nth-child(2) { font-size: 3.6rem; margin-top: -10px; }
+    .puntaje { margin-top: 6px; font-size: 3.2rem; font-weight: 900; line-height: 1; background: var(--heroe); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .sub { margin-top: 4px; font-weight: 700; color: var(--suave); }
+    .record { display: inline-block; margin-top: 10px; padding: 5px 12px; border-radius: 999px; background: color-mix(in srgb, var(--celeste) 22%, var(--tarjeta)); font-weight: 800; font-size: .85rem; }
+    #resumen { margin: 16px 0 0; padding: 0; list-style: none; display: grid; gap: 8px; text-align: left; }
+    #resumen li { padding: 10px 12px; border-radius: 14px; border: 1px solid var(--borde); background: var(--campo); font-size: .9rem; line-height: 1.4; animation: entra-suave .4s backwards; animation-delay: calc(var(--k, 0) * 90ms + .3s); }
+    #resumen li b { display: block; }
+    #resumen .bien { border-left: 5px solid var(--bien); }
+    #resumen .mal { border-left: 5px solid var(--mal); }
+    #resumen small { color: var(--suave); }
+
+    @media (max-width: 420px) {
+      .pasos { grid-template-columns: 1fr; }
+      .pasos li { flex-direction: row; text-align: left; }
+      #progreso i { width: 8px; height: 8px; }
+      #b-mic { width: 56px; height: 56px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="precarga" role="status" aria-live="polite"><span class="grande">🐔</span><div class="giro"></div><span>Cargando BioSalto…</span></div>
+  <!-- Escena: cielo, montañas, gallina -->
+  <main id="escenario" aria-label="Juego BioSalto">
+    <div class="estrellas" aria-hidden="true"></div>
+    <div class="sol"></div>
+    <div class="nube-fondo" style="top:22%;width:140px;animation-duration:48s;animation-delay:-10s"></div>
+    <div class="nube-fondo" style="top:34%;width:90px;animation-duration:36s;animation-delay:-24s;opacity:.7"></div>
+    <div class="nube-fondo" style="top:16%;width:110px;animation-duration:60s;animation-delay:-40s;opacity:.8"></div>
+    <svg class="lejanas" viewBox="0 0 1200 400" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0 400 L0 250 L120 140 L210 220 L330 90 L450 210 L560 130 L700 240 L820 110 L950 220 L1060 150 L1200 230 L1200 400 Z" style="fill:var(--m1)" opacity=".55" />
+      <path d="M0 400 L0 300 L160 210 L300 290 L420 200 L560 300 L700 220 L860 300 L1000 230 L1200 300 L1200 400 Z" style="fill:var(--m2)" opacity=".6" />
+    </svg>
+    <div id="barranco"></div>
+    <div id="pista" aria-hidden="true">
+      <div id="ondas"><i></i><i></i></div>
+      <div id="gallina">
+        <svg class="cuerpo" viewBox="0 0 100 100">
+          <g stroke="#f59e0b" stroke-width="4" stroke-linecap="round" fill="none">
+            <path d="M42 80 L40 94 M40 94 l-7 2 M40 94 l6 2" />
+            <path d="M58 80 L60 94 M60 94 l-6 2 M60 94 l7 2" />
+          </g>
+          <path d="M22 54 q-14 -12 -6 -26 q6 10 14 12 z" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5" />
+          <ellipse cx="50" cy="60" rx="31" ry="24" fill="#fff" stroke="#cbd5e1" stroke-width="1.5" />
+          <g class="cara">
+            <circle cx="70" cy="34" r="16" fill="#fff" stroke="#cbd5e1" stroke-width="1.5" />
+            <path d="M60 22 q0 -11 8 -6 q3 -9 9 -2 q7 -3 5 6 q-10 -2 -22 2 z" fill="#ef4444" />
+            <path d="M84 31 l13 4 l-13 5 z" fill="#f59e0b" />
+            <path d="M82 41 q5 8 -1 10 q-4 -4 1 -10 z" fill="#ef4444" />
+            <circle cx="75" cy="30" r="3.4" fill="#0f172a" /><circle cx="76.2" cy="28.8" r="1.1" fill="#fff" />
+            <ellipse cx="72" cy="39" rx="4" ry="2.4" fill="#fda4af" opacity=".7" />
+          </g>
+          <path class="ala" d="M34 58 q14 -16 30 -2 q-12 16 -30 2 z" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.5" />
+        </svg>
+      </div>
+      <div id="burbuja" hidden></div>
+    </div>
+    <div id="destello"></div>
+    <canvas id="confeti"></canvas>
+    <div id="cuenta" aria-live="assertive"></div>
+
+    <div id="hud">
+      <span class="chip" id="contador">1/5 <span id="progreso" aria-hidden="true"></span></span>
+      <span class="chip" id="puntos">✅ 0 aciertos</span>
+      <span class="chip" id="racha" hidden>🔥 x2</span>
+      <span class="espacio"></span>
+      <button type="button" id="b-voz" aria-label="Leer las preguntas en voz alta" aria-pressed="true">🔊</button>
+      <button type="button" id="b-salir" aria-label="Salir del juego">✕</button>
+    </div>
+
+    <section id="nube" aria-live="polite">
+      <div class="tema" id="nube-tema"></div>
+      <p id="pregunta">¿Listo?</p>
+      <p id="pista-texto" hidden></p>
+      <p id="retro" hidden></p>
+      <button type="button" id="siguiente" hidden>Siguiente ▶</button>
+    </section>
+
+    <section id="panel-voz" aria-label="Responder con la voz">
+      <button type="button" id="b-mic" aria-label="Hablar: di tu respuesta">🎤</button>
+      <div class="voz-info">
+        <div id="estado-voz" role="status">Toca el micrófono y di tu respuesta</div>
+        <div id="oido"></div>
+        <div class="nivel" aria-hidden="true"><i></i></div>
+        <form id="escribir" hidden>
+          <input id="texto-respuesta" maxlength="30" autocomplete="off" placeholder="Escribe tu respuesta" aria-label="Escribe tu respuesta" />
+          <button type="submit">Saltar</button>
+        </form>
+      </div>
+      <div class="acciones-voz">
+        <button type="button" id="b-teclado">⌨️ Escribir</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Inicio -->
+  <section class="capa" id="inicio" aria-labelledby="titulo-inicio">
+    <div class="tarjeta">
+      <button type="button" class="atras" id="b-juegos">← Juegos</button>
+      <button type="button" class="cerrar" id="b-volver" hidden aria-label="Volver a la actividad">✕</button>
+      <div class="heroe">
+        <div class="escena-mini" aria-hidden="true">
+          <svg width="240" height="60" viewBox="0 0 240 60"><path d="M0 60 L0 18 Q30 8 70 18 L76 60 Z" fill="#fff" opacity=".9" /><path d="M150 60 L156 18 Q196 6 240 18 L240 60 Z" fill="#fff" opacity=".9" /></svg>
+          <svg class="g" viewBox="0 0 100 100"><ellipse cx="50" cy="60" rx="31" ry="24" fill="#fff" /><circle cx="70" cy="34" r="16" fill="#fff" /><path d="M60 22 q0 -11 8 -6 q3 -9 9 -2 q7 -3 5 6 q-10 -2 -22 2 z" fill="#ef4444" /><path d="M84 31 l13 4 l-13 5 z" fill="#f59e0b" /><circle cx="75" cy="30" r="3.4" fill="#0f172a" /><path d="M34 58 q14 -16 30 -2 q-12 16 -30 2 z" fill="#e2e8f0" /></svg>
+        </div>
+        <h1 id="titulo-inicio">BioSalto</h1>
+        <p id="subtitulo">La gallina saltarina</p>
+      </div>
+      <div class="cuerpo">
+        <ul class="pasos">
+          <li><span class="ico">💡</span><span>Mira la <b>pista</b> y la primera letra</span></li>
+          <li><span class="ico">🎤</span><span><b>Di la respuesta</b> con voz normal y clara: una sola palabra</span></li>
+          <li><span class="ico">🐔</span><span>Si es correcta <b>salta</b>; si no, ¡al barranco!</span></li>
+        </ul>
+
+        <div class="actividad" id="de-actividad" hidden>
+          <span class="ico">📘</span>
+          <span>Las preguntas son de <b>tu actividad</b>: <span id="actividad-titulo"></span></span>
+        </div>
+
+        <input type="hidden" id="tema" />
+
+        <div class="fila">
+          <div>
+            <span class="campo" id="et-cantidad">Preguntas</span>
+            <div class="segmentos" id="cantidad" role="group" aria-labelledby="et-cantidad" data-valor="5">
+              <button type="button" data-v="3">3</button><button type="button" data-v="5">5</button><button type="button" data-v="8">8</button><button type="button" data-v="10">10</button>
+            </div>
+          </div>
+          <div>
+            <span class="campo" id="et-nivel">Nivel</span>
+            <div class="segmentos" id="nivel" role="group" aria-labelledby="et-nivel" data-valor="básico">
+              <button type="button" data-v="básico">🌱</button><button type="button" data-v="intermedio">🌿</button><button type="button" data-v="avanzado">🌳</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="nota" id="sin-mic" hidden></div>
+        <button type="button" class="boton" id="b-empezar">▶ ¡A jugar!</button>
+        <button type="button" class="boton secundario" id="b-qr">📱 Jugar en el celular (código QR)</button>
+        <div class="firma"><span><img src="img/logo%20prolipa.png" alt="Prolipa · Vanguardia en educación" /></span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Final -->
+  <section class="capa" id="final" hidden aria-labelledby="titulo-final">
+    <div class="tarjeta">
+      <h2 id="titulo-final">¡Llegaste a la meta! 🏁</h2>
+      <div class="estrellas" id="estrellas" aria-hidden="true"><span>⭐</span><span>⭐</span><span>⭐</span></div>
+      <div class="puntaje" id="final-puntos">0 de 0</div>
+      <div class="sub" id="final-aciertos">aciertos</div>
+      <div class="record" id="final-record" hidden></div>
+      <p id="final-mensaje"></p>
+      <ol id="resumen"></ol>
+      <button type="button" class="boton" id="b-otra">🔁 Jugar otra vez</button>
+      <button type="button" class="boton secundario" id="b-nuevo">✨ Nuevas preguntas</button>
+      <button type="button" class="boton secundario" id="b-volver-final" hidden>📘 Volver a la actividad</button>
+      <div class="firma"><span><img src="img/logo%20prolipa.png" alt="Prolipa · Vanguardia en educación" /></span></div>
+    </div>
+  </section>
+
+  <!-- Código QR -->
+  <section class="capa translucida" id="qr" hidden role="dialog" aria-modal="true" aria-labelledby="titulo-qr">
+    <div class="tarjeta">
+      <h2 id="titulo-qr">📱 Juega en el celular</h2>
+      <p>Escanéalo con la cámara del celular.</p>
+      <div id="qr-codigo" role="img" aria-label="Código QR para abrir el juego en el celular"></div>
+      <button type="button" class="boton" id="b-cerrar-qr">Listo</button>
+    </div>
+  </section>
+
+  <script src="js/entrevista/config.js"></script>
+  <script src="js/juegos/config.js"></script>
+  <script src="js/materia.js?v=5"></script>
+  <script src="js/biosalto/reglas.js?v=5"></script>
+  <script src="js/biosalto/biosalto.js?v=14"></script>
+</body>
+
+</html>

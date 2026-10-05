@@ -14,6 +14,7 @@
    (opcional data-config="js/entrevista/otra-config.js").
    Carga config.js (fresco), personajes.js y reglas.js; ia.js solo al abrir.
    Una actividad puede pedir un personaje: <body data-entrevista-personaje="franklin">
+   y apagar o encender al profesor solo para ella: <body data-entrevista="no"> / "si">
    ========================================================================= */
 (function () {
   'use strict';
@@ -118,7 +119,9 @@
       '.ent-puntos span:nth-child(2){animation-delay:.15s}.ent-puntos span:nth-child(3){animation-delay:.3s}' +
       '.ent-entra{animation:ent-entra .22s ease-out}' +
       '@media (prefers-reduced-motion:reduce){#entrevista-ia *{animation:none!important;transition:none!important}}' +
-      '@media print{#entrevista-ia{display:none!important}}';
+      '@media print{#entrevista-ia{display:none!important}}' +
+      // Con la clase abierta, la mascota (js/pet/) se esconde: si no, tapa el campo de la pregunta.
+      'html.entrevista-abierta #mascota{visibility:hidden!important}';
     document.head.appendChild(s);
   }
 
@@ -132,7 +135,10 @@
     C.microfono = C.microfono || {};
     C.mensajes = C.mensajes || {};
     var E = C.entrevista;
-    if (E.activo === false) return;
+    // Encendido: entrevista.activo en config.js (todas las actividades) o, en una
+    // actividad, <body data-entrevista="no"> / "si", que manda sobre config.js.
+    var propio = (document.body.getAttribute('data-entrevista') || '').toLowerCase();
+    if (propio ? /^(no|false|ninguno|apagado)$/.test(propio) : E.activo === false) return;
     var Dib = window.EntrevistaPersonajes;
     var R = window.EntrevistaReglas;
     var idLibro = C.libro.id || 'libro';
@@ -334,7 +340,11 @@
     pestana.title = 'Mostrar al personaje de la clase';
     var pestanaCara = el('span', 'block w-7 h-7 rounded-full overflow-hidden');
     pestana.appendChild(pestanaCara);
-    pestana.appendChild(el('span', 'text-[11px] font-bold text-slate-600', '‹'));
+    // Minimizado (config: entrevista.minimizado): la pestaña ES el profesor y
+    // abre la clase; si no, solo vuelve a mostrar al personaje oculto.
+    var MINI = E.minimizado !== false;
+    pestana.appendChild(el('span', 'text-[11px] font-bold text-slate-600', MINI ? 'Clase' : '‹'));
+    if (MINI) pestana.classList.remove('opacity-70');
     raiz.appendChild(pestana);
 
     var burbuja = el('div', 'hidden ent-entra fixed bottom-24 right-4 sm:bottom-6 sm:right-[96px] z-[900] max-w-[250px] rounded-2xl rounded-br-md bg-white px-3 py-2 pr-7 text-sm leading-snug text-slate-800 shadow-lg ring-1 ring-slate-200');
@@ -386,8 +396,16 @@
     btnMenu.setAttribute('aria-haspopup', 'true');
     btnMenu.setAttribute('aria-expanded', 'false');
     var btnCerrar = botonCab('✕', 'Cerrar la clase');
+    // Logo de Prolipa (el mismo de los juegos: img/prolipa-icono.png).
+    var logo = el('span', 'flex-none grid place-items-center w-8 h-8 rounded-lg bg-white shadow ring-2 ring-white/40');
+    logo.title = 'Prolipa · Vanguardia en educación';
+    var logoImg = el('img', 'w-6 h-6 object-contain');
+    logoImg.src = carpeta + '../../img/prolipa-icono.png';
+    logoImg.alt = 'Prolipa';
+    logo.appendChild(logoImg);
     cab.appendChild(avatar);
     cab.appendChild(cabInfo);
+    cab.appendChild(logo);
     cab.appendChild(btnVoz);
     cab.appendChild(btnMenu);
     cab.appendChild(btnCerrar);
@@ -495,6 +513,7 @@
       boton.style.setProperty('--tw-ring-color', color);
       boton.style.setProperty('--ent-color', color + '88');
       boton.setAttribute('aria-label', 'Abrir la clase con ' + P.nombre);
+      if (MINI) { pestana.setAttribute('aria-label', 'Abrir la clase con ' + P.nombre); pestana.title = 'Clase con ' + P.nombre + ' (IA)'; }
       retrato(avatar);
       cuerpoEntero(figura);
       cab.style.background = 'linear-gradient(135deg,' + color + ',' + oscuro() + ')';
@@ -696,7 +715,8 @@
     function datos() {
       return {
         personaje: { nombre: P.nombre, rol: P.rol, epoca: P.epoca, descripcion: P.descripcion, personalidad: P.personalidad },
-        libro: C.libro.nombre || 'el libro',
+        // Sin nombre en config.js: la materia que se detecta de la actividad (js/materia.js).
+        libro: C.libro.nombre || ((window.ProlipaMateria && window.ProlipaMateria.actual()) || {}).nombre || 'la materia de esta actividad (dedúcela de su contenido)',
         publico: C.libro.publico || 'estudiantes',
         tema: temaPagina || (temaPagina = IA.leerPagina(2500)),
         maxPalabras: Math.max(25, Math.min(120, Number(E.maxPalabras) || 45)),
@@ -953,6 +973,7 @@
       focoAntes = document.activeElement;
       burbuja.classList.add('hidden');
       panel.classList.remove('hidden');
+      document.documentElement.classList.add('entrevista-abierta');
       boton.setAttribute('aria-expanded', 'true');
       prepararIA().then(function () {
         IA.desbloquear(); // dentro del toque: iPhone deja sonar el audio después
@@ -981,9 +1002,10 @@
       escribiendo = false;
       caminar(0);
       panel.classList.add('hidden');
+      document.documentElement.classList.remove('entrevista-abierta');
       boton.setAttribute('aria-expanded', 'false');
       estado('', '');
-      if (focoAntes && focoAntes.focus && document.contains(focoAntes)) focoAntes.focus(); else if (!prefs.oculto) boton.focus();
+      if (focoAntes && focoAntes.focus && document.contains(focoAntes)) focoAntes.focus(); else if (MINI || prefs.oculto) pestana.focus(); else boton.focus();
     }
     // Ocultar al personaje (se recuerda en este dispositivo, en todas las
     // actividades, hasta que el estudiante lo vuelva a mostrar).
@@ -1016,7 +1038,7 @@
     boton.addEventListener('pointerenter', prepararSaludo);
     boton.addEventListener('focus', prepararSaludo);
     boton.addEventListener('touchstart', prepararSaludo, { passive: true });
-    pestana.addEventListener('click', mostrar);
+    pestana.addEventListener('click', function () { if (MINI) abierto ? cerrar() : abrir(); else mostrar(); });
     boton.setAttribute('aria-expanded', 'false');
     boton.addEventListener('click', function () { abierto ? cerrar() : abrir(); });
     btnCerrar.addEventListener('click', cerrar);
@@ -1032,11 +1054,11 @@
     pintarPersonaje();
     escribirPizarra(P.pizarra || [], false);
     pintarControles();
-    ponerOculto(!!prefs.oculto);
+    ponerOculto(MINI || !!prefs.oculto);
     // Saludo en burbuja (una vez por actividad y sesión, sin voz: el navegador
     // no deja sonar audio antes de que el estudiante toque algo).
     var claveSaludo = 'prolipa-entrevista-saludo:' + idLibro + ':' + pagina;
-    if (E.saludoAlCargar !== false && !prefs.oculto && !leer(SS, claveSaludo)) {
+    if (!MINI && E.saludoAlCargar !== false && !prefs.oculto && !leer(SS, claveSaludo)) {
       setTimeout(function () {
         if (abierto || prefs.oculto) return;
         guardar(SS, claveSaludo, 1);
