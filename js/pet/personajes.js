@@ -1,15 +1,17 @@
 /* =========================================================================
    MASCOTA VIRTUAL — personajes y accesorios en SVG (js/pet/personajes.js)
    -------------------------------------------------------------------------
-   10 personajes ORIGINALES: 5 para jóvenes de bachillerato y 5 para niños (sin parecido a personajes con derechos de
-   autor), todos en el mismo lienzo 0 0 120 120 y con las mismas partes
-   (data-parte), para que mascota.js los anime sin saber cuál es:
-     cuerpo · extra (cola, alas, orejas…) · ojos · ojos-cerrados ·
-     boca-feliz · boca-o · zzz
+   6 personajes ORIGINALES (sin parecido a personajes con derechos de autor):
+   astronauta, lobo urbano, perrito, ajolote y dos robots (Bit y Nexo), todos
+   en el mismo lienzo 0 0 120 120 y con las mismas partes (data-parte), para
+   que mascota.js los anime sin saber cuál es:
+     cuerpo · extra (cola, antena, branquias…) · ojos · ojos-cerrados ·
+     boca-feliz · boca-o · zzz · atuendo
    Cada personaje define "anclas" (dónde están los ojos, la cabeza, el
-   cuello…) y así los accesorios le quedan bien a todos.
-   Accesorios: varios a la vez, uno por zona (cabeza, orejas, cara, cuello,
-   cuerpo). La lista con nombres y zonas está en config.js.
+   cuello…) y así los atuendos le quedan bien a todos.
+   Atuendos (no los elige el estudiante: los pone la mascota sola según lo que
+   pasa): audífonos (micrófono), lentes (leyendo), gafas de sol (descanso) y,
+   de vez en cuando, una bufanda.
    ========================================================================= */
 (function () {
   'use strict';
@@ -79,130 +81,80 @@
           el('ellipse', { cx: 60, cy: 61, rx: 13, ry: 9, fill: claroPelo }) + el('ellipse', { cx: 60, cy: 55.5, rx: 4.2, ry: 3, fill: TINTA });
       },
     },
-    // Nova: orbe de IA que flota, con anillo orbital y pantalla.
-    nova: {
-      torso: [62, 58, 28],
-      brazos: { hombros: [[31, 63], [89, 63]], largo: 7, grosor: 5, color: 'cl', mano: 'cl' },
-      a: { cx: 60, ojos: [51, 69], ojosY: 55, bocaY: 63, cabezaY: 28, ancho: 48, cuelloY: 86, mejillasY: 0, lados: [30, 90], ladosY: 57 },
-      mov: 'orbitar',
-      pantalla: '#a5f3fc',
-      dibujo: function (c, o, cl) {
-        return '<path d="M54 90L60 100L66 90Z" fill="#7dd3fc" opacity=".7"/>' +
-          el('circle', { cx: 60, cy: 57, r: 30, fill: c }) +
-          '<path d="M40 40Q50 30 64 30" stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none" opacity=".35"/>' +
-          el('rect', { x: 39, y: 45, width: 42, height: 26, rx: 13, fill: '#0f172a' }) +
-          el('circle', { cx: 60, cy: 83, r: 3, fill: cl }) +
-          '<g data-parte="extra" ' + ORIGEN('50% 50%') + '><ellipse cx="60" cy="60" rx="44" ry="10" fill="none" stroke="' + cl + '" stroke-width="2.5" opacity=".85" transform="rotate(-12 60 60)"/>' + el('circle', { cx: 101, cy: 51, r: 3, fill: '#fde047' }) + '</g>';
-      },
-    },
-    // Fénix: ave de fuego con cresta y alas en llamas (el color es el plumaje).
-    fenix: {
-      pies: { pos: [[54, 106], [66, 106]], forma: 'garra', color: '#f59e0b' },
-      torso: [70, 40, 27],
-      giroBrazos: 0.25, // las alas se abren poco (si giran mucho tapan el cuerpo)
-      brazosSvg: function (c, o) {
-        return {
-          origenes: [[42, 62], [78, 62]],
-          izq: '<path d="M41 72C22 66 11 52 13 38C21 49 29 55 42 59Z" fill="' + o + '"/><path d="M30 60C22 56 18 50 18 44C24 50 30 53 36 55Z" fill="#f59e0b"/>',
-          der: '<path d="M79 72C98 66 109 52 107 38C99 49 91 55 78 59Z" fill="' + o + '"/><path d="M90 60C98 56 102 50 102 44C96 50 90 53 84 55Z" fill="#f59e0b"/>',
-        };
-      },
-      a: { cx: 60, ojos: [52, 68], ojosY: 50, bocaY: 67, cabezaY: 29, ancho: 40, cuelloY: 76, mejillasY: 0, lados: [37, 83], ladosY: 52 },
-      mov: 'erizar',
-      sinMejillas: true,
-      dibujo: function (c, o, cl) {
-        var fuego = '#f59e0b', brasa = '#fde047';
-        return '<path d="M52 98C46 108 40 112 33 113C41 107 45 101 47 95Z" fill="' + fuego + '"/><path d="M68 98C74 108 80 112 87 113C79 107 75 101 73 95Z" fill="' + fuego + '"/><path d="M56 100C56 108 60 114 60 118C62 112 66 106 64 100Z" fill="' + brasa + '"/>' +
-          el('ellipse', { cx: 60, cy: 85, rx: 20, ry: 19, fill: c }) + el('ellipse', { cx: 60, cy: 89, rx: 12, ry: 12, fill: cl }) +
-          '<g data-parte="extra" ' + ORIGEN('50% 100%') + '><path d="M50 33C45 22 50 13 55 7C55 17 59 22 57 33Z" fill="' + fuego + '"/><path d="M58 31C58 17 66 10 71 6C69 16 69 23 65 33Z" fill="' + brasa + '"/><path d="M45 36C39 29 40 21 44 16C46 24 50 28 51 34Z" fill="' + fuego + '"/></g>' +
-          el('circle', { cx: 60, cy: 51, r: 22, fill: c }) + el('ellipse', { cx: 60, cy: 53, rx: 15, ry: 12, fill: cl }) +
-          '<path d="M55 58H65L60 65Z" fill="' + fuego + '"/>';
-      },
-    },
-    // Mapache urbano: antifaz, cola a rayas y hoodie del color elegido.
-    mapache: {
-      pies: { pos: [[48, 111], [72, 111]], rx: 9, ry: 3.5, color: '#f8fafc', suela: '#334155' }, // zapatillas
-      torso: [78, 54, 31],
-      brazos: { hombros: [[38, 87], [82, 87]], largo: 15, grosor: 9, color: 'c', mano: '#6b7280' },
-      a: { cx: 60, ojos: [50, 70], ojosY: 49, bocaY: 64, cabezaY: 27, ancho: 44, cuelloY: 77, mejillasY: 0, lados: [34, 86], ladosY: 52 },
-      mov: 'rotar',
-      sinMejillas: true,
-      dibujo: function (c, o, cl) {
-        var pelo = '#9ca3af', claro = '#f1f5f9', antifaz = '#1f2937', anillo = '#374151';
-        return '<g data-parte="extra" ' + ORIGEN('0% 100%') + '><path d="M80 100C102 100 110 82 102 64" fill="none" stroke="' + pelo + '" stroke-width="11" stroke-linecap="round"/>' +
-          '<path d="M96 93L104 87M102 82L109 79M104 71L111 70" stroke="' + anillo + '" stroke-width="5" stroke-linecap="round"/></g>' +
-          '<path d="M34 110C34 88 43 77 60 77C77 77 86 88 86 110Z" fill="' + c + '"/>' +
-          el('rect', { x: 47, y: 94, width: 26, height: 11, rx: 5, fill: o }) +
-          '<path d="M55 79L54 90M65 79L66 90" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>' + el('circle', { cx: 54, cy: 91, r: 1.6, fill: '#fff' }) + el('circle', { cx: 66, cy: 91, r: 1.6, fill: '#fff' }) +
-          el('ellipse', { cx: 40, cy: 31, rx: 8, ry: 9, fill: pelo }) + el('ellipse', { cx: 40, cy: 32, rx: 4, ry: 5, fill: antifaz }) +
-          el('ellipse', { cx: 80, cy: 31, rx: 8, ry: 9, fill: pelo }) + el('ellipse', { cx: 80, cy: 32, rx: 4, ry: 5, fill: antifaz }) +
-          '<path d="M33 54C33 38 45 28 60 28C75 28 87 38 87 54C87 68 76 76 60 76C44 76 33 68 33 54Z" fill="' + pelo + '"/>' +
-          '<path d="M36 50C40 42 48 42 55 47Q60 50 65 47C72 42 80 42 84 50C82 56 76 58 70 56Q60 54 50 56C44 58 38 56 36 50Z" fill="' + antifaz + '"/>' +
-          el('circle', { cx: 50, cy: 49, r: 5.2, fill: claro }) + el('circle', { cx: 70, cy: 49, r: 5.2, fill: claro }) +
-          '<path d="M43 40Q50 37 56 41M77 40Q70 37 64 41" stroke="' + claro + '" stroke-width="2.4" stroke-linecap="round" fill="none"/>' +
-          el('ellipse', { cx: 60, cy: 64, rx: 12, ry: 8, fill: claro }) + el('ellipse', { cx: 60, cy: 58.5, rx: 3.8, ry: 2.8, fill: antifaz });
-      },
-    },
-    // ---------- Para niños ----------
-    zorro: {
-      pies: { pos: [[46, 108], [70, 108]], rx: 7, ry: 4, color: 'o' },
-      torso: [77, 50, 27],
-      brazos: { hombros: [[37, 82], [79, 82]], largo: 13, grosor: 8, color: 'c', mano: 'o' },
-      a: { cx: 58, ojos: [46, 70], ojosY: 50, bocaY: 66, cabezaY: 30, ancho: 42, cuelloY: 77, mejillasY: 60, lados: [28, 88], ladosY: 54 },
-      mov: 'rotar',
+    // Robot Bit: robot clásico con cabeza de pantalla, antena y panel de luces.
+    bit: {
+      pies: { pos: [[48, 108], [72, 108]], rx: 8, ry: 4, forma: 'caja', color: '#475569' },
+      torso: [76, 44, 28],
+      brazos: { hombros: [[38, 82], [82, 82]], largo: 15, grosor: 7, color: '#94a3b8', mano: 'c' },
+      a: { cx: 60, ojos: [50, 70], ojosY: 46, bocaY: 56, cabezaY: 22, ancho: 52, cuelloY: 73, mejillasY: 0, lados: [32, 88], ladosY: 46 },
+      mov: 'antena',
+      pantalla: '#67e8f9',
       dibujo: function (c, o) {
-        return '<g data-parte="extra" ' + ORIGEN('0% 90%') + '><path d="M76 90C100 88 112 66 101 46C97 64 88 74 72 79Z" fill="' + c + '"/><path d="M101 46C106 55 106 62 102 68C98 62 97 54 101 46Z" fill="#fff"/></g>' +
-          el('ellipse', { cx: 58, cy: 89, rx: 26, ry: 21, fill: c }) + el('ellipse', { cx: 58, cy: 95, rx: 15, ry: 12, fill: '#fff7ed' }) +
-          '<path d="M35 42L30 12L54 32Z" fill="' + c + '"/><path d="M38 36L35 21L47 32Z" fill="' + o + '"/><path d="M81 42L86 12L62 32Z" fill="' + c + '"/><path d="M78 36L81 21L69 32Z" fill="' + o + '"/>' +
-          el('ellipse', { cx: 58, cy: 54, rx: 30, ry: 25, fill: c }) + el('ellipse', { cx: 58, cy: 64, rx: 17, ry: 11, fill: '#fff' }) + el('ellipse', { cx: 58, cy: 59, rx: 4.2, ry: 3.2, fill: TINTA });
+        return '<g data-parte="extra" ' + ORIGEN('50% 100%') + '><path d="M60 24V11" stroke="#94a3b8" stroke-width="3" stroke-linecap="round"/>' + el('circle', { cx: 60, cy: 9, r: 4, fill: c }) + el('circle', { cx: 58.6, cy: 7.6, r: 1.3, fill: '#fff', opacity: 0.8 }) + '</g>' +
+          el('rect', { x: 54, y: 68, width: 12, height: 8, rx: 2, fill: '#94a3b8' }) +
+          el('rect', { x: 37, y: 74, width: 46, height: 33, rx: 9, fill: c }) +
+          el('rect', { x: 47, y: 81, width: 26, height: 15, rx: 4, fill: '#0f172a' }) +
+          el('circle', { cx: 53, cy: 88.5, r: 2.4, fill: '#22c55e' }) + el('circle', { cx: 60, cy: 88.5, r: 2.4, fill: '#facc15' }) + el('circle', { cx: 67, cy: 88.5, r: 2.4, fill: '#ef4444' }) +
+          el('rect', { x: 49, y: 99, width: 22, height: 3, rx: 1.5, fill: o }) +
+          el('rect', { x: 28, y: 39, width: 6, height: 15, rx: 2.5, fill: c }) + el('rect', { x: 86, y: 39, width: 6, height: 15, rx: 2.5, fill: c }) +
+          el('rect', { x: 32, y: 23, width: 56, height: 46, rx: 14, fill: '#f1f5f9', stroke: c, 'stroke-width': 3 }) +
+          el('rect', { x: 38, y: 31, width: 44, height: 31, rx: 9, fill: '#0f172a' }) +
+          '<path d="M42 35Q48 33 55 34" stroke="#fff" stroke-width="2" stroke-linecap="round" fill="none" opacity=".3"/>';
       },
     },
-    gato: {
-      pies: { pos: [[48, 108], [72, 108]], rx: 7, ry: 4, color: 'o' },
-      torso: [78, 46, 27],
-      brazos: { hombros: [[39, 83], [81, 83]], largo: 13, grosor: 7, color: 'c', mano: 'cl' },
-      a: { cx: 60, ojos: [48, 72], ojosY: 51, bocaY: 65, cabezaY: 31, ancho: 44, cuelloY: 76, mejillasY: 60, lados: [31, 89], ladosY: 54 },
-      mov: 'rotar',
+    // Robot Nexo: androide avanzado. Casco con visor, hombreras del color elegido,
+    // núcleo de energía en el pecho y propulsores: flota en lugar de caminar.
+    nexo: {
+      torso: [74, 46, 28],
+      brazos: { hombros: [[37, 80], [83, 80]], largo: 15, grosor: 6, color: '#cbd5e1', mano: 'c' },
+      a: { cx: 60, ojos: [51, 69], ojosY: 45, bocaY: 54, cabezaY: 21, ancho: 48, cuelloY: 72, mejillasY: 0, lados: [33, 87], ladosY: 44 },
+      mov: 'aletear', // los propulsores laten
+      pantalla: '#22d3ee',
       dibujo: function (c, o, cl) {
-        return '<g data-parte="extra" ' + ORIGEN('0% 100%') + '><path d="M80 98C104 98 108 74 96 62" fill="none" stroke="' + c + '" stroke-width="8" stroke-linecap="round"/></g>' +
-          el('ellipse', { cx: 60, cy: 90, rx: 24, ry: 20, fill: c }) + el('ellipse', { cx: 60, cy: 95, rx: 13, ry: 11, fill: cl }) +
-          '<path d="M36 42L38 14L56 32Z" fill="' + c + '"/><path d="M40 36L41 22L51 32Z" fill="#fda4af"/><path d="M84 42L82 14L64 32Z" fill="' + c + '"/><path d="M80 36L79 22L69 32Z" fill="#fda4af"/>' +
-          el('ellipse', { cx: 60, cy: 54, rx: 29, ry: 24, fill: c }) +
-          '<path d="M56 58h8l-4 4.5Z" fill="#f472b6"/><path d="M43 61L29 58M43 65L29 67M77 61L91 58M77 65L91 67" stroke="' + o + '" stroke-width="1.4" stroke-linecap="round"/>';
+        return '<g data-parte="extra" ' + ORIGEN('50% 0%') + '>' +
+            '<path d="M49 103L54 119L59 103Z" fill="#38bdf8" opacity=".75"/><path d="M61 103L66 119L71 103Z" fill="#38bdf8" opacity=".75"/>' +
+            '<path d="M51.5 103L54 112L56.5 103Z" fill="#e0f2fe"/><path d="M63.5 103L66 112L68.5 103Z" fill="#e0f2fe"/></g>' +
+          '<path d="M45 97Q60 106 75 97L72 104H48Z" fill="#94a3b8"/>' +
+          el('rect', { x: 55, y: 66, width: 10, height: 9, rx: 2, fill: '#94a3b8' }) +
+          '<path d="M40 76Q60 69 80 76L77 98Q60 105 43 98Z" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>' +
+          '<path d="M46 95Q60 100 74 95M48 90Q60 94 72 90" stroke="#cbd5e1" stroke-width="1.4" fill="none"/>' +
+          el('circle', { cx: 60, cy: 84, r: 6.5, fill: cl, stroke: c, 'stroke-width': 2.5 }) + el('circle', { cx: 60, cy: 84, r: 2.6, fill: '#fff' }) +
+          el('ellipse', { cx: 38, cy: 79, rx: 8, ry: 6, fill: c }) + el('ellipse', { cx: 82, cy: 79, rx: 8, ry: 6, fill: c }) +
+          '<path d="M78 25L85 15" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>' + el('circle', { cx: 85.5, cy: 14, r: 2.6, fill: cl, stroke: c, 'stroke-width': 1.2 }) +
+          el('rect', { x: 30.5, y: 37, width: 6, height: 15, rx: 3, fill: c }) + el('rect', { x: 83.5, y: 37, width: 6, height: 15, rx: 3, fill: c }) +
+          '<path d="M36 45C36 28 46 19 60 19C74 19 84 28 84 45C84 60 74 70 60 70C46 70 36 60 36 45Z" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>' +
+          '<path d="M60 19V28" stroke="' + c + '" stroke-width="4" stroke-linecap="round"/>' +
+          '<path d="M41 41C41 33 49 30 60 30C71 30 79 33 79 41L77 55C74 60 67 62 60 62C53 62 46 60 43 55Z" fill="#0f172a"/>' +
+          '<path d="M45 36Q51 33 57 33.5" stroke="#fff" stroke-width="2" stroke-linecap="round" fill="none" opacity=".3"/>';
       },
     },
-    dragon: {
-      pies: { pos: [[48, 108], [72, 108]], rx: 7, ry: 4, color: 'o' },
+    // ---------- Para niños ----------    // ---------- Para niños ----------
+    // Perrito: pelaje dorado, orejas caídas, mancha en un ojo, pañoleta del color
+    // elegido con su plaquita y cola que se menea.
+    perro: {
+      pies: { pos: [[47, 108], [73, 108]], rx: 8, ry: 4, color: '#9a5b2e' },
       torso: [78, 46, 27],
-      brazos: { hombros: [[39, 83], [81, 83]], largo: 12, grosor: 7, color: 'c', mano: 'o' },
-      a: { cx: 60, ojos: [48, 72], ojosY: 50, bocaY: 68, cabezaY: 32, ancho: 42, cuelloY: 77, mejillasY: 60, lados: [32, 88], ladosY: 53 },
-      mov: 'aletear',
-      dibujo: function (c, o, cl) {
-        return '<g data-parte="extra" ' + ORIGEN('50% 60%') + '><path d="M38 80C19 69 14 54 22 46C26 58 32 63 42 67Z" fill="' + o + '"/><path d="M82 80C101 69 106 54 98 46C94 58 88 63 78 67Z" fill="' + o + '"/></g>' +
-          '<path d="M78 97C96 101 104 91 107 80C99 86 91 88 80 88Z" fill="' + c + '"/><path d="M107 80L112 74L109 86Z" fill="' + o + '"/>' +
-          el('ellipse', { cx: 60, cy: 89, rx: 24, ry: 21, fill: c }) + el('ellipse', { cx: 60, cy: 93, rx: 14, ry: 13, fill: cl }) +
-          '<path d="M50 88H70M49 94H71M51 100H69" stroke="' + mezclar(cl, '#000000', 0.12) + '" stroke-width="1.5"/>' +
-          '<path d="M45 35L40 17L53 30Z" fill="#fde68a"/><path d="M75 35L80 17L67 30Z" fill="#fde68a"/>' +
-          el('ellipse', { cx: 60, cy: 53, rx: 28, ry: 24, fill: c }) + el('ellipse', { cx: 60, cy: 65, rx: 14, ry: 9, fill: cl }) +
-          el('circle', { cx: 55.5, cy: 62.5, r: 1.5, fill: o }) + el('circle', { cx: 64.5, cy: 62.5, r: 1.5, fill: o });
-      },
-    },
-    pinguino: {
-      pies: { pos: [[50, 110], [70, 110]], rx: 8, ry: 4, color: '#f59e0b' },
-      torso: [72, 52, 30],
-      giroBrazos: 0.5,
-      brazosSvg: function (c, o) {
-        return {
-          origenes: [[35, 72], [85, 72]],
-          izq: '<path d="M32 70C22 80 22 92 28 96C32 88 34 80 37 74Z" fill="' + o + '"/>',
-          der: '<path d="M88 70C98 80 98 92 92 96C88 88 86 80 83 74Z" fill="' + o + '"/>',
-        };
-      },
-      a: { cx: 60, ojos: [51, 69], ojosY: 51, bocaY: 67, cabezaY: 38, ancho: 40, cuelloY: 73, mejillasY: 60, lados: [31, 89], ladosY: 54 },
-      mov: 'rotar',
+      brazos: { hombros: [[39, 84], [81, 84]], largo: 13, grosor: 8, color: '#d9a066', mano: '#fff7ed' },
+      a: { cx: 60, ojos: [49, 71], ojosY: 49, bocaY: 64, cabezaY: 28, ancho: 48, cuelloY: 76, mejillasY: 58, lados: [30, 90], ladosY: 51 },
+      mov: 'rotar', // la cola se menea
       dibujo: function (c, o) {
-        return el('ellipse', { cx: 60, cy: 74, rx: 30, ry: 37, fill: c }) + el('ellipse', { cx: 60, cy: 84, rx: 20, ry: 25, fill: '#fff' }) + el('ellipse', { cx: 60, cy: 55, rx: 19, ry: 15, fill: '#fff' }) +
-          '<path d="M55 59h10l-5 6Z" fill="#f59e0b"/>';
+        var pelo = '#d9a066', oscuro = '#9a5b2e', crema = '#fff7ed';
+        return '<g data-parte="extra" ' + ORIGEN('0% 100%') + '><path d="M78 97C93 95 99 85 97 73" fill="none" stroke="' + pelo + '" stroke-width="7" stroke-linecap="round"/>' +
+            el('circle', { cx: 97, cy: 72, r: 3.6, fill: crema }) + '</g>' +
+          el('ellipse', { cx: 60, cy: 91, rx: 23, ry: 19, fill: pelo }) + el('ellipse', { cx: 60, cy: 95, rx: 13, ry: 11, fill: crema }) +
+          // pañoleta y collar con plaquita
+          '<path d="M43 76Q60 85 77 76L60 95Z" fill="' + c + '"/>' +
+          '<path d="M43 76Q60 84 77 76" fill="none" stroke="' + o + '" stroke-width="3" stroke-linecap="round"/>' +
+          el('circle', { cx: 60, cy: 84, r: 3, fill: '#facc15', stroke: '#ca8a04', 'stroke-width': 0.8 }) +
+          // cabeza, mancha en el ojo, hocico y nariz
+          el('ellipse', { cx: 60, cy: 50, rx: 26, ry: 23, fill: pelo }) +
+          el('ellipse', { cx: 72, cy: 48, rx: 9, ry: 8.5, fill: '#b87942' }) +
+          '<path d="M55 30Q60 25 65 30" fill="none" stroke="' + oscuro + '" stroke-width="2" stroke-linecap="round" opacity=".5"/>' +
+          el('ellipse', { cx: 60, cy: 61, rx: 13, ry: 9, fill: crema }) +
+          el('ellipse', { cx: 60, cy: 56, rx: 4.6, ry: 3.3, fill: '#1f2937' }) + el('ellipse', { cx: 58.6, cy: 55, rx: 1.4, ry: 0.9, fill: '#fff', opacity: 0.8 }) +
+          // orejas caídas (encima del borde de la cabeza)
+          '<path d="M38 32C27 34 21 51 27 63C33 62 38 52 41 41Z" fill="' + oscuro + '"/>' +
+          '<path d="M82 32C93 34 99 51 93 63C87 62 82 52 79 41Z" fill="' + oscuro + '"/>';
       },
     },
     ajolote: {
@@ -233,58 +185,27 @@
     orbitar: [{ transform: 'rotate(-10deg)' }, { transform: 'rotate(10deg)' }],
   };
 
-  // ---------- Accesorios (uno por zona) ----------
-  // Todos se dibujan encima del cuerpo (la chompa, antes de los brazos).
+  // ---------- Atuendos (los pone mascota.js según lo que pasa) ----------
   var ACC = {
-    gorra: function (a) {
-      var x = a.cx, y = a.cabezaY, w = a.ancho;
-      return '<path d="M' + (x - w / 2) + ' ' + (y + 7) + 'Q' + x + ' ' + (y - 16) + ' ' + (x + w / 2) + ' ' + (y + 7) + 'Z" fill="#2563eb"/><path d="M' + (x - 2) + ' ' + (y + 5) + 'Q' + (x + w * 0.45) + ' ' + (y + 1) + ' ' + (x + w * 0.62) + ' ' + (y + 8) + 'L' + (x - 2) + ' ' + (y + 9) + 'Z" fill="#1e3a8a"/>' + el('circle', { cx: x, cy: y - 5, r: 2.4, fill: '#1e3a8a' });
-    },
-    birrete: function (a) {
-      var x = a.cx, y = a.cabezaY, w = a.ancho;
-      return el('rect', { x: x - w * 0.32, y: y - 2, width: w * 0.64, height: 9, rx: 2, fill: '#1f2937' }) +
-        '<path d="M' + (x - w * 0.62) + ' ' + (y - 2) + 'L' + x + ' ' + (y - 13) + 'L' + (x + w * 0.62) + ' ' + (y - 2) + 'L' + x + ' ' + (y + 8) + 'Z" fill="#111827"/>' +
-        '<path d="M' + x + ' ' + (y - 3) + 'L' + (x + w * 0.5) + ' ' + (y + 1) + 'V' + (y + 13) + '" stroke="#facc15" stroke-width="1.6" fill="none"/>' + el('circle', { cx: x + w * 0.5, cy: y + 14, r: 2.4, fill: '#facc15' });
-    },
-    corona: function (a) {
-      var x = a.cx, y = a.cabezaY;
-      return '<path d="M' + (x - 14) + ' ' + (y + 4) + 'L' + (x - 16) + ' ' + (y - 12) + 'L' + (x - 7) + ' ' + (y - 4) + 'L' + x + ' ' + (y - 15) + 'L' + (x + 7) + ' ' + (y - 4) + 'L' + (x + 16) + ' ' + (y - 12) + 'L' + (x + 14) + ' ' + (y + 4) + 'Z" fill="#facc15" stroke="#ca8a04" stroke-width="1.2"/>' + el('circle', { cx: x, cy: y - 3, r: 2.2, fill: '#ef4444' });
-    },
-    gorroFiesta: function (a) {
-      var x = a.cx + a.ancho * 0.12, y = a.cabezaY + 4;
-      return '<path d="M' + (x - 11) + ' ' + y + 'L' + x + ' ' + (y - 27) + 'L' + (x + 11) + ' ' + y + 'Z" fill="#a855f7"/><path d="M' + (x - 7) + ' ' + (y - 9) + 'L' + (x + 7) + ' ' + (y - 9) + 'M' + (x - 4) + ' ' + (y - 17) + 'L' + (x + 4) + ' ' + (y - 17) + '" stroke="#fde047" stroke-width="2.5"/>' + el('circle', { cx: x, cy: y - 28, r: 3.4, fill: '#f472b6' });
-    },
-    mono: function (a) {
-      var x = a.cx + a.ancho * 0.32, y = a.cabezaY + 3;
-      return '<path d="M' + x + ' ' + y + 'L' + (x - 11) + ' ' + (y - 8) + 'V' + (y + 8) + 'ZM' + x + ' ' + y + 'L' + (x + 11) + ' ' + (y - 8) + 'V' + (y + 8) + 'Z" fill="#db2777"/>' + el('circle', { cx: x, cy: y, r: 3.6, fill: '#9d174d' });
-    },
     audifonos: function (a) {
       var x1 = a.lados[0], x2 = a.lados[1], y = a.ladosY;
       return '<path d="M' + (x1 + 2) + ' ' + y + 'Q' + (x1 + 2) + ' ' + (a.cabezaY - 12) + ' ' + a.cx + ' ' + (a.cabezaY - 12) + 'Q' + (x2 - 2) + ' ' + (a.cabezaY - 12) + ' ' + (x2 - 2) + ' ' + y + '" fill="none" stroke="#334155" stroke-width="4"/>' +
         el('rect', { x: x1 - 5, y: y - 8, width: 10, height: 16, rx: 4, fill: '#0ea5e9' }) + el('rect', { x: x2 - 5, y: y - 8, width: 10, height: 16, rx: 4, fill: '#0ea5e9' });
     },
+    // Marco de color (ámbar) para que se vea también sobre las caras-pantalla oscuras de los robots.
     lentes: function (a) {
       var e1 = a.ojos[0], e2 = a.ojos[1], y = a.ojosY;
-      return '<g fill="rgba(255,255,255,.18)" stroke="#111827" stroke-width="2.4">' + el('circle', { cx: e1, cy: y, r: 8.5 }) + el('circle', { cx: e2, cy: y, r: 8.5 }) + '<path d="M' + (e1 + 8.5) + ' ' + y + 'Q' + a.cx + ' ' + (y - 4) + ' ' + (e2 - 8.5) + ' ' + y + '" fill="none"/></g>';
+      return '<g fill="rgba(255,255,255,.22)" stroke="#f59e0b" stroke-width="2.6">' + el('circle', { cx: e1, cy: y, r: 8.5 }) + el('circle', { cx: e2, cy: y, r: 8.5 }) + '<path d="M' + (e1 + 8.5) + ' ' + y + 'Q' + a.cx + ' ' + (y - 4) + ' ' + (e2 - 8.5) + ' ' + y + '" fill="none"/></g>';
     },
     gafasSol: function (a) {
       var e1 = a.ojos[0], e2 = a.ojos[1], y = a.ojosY;
-      return '<g fill="#111827">' + el('rect', { x: e1 - 9, y: y - 6, width: 18, height: 12, rx: 5 }) + el('rect', { x: e2 - 9, y: y - 6, width: 18, height: 12, rx: 5 }) + '</g>' +
-        '<path d="M' + (e1 + 9) + ' ' + (y - 2) + 'H' + (e2 - 9) + '" stroke="#111827" stroke-width="2.4"/><path d="M' + (e1 - 5) + ' ' + (y - 3) + 'l4 -2" stroke="#fff" stroke-width="1.6" opacity=".7"/>';
+      return '<g fill="#1e293b" stroke="#f472b6" stroke-width="1.8">' + el('rect', { x: e1 - 9, y: y - 6, width: 18, height: 12, rx: 5 }) + el('rect', { x: e2 - 9, y: y - 6, width: 18, height: 12, rx: 5 }) + '</g>' +
+        '<path d="M' + (e1 + 9) + ' ' + (y - 2) + 'H' + (e2 - 9) + '" stroke="#f472b6" stroke-width="2.2"/><path d="M' + (e1 - 5) + ' ' + (y - 3) + 'l4 -2M' + (e2 - 5) + ' ' + (y - 3) + 'l4 -2" stroke="#fff" stroke-width="1.6" opacity=".8"/>';
     },
     bufanda: function (a) {
       var x = a.cx, y = a.cuelloY;
       return '<path d="M' + (x - 25) + ' ' + (y - 4) + 'Q' + x + ' ' + (y + 6) + ' ' + (x + 25) + ' ' + (y - 4) + 'L' + (x + 25) + ' ' + (y + 4) + 'Q' + x + ' ' + (y + 14) + ' ' + (x - 25) + ' ' + (y + 4) + 'Z" fill="#dc2626"/>' +
         '<path d="M' + (x + 9) + ' ' + (y + 7) + 'l4 17 8-2-3-17Z" fill="#b91c1c"/>';
-    },
-    corbatin: function (a) {
-      var x = a.cx, y = a.cuelloY + 1;
-      return '<path d="M' + x + ' ' + y + 'L' + (x - 10) + ' ' + (y - 6) + 'V' + (y + 6) + 'ZM' + x + ' ' + y + 'L' + (x + 10) + ' ' + (y - 6) + 'V' + (y + 6) + 'Z" fill="#0f172a"/>' + el('rect', { x: x - 2.5, y: y - 3, width: 5, height: 6, rx: 1.5, fill: '#334155' });
-    },
-    medalla: function (a) {
-      var x = a.cx, y = a.cuelloY;
-      return '<path d="M' + (x - 9) + ' ' + (y - 3) + 'L' + x + ' ' + (y + 11) + 'L' + (x + 9) + ' ' + (y - 3) + '" fill="none" stroke="#2563eb" stroke-width="4"/>' + el('circle', { cx: x, cy: y + 15, r: 6.5, fill: '#facc15', stroke: '#ca8a04', 'stroke-width': 1.2 }) +
-        '<path d="M' + x + ' ' + (y + 11) + 'l1.3 2.7 3 .4-2.2 2 .5 3-2.6-1.4-2.6 1.4.5-3-2.2-2 3-.4Z" fill="#fff"/>';
     },
   };
 
@@ -335,54 +256,34 @@
     }).join('');
   }
 
-  // Ajustes que dependen del estudiante (los pone mascota.js): inicial del
-  // colegio y color de la chompa.
-  var AJUSTES = { inicial: '', chompa: '#1e3a8a' };
-
-  // Chompa del colegio con la inicial en el pecho (se dibuja antes de los brazos:
-  // así las mangas quedan encima, del mismo color).
-  function chompa(p, color) {
-    var a = p.a, t = p.torso || [a.cuelloY, 48, 28];
-    var cx = a.cx, y = t[0], w = t[1] / 2, h = t[2];
-    var borde = mezclar(color, '#000000', 0.3);
-    return '<g data-parte="chompa"><path d="M' + (cx - w) + ' ' + (y + 4) + 'Q' + cx + ' ' + (y + 11) + ' ' + (cx + w) + ' ' + (y + 4) + 'L' + (cx + w + 2) + ' ' + (y + h - 4) + 'Q' + cx + ' ' + (y + h + 3) + ' ' + (cx - w - 2) + ' ' + (y + h - 4) + 'Z" fill="' + color + '"/>' +
-      '<path d="M' + (cx - w + 4) + ' ' + (y + 4) + 'Q' + cx + ' ' + (y + 12) + ' ' + (cx + w - 4) + ' ' + (y + 4) + '" fill="none" stroke="' + borde + '" stroke-width="3" stroke-linecap="round"/>' +
-      '<path d="M' + (cx - w) + ' ' + (y + h - 3) + 'Q' + cx + ' ' + (y + h + 4) + ' ' + (cx + w) + ' ' + (y + h - 3) + '" fill="none" stroke="' + borde + '" stroke-width="2.5"/>' +
-      (AJUSTES.inicial ? '<text x="' + cx + '" y="' + (y + h * 0.66) + '" text-anchor="middle" font-family="system-ui,Segoe UI,Arial,sans-serif" font-weight="900" font-size="' + Math.round(h * 0.5) + '" fill="#fff" stroke="' + borde + '" stroke-width=".6">' + AJUSTES.inicial + '</text>' : '') +
-      '</g>';
+  // Atuendo puesto (audífonos, lentes, gafas, bufanda): SVG para el grupo data-parte="atuendo".
+  function atuendo(tipo, ids) {
+    var a = (P[tipo] || P.astronauta).a;
+    return (ids || []).filter(function (id) { return ACC[id]; }).map(function (id) { return ACC[id](a); }).join('');
   }
-
-  // <svg> completo. accesorios: array de ids (se ignoran los desconocidos).
-  function dibujar(tipo, hex, accesorios, titulo) {
-    var p = P[tipo] || P.zorro;
+  // <svg> completo. ids: atuendo puesto (opcional).
+  function dibujar(tipo, hex, ids, titulo) {
+    var p = P[tipo] || P.astronauta;
     var a = p.a;
-    var lista = accesorios || [];
-    var tiene = function (id) { return lista.indexOf(id) >= 0 && ACC[id]; };
-    var encima = lista.filter(function (id) { return ACC[id]; }).map(function (id) { return ACC[id](a); }).join('');
-    var conChompa = lista.indexOf('chompa') >= 0;
     var oscuro = mezclar(hex, '#000000', 0.28);
     return '<svg viewBox="0 0 120 120" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" ' + (titulo ? 'role="img" aria-label="' + titulo + '"' : 'aria-hidden="true"') + ' style="overflow:visible">' +
       el('ellipse', { cx: 60, cy: 113, rx: 30, ry: 4, fill: '#000', opacity: 0.12 }) +
       '<g data-parte="cuerpo" ' + ORIGEN('50% 100%') + '>' +
       p.dibujo(hex, oscuro, mezclar(hex, '#ffffff', 0.72)) +
       pies(p, oscuro) +
-      (conChompa ? chompa(p, AJUSTES.chompa) : '') +
-      brazos(p, hex, oscuro, mezclar(hex, '#ffffff', 0.72), conChompa ? AJUSTES.chompa : null) +
-      cara(a, p.pantalla, p.sinMejillas) + encima +
+      brazos(p, hex, oscuro, mezclar(hex, '#ffffff', 0.72), null) +
+      cara(a, p.pantalla, p.sinMejillas) +
+      '<g data-parte="atuendo">' + atuendo(tipo, ids) + '</g>' +
       '</g></svg>';
   }
 
   window.MascotaPersonajes = {
     dibujar: dibujar,
-    // inicial: letra(s) del colegio · chompa: color (#hex) de la chompa
-    ajustar: function (o) {
-      if (o.inicial != null) AJUSTES.inicial = String(o.inicial).replace(/[^A-Za-zÁÉÍÓÚÑÜáéíóúñü]/g, '').slice(0, 2).toUpperCase();
-      if (o.chompa) AJUSTES.chompa = o.chompa;
-    },
+    atuendo: atuendo,
     tipos: Object.keys(P),
-    movimiento: function (tipo) { return MOVIMIENTOS[(P[tipo] || P.zorro).mov]; },
+    movimiento: function (tipo) { return MOVIMIENTOS[(P[tipo] || P.astronauta).mov]; },
     // Puntos de anclaje (ojos, cabeza, cuello…): sirven para enfocar una zona.
-    anclas: function (tipo) { return (P[tipo] || P.zorro).a; },
+    anclas: function (tipo) { return (P[tipo] || P.astronauta).a; },
     // Cuánto giran los brazos (1 = normal; alas y aletas, menos).
     giroBrazos: function (tipo) { return (P[tipo] || {}).giroBrazos || 1; },
   };

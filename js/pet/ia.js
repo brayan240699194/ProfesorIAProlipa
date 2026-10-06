@@ -315,6 +315,49 @@
       .catch(function (e) { return { texto: '', error: motivo(e) }; });
   }
 
+  // =====================================================================
+  // DICCIONARIO: el estudiante selecciona una palabra de la actividad y la
+  // mascota la explica sencillo, como un amigo, en el sentido de la frase.
+  // ejemplo = true → un ejemplo concreto y cotidiano de esa palabra.
+  // Devuelve { texto } o { texto: '', error }
+  // =====================================================================
+  function instruccionesDiccionario(ctx) {
+    return 'Eres ' + ctx.mascota + ', la mascota de un libro digital de ' + ctx.libro + ' para ' + ctx.publico + '. ' +
+      'El estudiante buscó en la actividad una palabra que no entiende. Responde en español, CORTO Y DIRECTO: máximo 25 palabras, una o dos frases, sin markdown. ' +
+      'Empieza directamente con el significado (sin saludos ni exclamaciones), con palabras simples y en el sentido que tiene en la frase y en la materia; ' +
+      'si ayuda, agrega una comparación breve con algo cotidiano. Datos verdaderos. No uses el nombre del estudiante. No termines con una pregunta.';
+  }
+  function explicar(ctx, termino, frase, ejemplo) {
+    var cfg = ctx.config || {};
+    termino = String(termino || '').slice(0, 80);
+    frase = String(frase || '').slice(0, 300);
+    var pedido = ejemplo
+      ? 'Dame un ejemplo concreto y cotidiano (de la vida en Ecuador) de «' + termino + '», en una frase de máximo 20 palabras.'
+      : 'Explícame qué significa «' + termino + '»' + (frase ? ' en esta frase: «' + frase + '»' : '') + '.';
+    var op = conTiempo((cfg.tiempoMaximoMs || 8000) + 4000);
+    var peticion;
+    if (cfg.proxyUrl) {
+      // Servidor intermedio: se usa la ruta del chat con la misma indicación.
+      peticion = fetch(urlChat(cfg), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ libro: ctx.libro, publico: ctx.publico, mascota: ctx.mascota, tema: leerTema(), historial: [], pregunta: pedido + ' Responde corto y directo (máximo 25 palabras), sin saludos ni exclamaciones.', maxPalabras: 30 }),
+        signal: op.signal,
+      }).then(comprobar).then(function (j) { return j.texto; });
+    } else {
+      peticion = conReintento(function () {
+        return llamarModelo(cfg, instruccionesDiccionario(ctx) + ' Tema de la actividad: ' + leerTema(), [{ rol: 'estudiante', texto: pedido }], 160, 0.4, false, op.signal);
+      });
+    }
+    return peticion
+      .then(function (t) {
+        var texto = limpiarRespuesta(t);
+        if (!texto) { var e = new Error('vacía'); e.sinMensajes = true; throw e; }
+        return { texto: texto };
+      })
+      .catch(function (e) { return { texto: '', error: motivo(e) }; });
+  }
+
   // ---------- Voz natural (botón 🔊 Escuchar del chat) ----------
   // Google Gemini convierte el texto en audio con una voz humana. Se envía
   // SOLO el texto que dijo la mascota (nunca nombres ni datos del estudiante:
@@ -385,5 +428,5 @@
     });
   }
 
-  window.MascotaIA = { obtener: obtener, conversar: conversar, leerTema: leerTema, limpiar: limpiar, voz: voz, vozDisponible: vozDisponible };
+  window.MascotaIA = { obtener: obtener, conversar: conversar, explicar: explicar, leerTema: leerTema, limpiar: limpiar, voz: voz, vozDisponible: vozDisponible };
 })();

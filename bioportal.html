@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#1e3a8a" />
+  <link rel="icon" type="image/png" href="img/prolipa-icono.png" />
+  <title>BioPortal</title>
+  <!-- BioPortal: un portal brillante se abre en el cuarto (realidad aumentada) o en la pantalla y, a través de él,
+       se ve el mundo del tema de la actividad; una guía narra un tour. Se abre desde el menú de juegos (botón "Juegos" de cada actividad).
+       Ver js/bioportal/README.md -->
+  <style>
+    :root {
+      /* Azul y celeste de Prolipa. */
+      --tarjeta: rgba(15, 27, 61, .86); --texto: #f1f5f9; --suave: #bfdbfe; --borde: rgba(125, 211, 252, .35);
+      --heroe: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #38bdf8 100%);
+      --boton: linear-gradient(135deg, #2563eb, #0ea5e9); --sombra-azul: rgba(37, 99, 235, .45);
+      --celeste: #38bdf8; --energia: #38bdf8;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body { margin: 0; overflow: hidden; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background: #0b1530; color: var(--texto); -webkit-tap-highlight-color: transparent; }
+    button { font: inherit; cursor: pointer; }
+    button:focus-visible, input:focus-visible { outline: 3px solid #f59e0b; outline-offset: 2px; }
+    [hidden] { display: none !important; }
+    #precarga { position: fixed; inset: 0; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; background: var(--heroe); color: #fff; font: 700 1.05rem system-ui, sans-serif; transition: opacity .35s; }
+    #precarga.fuera { opacity: 0; pointer-events: none; }
+    #precarga .grande { font-size: 4rem; animation: flota 1.2s ease-in-out infinite; }
+    .giro { width: 38px; height: 38px; border-radius: 50%; border: 4px solid rgba(255, 255, 255, .3); border-top-color: #fff; animation: gira .8s linear infinite; }
+    .giro.chico { width: 18px; height: 18px; border-width: 3px; flex: none; }
+    @keyframes flota { 50% { transform: translateY(-8px); } }
+    @keyframes gira { to { transform: rotate(360deg); } }
+
+    #escena { position: fixed; inset: 0; }
+    #escena canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+    #escena canvas:active { cursor: grabbing; }
+
+    /* ---------- Botones ---------- */
+    .boton { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 10px 20px; border: 0; border-radius: 999px; background: var(--boton); color: #fff; font-weight: 800; font-size: 1rem; box-shadow: 0 8px 22px var(--sombra-azul); transition: transform .15s, filter .15s; }
+    .boton:hover { transform: translateY(-2px); filter: brightness(1.08); }
+    .boton:disabled { opacity: .55; cursor: default; transform: none; filter: grayscale(.4); }
+    .boton.claro { background: rgba(255, 255, 255, .14); box-shadow: none; border: 1px solid var(--borde); }
+    .boton.grande { min-height: 56px; font-size: 1.1rem; padding: 12px 26px; }
+    .boton.pulso { animation: pulso 1.4s ease-in-out infinite; }
+    @keyframes pulso { 50% { box-shadow: 0 0 0 8px rgba(56, 189, 248, .25), 0 8px 22px var(--sombra-azul); } }
+    .redondo { display: grid; place-items: center; width: 46px; height: 46px; padding: 0; border: 1px solid var(--borde); border-radius: 50%; background: rgba(15, 27, 61, .7); color: #fff; font-size: 1.25rem; backdrop-filter: blur(6px); }
+
+    /* ---------- Inicio ---------- */
+    #inicio { position: fixed; left: 50%; bottom: max(16px, env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 10; width: min(560px, calc(100vw - 32px)); padding: 22px 22px 20px; border-radius: 26px; background: var(--tarjeta); border: 1px solid var(--borde); box-shadow: 0 24px 60px rgba(2, 6, 23, .55); backdrop-filter: blur(10px); text-align: center; animation: sube .5s cubic-bezier(.2, .9, .3, 1.2); }
+    @keyframes sube { from { opacity: 0; transform: translate(-50%, 30px); } }
+    .marca { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 0 0 6px; }
+    .logo { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 13px; background: #fff; box-shadow: 0 6px 16px rgba(0, 0, 0, .3); flex: none; }
+    .logo img { width: 32px; height: 32px; object-fit: contain; }
+    #inicio h1 { margin: 0; font-size: 1.7rem; letter-spacing: .5px; background: linear-gradient(90deg, #fff, #7dd3fc); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    #de-actividad { margin: 4px 0 0; color: var(--suave); font-weight: 700; }
+    #inicio p.desc { margin: 8px 0 14px; color: #e2e8f0; line-height: 1.45; }
+    #estado { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 30px; margin: 0 0 14px; color: var(--suave); font-weight: 700; }
+    #destino { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 999px; background: rgba(56, 189, 248, .16); border: 1px solid var(--borde); color: #e0f2fe; }
+    .acciones { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+    #inicio .acciones .boton { flex: 1 1 220px; }
+    .esquina { position: fixed; top: max(14px, env(safe-area-inset-top)); z-index: 12; display: flex; gap: 8px; }
+    .esquina.izq { left: 14px; } .esquina.der { right: 14px; }
+
+    /* ---------- Tour (también es la capa de la realidad aumentada: dom-overlay) ---------- */
+    #hud { position: fixed; inset: 0; z-index: 20; pointer-events: none; }
+    #hud > * { pointer-events: auto; }
+    #hud .esquina { position: absolute; }
+    #titulo-tour { position: absolute; top: max(16px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); max-width: calc(100vw - 260px); padding: 8px 16px; border-radius: 999px; background: rgba(15, 27, 61, .7); border: 1px solid var(--borde); font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; backdrop-filter: blur(6px); pointer-events: none; }
+    #b-entrar { min-height: 46px; padding: 8px 16px; font-size: .95rem; }
+    #tarjeta { position: absolute; left: 50%; bottom: max(14px, env(safe-area-inset-bottom)); transform: translateX(-50%); width: min(620px, calc(100vw - 24px)); max-height: 56vh; overflow: auto; padding: 16px 18px 14px; border-radius: 24px; background: var(--tarjeta); border: 1px solid var(--borde); box-shadow: 0 20px 50px rgba(2, 6, 23, .5); backdrop-filter: blur(10px); }
+    #tarjeta.entra { animation: aparece .45s ease; }
+    @keyframes aparece { from { opacity: 0; transform: translate(-50%, 18px); } }
+    .cabeza { display: flex; align-items: center; gap: 12px; }
+    #p-emoji { display: grid; place-items: center; width: 52px; height: 52px; flex: none; border-radius: 16px; background: var(--heroe); font-size: 1.8rem; box-shadow: 0 6px 16px var(--sombra-azul); }
+    .cabeza small { display: block; color: var(--suave); font-weight: 700; font-size: .82rem; letter-spacing: .3px; text-transform: uppercase; }
+    #p-titulo { margin: 2px 0 0; font-size: 1.22rem; }
+    #b-repetir { margin-left: auto; width: 40px; height: 40px; font-size: 1.05rem; }
+    #p-texto { margin: 12px 0 10px; font-size: 1.06rem; line-height: 1.5; }
+    #puntos { display: flex; justify-content: center; gap: 6px; margin: 4px 0 10px; }
+    #puntos i { width: 9px; height: 9px; border-radius: 50%; background: rgba(191, 219, 254, .3); transition: background .3s, transform .3s; }
+    #puntos i.hecho { background: #7dd3fc; }
+    #puntos i.ahora { background: #fff; transform: scale(1.35); }
+    .navega { display: flex; gap: 10px; }
+    .navega .boton { flex: 1; }
+    #b-anterior { flex: 0 0 auto; }
+    #b-auto { flex: 0 0 auto; padding: 10px 14px; font-size: .9rem; }
+    #b-auto.activo { background: rgba(56, 189, 248, .3); border-color: #7dd3fc; box-shadow: 0 0 0 2px rgba(125, 211, 252, .35); }
+    #hud .esquina.der { flex-wrap: wrap; justify-content: flex-end; max-width: calc(100vw - 80px); }
+    #respuesta { margin: 10px 0 2px; padding: 12px 14px; border-radius: 16px 16px 16px 4px; background: rgba(56, 189, 248, .14); border: 1px solid var(--borde); line-height: 1.45; }
+    #respuesta.pensando { color: var(--suave); font-style: italic; }
+    #preguntar { display: flex; gap: 8px; margin-top: 10px; }
+    #preguntar input { flex: 1; min-width: 0; min-height: 46px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--borde); background: rgba(2, 6, 23, .45); color: #fff; font: inherit; }
+    #preguntar input::placeholder { color: #94a3b8; }
+    #preguntar .redondo { flex: none; }
+    /* Flecha que indica hacia dónde mirar cuando la parada no está en pantalla. */
+    #flecha { position: absolute; left: 0; top: 0; width: 64px; height: 64px; margin: -32px 0 0 -32px; display: grid; place-items: center; border-radius: 50%; background: rgba(15, 27, 61, .72); border: 2px solid var(--energia); color: #fff; font-size: 1.9rem; pointer-events: none; box-shadow: 0 0 22px var(--energia); }
+    #flecha span { display: block; animation: empuja 1s ease-in-out infinite; }
+    @keyframes empuja { 50% { transform: translateX(6px); } }
+    #aviso-ar { position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%); width: min(420px, calc(100vw - 32px)); padding: 18px 20px; border-radius: 22px; background: rgba(15, 27, 61, .82); border: 1px solid var(--borde); text-align: center; font-weight: 700; line-height: 1.45; pointer-events: none; }
+    #aviso-ar .grande { display: block; font-size: 2.6rem; margin-bottom: 6px; animation: barre 2.4s ease-in-out infinite; }
+    @keyframes barre { 25% { transform: translateX(-18px) rotate(-8deg); } 75% { transform: translateX(18px) rotate(8deg); } }
+    #aviso-seguimiento { position: absolute; left: 50%; top: calc(max(16px, env(safe-area-inset-top)) + 60px); transform: translateX(-50%); width: min(420px, calc(100vw - 32px)); padding: 10px 16px; border-radius: 16px; background: rgba(180, 83, 9, .88); text-align: center; font-weight: 700; pointer-events: none; }
+    #destello { position: fixed; inset: 0; z-index: 30; pointer-events: none; background: radial-gradient(circle, #fff, var(--energia) 40%, transparent 75%); opacity: 0; }
+    #destello.ver { animation: destello .9s ease-out; }
+    @keyframes destello { 20% { opacity: .85; } }
+
+    /* ---------- QR ---------- */
+    #qr { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; background: rgba(2, 6, 23, .7); backdrop-filter: blur(4px); }
+    .qr-caja { position: relative; padding: 24px 24px 20px; border-radius: 24px; background: #fff; color: #1e3a8a; text-align: center; box-shadow: 0 30px 60px rgba(0, 0, 0, .4); }
+    .qr-caja h2 { margin: 0 0 14px; font-size: 1.15rem; }
+    #qr-codigo { display: grid; place-items: center; min-width: 220px; min-height: 220px; }
+    #b-cerrar-qr { position: absolute; top: 10px; right: 10px; width: 38px; height: 38px; border: 0; border-radius: 50%; background: #eff6ff; color: #1e3a8a; font-size: 1.1rem; }
+
+    @media (max-width: 560px) {
+      #inicio { padding: 18px 16px 16px; }
+      #inicio h1 { font-size: 1.45rem; }
+      #titulo-tour { top: 72px; max-width: calc(100vw - 32px); font-size: .9rem; }
+      #p-texto { font-size: 1rem; }
+      #tarjeta { max-height: 50vh; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+  </style>
+</head>
+
+<body>
+  <div id="precarga" role="status" aria-live="polite"><span class="grande">🌀</span><div class="giro"></div><span>Cargando BioPortal…</span></div>
+  <div id="escena" aria-hidden="true"></div>
+  <div id="destello" aria-hidden="true"></div>
+
+  <!-- Inicio -->
+  <div class="esquina izq" id="esquina-inicio">
+    <button type="button" class="redondo" id="b-volver" hidden title="Volver a la actividad" aria-label="Volver a la actividad">✕</button>
+    <button type="button" class="boton claro" id="b-juegos" hidden>← Juegos</button>
+  </div>
+  <div class="esquina der">
+    <button type="button" class="redondo" id="b-voz" title="Voz de la guía" aria-label="Voz de la guía">🔊</button>
+  </div>
+  <section id="inicio" aria-labelledby="titulo-inicio">
+    <div class="marca"><span class="logo"><img src="img/prolipa-icono.png" alt="Prolipa" /></span><h1 id="titulo-inicio">BioPortal</h1></div>
+    <p id="de-actividad" hidden></p>
+    <p class="desc">Abre un portal a otro mundo, mira a través de él y recorre el tema con tu guía.</p>
+    <div id="estado" role="status" aria-live="polite"><span class="giro chico"></span><span>La guía está preparando el tour…</span></div>
+    <div class="acciones">
+      <button type="button" class="boton grande" id="b-pantalla" disabled>🌀 Entrar al portal</button>
+      <button type="button" class="boton grande claro" id="b-ar" hidden disabled>📱 Abrirlo en mi cuarto</button>
+      <button type="button" class="boton claro" id="b-qr" hidden>📱 Verlo en mi cuarto con el celular</button>
+    </div>
+  </section>
+
+  <!-- Tour -->
+  <div id="hud" hidden>
+    <div class="esquina izq"><button type="button" class="redondo" id="b-cerrar" title="Cerrar el portal" aria-label="Cerrar el portal">✕</button></div>
+    <div class="esquina der"><button type="button" class="boton claro" id="b-entrar">🚪 Entrar</button><button type="button" class="redondo" id="b-foto" title="Postal: guarda una foto del viaje" aria-label="Guardar una postal del viaje">📸</button><button type="button" class="redondo" id="b-ambiente" title="Sonido del mundo" aria-label="Sonido del mundo" aria-pressed="true">🎵</button><button type="button" class="redondo" id="b-voz-tour" title="Voz de la guía" aria-label="Voz de la guía">🔊</button></div>
+    <div id="titulo-tour"></div>
+    <div id="flecha" hidden aria-hidden="true"><span>➜</span></div>
+    <div id="aviso-ar" hidden><span class="grande">📱</span>Apunta al piso y muévete despacio.<br />Cuando veas el círculo, <b>toca la pantalla</b> para abrir el portal.</div>
+    <div id="aviso-seguimiento" hidden role="status">🔄 Muévete más despacio y apunta al piso que ya viste: el portal sigue en su lugar.</div>
+    <section id="tarjeta" hidden aria-live="polite">
+      <div class="cabeza">
+        <span id="p-emoji" aria-hidden="true">🌀</span>
+        <div><small id="p-contador">Bienvenida</small><h2 id="p-titulo"></h2></div>
+        <button type="button" class="redondo" id="b-repetir" title="Escuchar otra vez" aria-label="Escuchar otra vez">🔁</button>
+      </div>
+      <p id="p-texto"></p>
+      <div id="puntos" aria-hidden="true"></div>
+      <div id="respuesta" hidden></div>
+      <div class="navega">
+        <button type="button" class="boton claro" id="b-anterior" aria-label="Parada anterior">◀</button>
+        <button type="button" class="boton claro" id="b-auto" aria-pressed="false" aria-label="Recorrido automático" title="Recorrido automático">⏯ Auto</button>
+        <button type="button" class="boton" id="b-siguiente">Siguiente ▶</button>
+      </div>
+      <form id="preguntar" autocomplete="off">
+        <input id="texto-pregunta" maxlength="200" placeholder="💬 Pregúntale a la guía…" aria-label="Pregúntale a la guía" />
+        <button type="button" class="redondo" id="b-dictar" hidden title="Preguntar con la voz" aria-label="Preguntar con la voz">🎤</button>
+        <button type="submit" class="redondo" title="Preguntar" aria-label="Preguntar">➤</button>
+      </form>
+    </section>
+  </div>
+
+  <div id="qr" hidden role="dialog" aria-modal="true" aria-labelledby="qr-titulo">
+    <div class="qr-caja">
+      <button type="button" id="b-cerrar-qr" aria-label="Cerrar">✕</button>
+      <h2 id="qr-titulo">Escanéalo con tu celular</h2>
+      <div id="qr-codigo"></div>
+    </div>
+  </div>
+
+  <script src="js/entrevista/config.js"></script>
+  <script src="js/juegos/config.js"></script>
+  <script src="js/materia.js?v=5"></script>
+  <script src="js/realidad-aumentada.js?v=1"></script>
+  <script src="js/bioportal/reglas.js?v=1"></script>
+  <script src="js/bioportal/mundos.js?v=3"></script>
+  <script src="js/bioportal/bioportal.js?v=8"></script>
+</body>
+
+</html>

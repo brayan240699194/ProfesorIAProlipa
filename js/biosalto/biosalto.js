@@ -292,7 +292,8 @@ function medidas() {
   const W = innerWidth, H = innerHeight;
   esc.ancho = limitar(W * 0.3, 130, 340);
   esc.hueco = limitar(W * 0.24, 100, 280);
-  esc.g = limitar(Math.min(W, H) * 0.14, 64, 120);
+  // Gallina grande y protagonista (antes 14 %): se ve bien en la computadora y en el celular.
+  esc.g = limitar(Math.min(W * 0.32, H * 0.22), 96, 190);
   escenario.style.setProperty('--g', esc.g + 'px');
 }
 const xMonte = (i) => i * (esc.ancho + esc.hueco);
@@ -301,7 +302,9 @@ function cimaMonte(m) {
   const H = innerHeight;
   const nubeAbajo = $('nube').getBoundingClientRect().bottom;
   const panelArriba = $('panel-voz').getBoundingClientRect().top;
-  const min = nubeAbajo + esc.g + 40, max = Math.max(min, panelArriba - 70);
+  // + 90 px: al revelar la respuesta la nube crece (explicación y "Siguiente") y no debe tapar a la gallina.
+  const max = panelArriba - 70, min = Math.min(nubeAbajo + esc.g + 130, Math.max(nubeAbajo + esc.g + 40, max));
+  if (max < min) return min;
   return limitar(H * (1 - m.frac), min, max);
 }
 function svgMonte(semilla) {
@@ -1170,7 +1173,7 @@ function iniciar() {
   addEventListener('resize', () => { if (estado.fase !== 'inicio') reacomodar(); else ajustarLienzo(); });
   ponerTema(JUGAR.tema ? R.texto(JUGAR.tema, 80) : '');
   const cfgJuegos = window.JUEGOS_CONFIG;
-  if (cfgJuegos) mostrarAtras(['biocabeza', 'biosalto'].filter((k) => cfgJuegos[k] !== false).length > 1);
+  if (cfgJuegos) mostrarAtras(['biocabeza', 'biosalto', 'bioportal'].filter((k) => cfgJuegos[k] !== false).length > 1);
   segmentos('cantidad');
   segmentos('nivel');
   $('nivel').querySelectorAll('button').forEach((b) => { b.title = b.dataset.v[0].toUpperCase() + b.dataset.v.slice(1); b.setAttribute('aria-label', b.title); b.append(' ' + b.title); });

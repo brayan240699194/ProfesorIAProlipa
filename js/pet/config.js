@@ -13,6 +13,15 @@ window.MASCOTA_CONFIG = {
   // que manda sobre esto.
   activa: true,
 
+  // 🔊 Leer en voz alta (junto a ⋯ y –): la mascota lee un párrafo que se toca
+  // o toda la actividad, con su voz y resaltando cada palabra. false = sin el botón.
+  lectura: true,
+
+  // 🔍 Diccionario: doble clic (o dedo sostenido) en una palabra de la actividad y
+  // la mascota la explica corto y directo (con la IA), con un ejemplo si lo pide.
+  // false = sin diccionario. Cada estudiante puede apagar la lupa en ⚙️ Ajustes.
+  diccionario: true,
+
   // ---------- Dónde aparece al abrir cada actividad ----------
   // Distancia en píxeles desde la esquina inferior derecha. Abajo a la derecha
   // está el profesor con IA (js/entrevista/, botón de 72 px): la mascota va
@@ -68,7 +77,15 @@ window.MASCOTA_CONFIG = {
   //        el límite, usa la voz del dispositivo.
   // 'dispositivo' = solo la voz del navegador (gratis, sin internet, más robótica).
   voz: {
-    motor: 'ia',
+    // 'local' (por defecto) = voz neuronal Piper generada EN EL DISPOSITIVO
+    //          (js/pet/voz-local.js): gratis, sin límites y sin clave. Se descarga
+    //          una sola vez (≈ 60 MB) la primera vez que la mascota habla o lee;
+    //          mientras baja, usa la voz de Gemini (si hay IA) o la del dispositivo.
+    // 'ia' = voz de Google Gemini (tiene cupo) · 'dispositivo' = voz del navegador.
+    motor: 'local',
+    // Voz local (Piper, español): es_MX-claude-high (México, la más natural),
+    // es_MX-ald-medium, es_ES-davefx-medium, es_ES-sharvard-medium, es_ES-carlfm-x_low (la más liviana).
+    vozLocal: 'es_MX-claude-high',
     // Modelos de voz, en orden. Plan gratis de Google: 3 audios por minuto
     // POR MODELO; si uno se llena, usa el siguiente (≈ 12 por minuto en total).
     modelos: ['gemini-3.8-flash-lite-tts', 'gemini-3.8-flash-tts', 'gemini-3.1-flash-tts-preview', 'gemini-2.5-flash-preview-tts'],
@@ -76,8 +93,7 @@ window.MASCOTA_CONFIG = {
     // Una voz para cada personaje (voces de Gemini: Achird, Puck, Leda, Aoede,
     // Fenrir, Kore, Laomedeia, Sadachbia, Sulafat, Zubenelgenubi…)
     porPersonaje: {
-      astronauta: 'Puck', lobo: 'Achird', nova: 'Leda', fenix: 'Fenrir', mapache: 'Zubenelgenubi',
-      zorro: 'Laomedeia', gato: 'Aoede', dragon: 'Sadachbia', pinguino: 'Puck', ajolote: 'Leda',
+      astronauta: 'Puck', lobo: 'Achird', perro: 'Aoede', ajolote: 'Leda', bit: 'Zephyr', nexo: 'Fenrir',
     },
   },
 
@@ -124,20 +140,16 @@ window.MASCOTA_CONFIG = {
   minCaracteresAbierta: 30,
   rachaParaBailar: 3,
 
-  // ---------- Personajes, colores y accesorios ----------
+  // ---------- Personajes y colores ----------
+  // (Sin accesorios: la mascota se pone sola audífonos cuando usas el micrófono,
+  // lentes cuando lee, gafas de sol cuando descansa y, a veces, una bufanda.)
   personajes: [
-    // Para jóvenes de bachillerato
     { id: 'astronauta', nombre: 'Astronauta', nombreSugerido: 'Orion', color: 'celeste' },
     { id: 'lobo', nombre: 'Lobo urbano', nombreSugerido: 'Kai', color: 'marino' },
-    { id: 'nova', nombre: 'Nova IA', nombreSugerido: 'Nova', color: 'morado' },
-    { id: 'fenix', nombre: 'Fénix', nombreSugerido: 'Blaze', color: 'rojo' },
-    { id: 'mapache', nombre: 'Mapache urbano', nombreSugerido: 'Zeta', color: 'azul' },
-    // Para niños
-    { id: 'zorro', nombre: 'Zorrito', nombreSugerido: 'Chispa', color: 'naranja' },
-    { id: 'gato', nombre: 'Gatito', nombreSugerido: 'Miel', color: 'amarillo' },
-    { id: 'dragon', nombre: 'Dragón bebé', nombreSugerido: 'Brasa', color: 'verde' },
-    { id: 'pinguino', nombre: 'Pingüino', nombreSugerido: 'Hielo', color: 'grafito' },
+    { id: 'perro', nombre: 'Perrito', nombreSugerido: 'Toby', color: 'rojo' },
     { id: 'ajolote', nombre: 'Ajolote', nombreSugerido: 'Axo', color: 'chicle' },
+    { id: 'bit', nombre: 'Robot Bit', nombreSugerido: 'Bit', color: 'azul' },
+    { id: 'nexo', nombre: 'Robot Nexo', nombreSugerido: 'Nexo', color: 'celeste' },
   ],
   colores: [
     { id: 'rojo', nombre: 'Rojo', hex: '#ef4444' },
@@ -147,43 +159,6 @@ window.MASCOTA_CONFIG = {
     { id: 'chicle', nombre: 'Chicle', hex: '#f9a8d4' },
     { id: 'morado', nombre: 'Morado', hex: '#a855f7' },
     { id: 'azul', nombre: 'Azul', hex: '#3b82f6' },
-    { id: 'celeste', nombre: 'Celeste', hex: '#0ea5e9' },
-    { id: 'marino', nombre: 'Azul marino', hex: '#1e3a8a' },
-    { id: 'verde', nombre: 'Verde', hex: '#22c55e' },
-    { id: 'grafito', nombre: 'Grafito', hex: '#334155' },
-  ],
-  // Se pueden llevar varios a la vez: uno por zona.
-  zonas: [
-    { id: 'cabeza', nombre: 'Cabeza' },
-    { id: 'orejas', nombre: 'Orejas' },
-    { id: 'cara', nombre: 'Cara' },
-    { id: 'cuello', nombre: 'Cuello' },
-    { id: 'cuerpo', nombre: 'Cuerpo' },
-  ],
-  accesorios: [
-    { id: 'gorra', nombre: 'Gorra', zona: 'cabeza' },
-    { id: 'birrete', nombre: 'Birrete', zona: 'cabeza' },
-    { id: 'corona', nombre: 'Corona', zona: 'cabeza' },
-    { id: 'gorroFiesta', nombre: 'Gorro de fiesta', zona: 'cabeza' },
-    { id: 'mono', nombre: 'Moño', zona: 'cabeza' },
-    { id: 'audifonos', nombre: 'Audífonos', zona: 'orejas' },
-    { id: 'lentes', nombre: 'Lentes', zona: 'cara' },
-    { id: 'gafasSol', nombre: 'Gafas de sol', zona: 'cara' },
-    { id: 'bufanda', nombre: 'Bufanda', zona: 'cuello' },
-    { id: 'corbatin', nombre: 'Corbatín', zona: 'cuello' },
-    { id: 'medalla', nombre: 'Medalla', zona: 'cuello' },
-    { id: 'chompa', nombre: 'Chompa del colegio', zona: 'cuerpo' }, // con la inicial del colegio del estudiante
-  ],
-
-  // Colores de la chompa del colegio.
-  coloresChompa: [
-    { id: 'rojo', nombre: 'Rojo', hex: '#ef4444' },
-    { id: 'naranja', nombre: 'Naranja', hex: '#f97316' },
-    { id: 'amarillo', nombre: 'Amarillo', hex: '#f59e0b' },
-    { id: 'rosa', nombre: 'Rosa', hex: '#ec4899' },
-    { id: 'chicle', nombre: 'Chicle', hex: '#f9a8d4' },
-    { id: 'morado', nombre: 'Morado', hex: '#a855f7' },
-    // { id: 'azul', nombre: 'Azul', hex: '#3b82f6' },
     { id: 'celeste', nombre: 'Celeste', hex: '#0ea5e9' },
     { id: 'marino', nombre: 'Azul marino', hex: '#1e3a8a' },
     { id: 'verde', nombre: 'Verde', hex: '#22c55e' },

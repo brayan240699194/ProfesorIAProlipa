@@ -31,14 +31,15 @@ function materiaActividad() { return (window.ProlipaMateria && window.ProlipaMat
    Botón "Juego" de la barra (#navbar): abre el menú de juegos (juegos.html)
    en un marco SOBRE la actividad, sin salir de ella ni perder lo que el
    estudiante ya respondió. Desde ahí se elige BioCabeza (responder moviendo
-   la cabeza frente a la cámara) o BioSalto (la gallina: responder con la voz).
+   la cabeza frente a la cámara), BioSalto (la gallina: responder con la voz)
+   o BioPortal (un portal en realidad aumentada al mundo del tema, con un tour).
    A cada página del marco que avisa "juego:listo" se le manda el título y el
    texto de la actividad, así la IA pregunta sobre ese contenido. Va antes del
    bloque de tooltips para que el botón nuevo también reciba su comportamiento.
    Qué juegos se muestran: js/juegos/config.js (true/false) o, en una
-   actividad, <body data-juegos="biocabeza|biosalto|biocabeza,biosalto|ninguno">.
+   actividad, <body data-juegos="biocabeza,biosalto,bioportal|…|ninguno">.
    Con un solo juego, el botón lo abre directo; sin ninguno, no aparece.
-   Ver js/biocabeza/README.md y js/biosalto/README.md.
+   Ver los README de js/biocabeza, js/biosalto y js/bioportal.
    ========================================================================= */
 (function () {
   var lista = document.querySelector('#navbar .nav');
@@ -53,6 +54,7 @@ function materiaActividad() { return (window.ProlipaMateria && window.ProlipaMat
   var JUEGOS = [
     { id: 'biocabeza', nombre: 'BioCabeza', pagina: 'biocabeza.html', que: '<b>BioCabeza</b> (con la cámara)' },
     { id: 'biosalto', nombre: 'BioSalto', pagina: 'biosalto.html', que: '<b>BioSalto</b> (con tu voz)' },
+    { id: 'bioportal', nombre: 'BioPortal', pagina: 'bioportal.html', que: '<b>BioPortal</b> (un portal en realidad aumentada)' },
   ];
   var CERRAR_AYUDA = '<div class="glyphicon glyphicon-remove-circle cerrarAyudas" style="color:red;font-size:2.5rem;float:right"></div>';
   var activos = [];
@@ -69,6 +71,12 @@ function materiaActividad() { return (window.ProlipaMateria && window.ProlipaMat
   var ayuda = { boton: 'btnJuego', icono: '<span class="btnJuego-mini">' + ICONO + '</span>', texto: 'Juegos con preguntas de esta actividad.' + CERRAR_AYUDA };
   if (window.iconosAyuda) window.iconosAyuda.push(ayuda);
 
+  function quitarAyuda(a) {
+    var k = window.iconosAyuda ? window.iconosAyuda.indexOf(a) : -1;
+    if (k >= 0) window.iconosAyuda.splice(k, 1);
+  }
+
+
   // Juegos activos: los del <body data-juegos="…"> de la actividad o, si no
   // tiene, los que están en true en js/juegos/config.js.
   function aplicarConfig() {
@@ -77,14 +85,13 @@ function materiaActividad() { return (window.ProlipaMateria && window.ProlipaMat
     activos = JUEGOS.filter(function (j) { return propios.length ? propios.indexOf(j.id) >= 0 : c[j.id] !== false; });
     if (!activos.length) {
       // Sin juegos: el botón no aparece ni sale en el recorrido de Info.
-      var k = window.iconosAyuda ? window.iconosAyuda.indexOf(ayuda) : -1;
-      if (k >= 0 && k === window.iconosAyuda.length - 1) window.iconosAyuda.pop();
+      quitarAyuda(ayuda);
       return;
     }
     var solo = activos.length === 1 ? activos[0] : null;
     boton.setAttribute('data-info', solo ? solo.nombre : 'Juegos');
     boton.setAttribute('aria-label', solo ? 'Juego: ' + solo.nombre : 'Juegos');
-    var texto = (solo ? 'Juega a ' + solo.que : 'Juegos: ' + activos.map(function (j) { return j.que; }).join(' y ')) + ' con preguntas de esta actividad.';
+    var texto = (solo ? 'Juega a ' + solo.que : 'Juegos: ' + activos.map(function (j) { return j.que; }).join(', ').replace(/, ([^,]*)$/, ' y $1')) + ' con preguntas de esta actividad.';
     ayuda.texto = texto + CERRAR_AYUDA;
     var info = li.querySelector('.infoAyuda');
     if (info) info.innerHTML = ayuda.icono + ' ' + ayuda.texto;
@@ -144,7 +151,6 @@ function materiaActividad() { return (window.ProlipaMateria && window.ProlipaMat
     copia.querySelectorAll('script,style,input,textarea,select,button,.infoAyuda').forEach(function (e) { e.remove(); });
     return (copia.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 2500);
   }
-
   var capa = null, marco = null, caja = null, foco = null, relojCarga = 0;
   // Pantalla de carga mientras la página del marco (menú o juego) se carga;
   // si algo tarda demasiado, el marco se muestra igual a los 8 s.
@@ -160,19 +166,22 @@ function materiaActividad() { return (window.ProlipaMateria && window.ProlipaMat
     if (caja) caja.classList.add('listo');
     try { if (marco) marco.contentWindow.focus(); } catch (e) { }
   }
-  function abrir() {
+  // destino: un juego para abrir directo; sin él, el juego activo si es uno
+  // solo, o el menú de juegos.
+  function abrir(destino) {
     if (capa) return;
     foco = document.activeElement;
     capa = document.createElement('div');
     capa.id = 'biocabeza-capa';
     capa.setAttribute('role', 'dialog');
     capa.setAttribute('aria-modal', 'true');
-    capa.setAttribute('aria-label', 'Juegos');
+    capa.setAttribute('aria-label', destino ? destino.nombre : 'Juegos');
     marco = document.createElement('iframe');
-    marco.title = 'Juegos';
-    marco.allow = 'camera; microphone; autoplay; clipboard-write';
-    // Con un solo juego se abre directo; con dos, el menú para elegir.
-    var pagina = activos.length === 1 ? activos[0].pagina : 'juegos.html';
+    marco.title = destino ? destino.nombre : 'Juegos';
+    marco.allow = 'camera; microphone; autoplay; clipboard-write; xr-spatial-tracking; fullscreen';
+    // Con un solo juego se abre directo; si no, el menú para elegir.
+    var uno = destino || (activos.length === 1 ? activos[0] : null);
+    var pagina = uno ? uno.pagina : 'juegos.html';
     marco.src = carpeta + pagina + '?tema=' + encodeURIComponent(tituloActividad());
     caja = document.createElement('div');
     caja.className = 'bc-caja';
@@ -180,7 +189,7 @@ function materiaActividad() { return (window.ProlipaMateria && window.ProlipaMat
     marco.addEventListener('load', mostrarMarco);
     caja.appendChild(marco);
     capa.appendChild(caja);
-    cargando(activos.length === 1 ? 'Cargando ' + activos[0].nombre + '…' : 'Cargando los juegos…');
+    cargando(uno ? 'Cargando ' + uno.nombre + '…' : 'Cargando los juegos…');
     document.body.appendChild(capa);
     document.documentElement.style.overflow = 'hidden';
     requestAnimationFrame(function () { requestAnimationFrame(function () { if (capa) capa.classList.add('abierta'); }); });
@@ -218,7 +227,7 @@ function materiaActividad() { return (window.ProlipaMateria && window.ProlipaMat
     else if (d.tipo === 'juego:resultado') avisoResultado({ juego: d.juego === 'BioSalto' ? 'BioSalto' : 'BioCabeza', aciertos: Number(d.aciertos) || 0, total: Number(d.total) || 0 });
   });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && capa) cerrar(); });
-  boton.addEventListener('click', abrir);
+  boton.addEventListener('click', function () { abrir(); });
 })();
 
 (function () {
@@ -321,7 +330,7 @@ function materiaActividad() { return (window.ProlipaMateria && window.ProlipaMat
   var yo = document.currentScript && document.currentScript.src;
   if (!yo) return;
   var s = document.createElement('script');
-  s.src = yo.split('?')[0].replace(/[^/]*$/, '') + 'pet/mascota.js?v=33';
+  s.src = yo.split('?')[0].replace(/[^/]*$/, '') + 'pet/mascota.js?v=51';
   s.defer = true;
   document.body.appendChild(s);
 })();

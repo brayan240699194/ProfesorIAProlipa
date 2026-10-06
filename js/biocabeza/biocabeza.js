@@ -852,7 +852,7 @@ function iniciar() {
   addEventListener('resize', ajustarLienzo);
   ponerTema(JUGAR.tema ? R.texto(JUGAR.tema, 80) : '');
   const cfgJuegos = window.JUEGOS_CONFIG;
-  if (cfgJuegos) mostrarAtras(['biocabeza', 'biosalto'].filter((k) => cfgJuegos[k] !== false).length > 1);
+  if (cfgJuegos) mostrarAtras(['biocabeza', 'biosalto', 'bioportal'].filter((k) => cfgJuegos[k] !== false).length > 1);
   segmentos('cantidad');
   segmentos('nivel');
   $('nivel').querySelectorAll('button').forEach((b) => { b.title = b.dataset.v[0].toUpperCase() + b.dataset.v.slice(1); b.setAttribute('aria-label', b.title); b.append(' ' + b.title); });

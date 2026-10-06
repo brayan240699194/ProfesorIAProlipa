@@ -34,9 +34,10 @@
     .cerrar { position: absolute; top: 14px; right: 14px; width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(255, 255, 255, .22); color: #fff; font-size: 1.15rem; font-weight: 800; cursor: pointer; transition: transform .15s, background .15s; }
     .cerrar:hover { transform: rotate(90deg); background: rgba(255, 255, 255, .35); }
     main { max-width: 900px; margin: -48px auto 0; padding: 0 16px 32px; position: relative; }
-    .juegos { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+    .juegos { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: 16px; }
     .juego { position: relative; display: flex; flex-direction: column; border-radius: 26px; background: var(--tarjeta); border: 1px solid var(--borde); box-shadow: 0 16px 40px rgba(37, 99, 235, .16); color: inherit; text-decoration: none; overflow: hidden; transition: transform .2s, box-shadow .2s; animation: entra .5s cubic-bezier(.2, .9, .3, 1.2) backwards; }
     .juego:nth-child(2) { animation-delay: .1s; }
+    .juego:nth-child(3) { animation-delay: .2s; }
     @keyframes entra { from { transform: translateY(24px) scale(.96); opacity: 0; } }
     .juego:hover { transform: translateY(-6px); box-shadow: 0 22px 48px rgba(37, 99, 235, .26); }
     .ilustracion { position: relative; height: 170px; display: grid; place-items: center; overflow: hidden; }
@@ -52,6 +53,12 @@
     .gallina .grande { position: absolute; left: 16%; bottom: 52px; font-size: 3.4rem; animation: salta 2.8s ease-in-out infinite; }
     @keyframes salta { 0%, 25% { transform: translate(0, 0); } 55% { transform: translate(90px, -50px) rotate(10deg); } 85%, 100% { transform: translate(180px, 0); } }
     .ondas { position: absolute; left: 6%; bottom: 80px; font-size: 1.6rem; animation: flota 1.2s ease-in-out infinite; }
+    .portal .ilustracion { background: radial-gradient(circle at 50% 50%, #f97316 0 22%, #7c2d12 23% 27%, transparent 28%), radial-gradient(circle at 50% 50%, #0b1530, #1e1b4b); }
+    .portal .aro { position: absolute; left: 50%; top: 50%; width: 120px; height: 120px; margin: -60px 0 0 -60px; border-radius: 50%; border: 6px solid #e0f2fe; box-shadow: 0 0 24px #38bdf8, inset 0 0 24px #38bdf8; animation: gira 6s linear infinite; border-top-color: #7dd3fc; border-left-color: #818cf8; }
+    .portal .grande { font-size: 2.6rem; z-index: 1; }
+    .portal .chispa { position: absolute; font-size: 1.1rem; animation: flota 2s ease-in-out infinite; }
+    .portal .c1 { left: 26%; top: 22%; } .portal .c2 { right: 26%; bottom: 20%; animation-delay: -1s; }
+    @keyframes gira { to { transform: rotate(360deg); } }
     .info { padding: 18px 20px 20px; }
     .info h2 { margin: 0; font-size: 1.4rem; }
     .info p { margin: 6px 0 0; color: var(--suave); line-height: 1.45; font-size: .95rem; }
@@ -76,7 +83,7 @@
     <button type="button" class="cerrar" id="b-volver" hidden aria-label="Volver a la actividad">✕</button>
     <div class="logo" aria-hidden="true"><img src="img/prolipa-icono.png" alt="" /></div>
     <h1 id="titulo">Juegos</h1>
-    <p>Elige cómo quieres responder: con tu cabeza o con tu voz</p>
+    <p>Elige cómo quieres jugar: con tu cabeza, con tu voz o viajando por un portal</p>
     <div class="tema" id="tema" hidden>📘 <span id="tema-texto"></span></div>
   </header>
 
@@ -107,6 +114,17 @@
           <span class="jugar">▶ Jugar</span>
         </div>
       </a>
+      <a class="juego portal" id="j-portal" href="bioportal.html">
+        <div class="ilustracion" aria-hidden="true">
+          <span class="aro"></span><span class="grande">🌋</span><span class="chispa c1">✨</span><span class="chispa c2">⚡</span>
+        </div>
+        <div class="info">
+          <h2>🌀 BioPortal</h2>
+          <p>Abre un portal a otro mundo del tema (la Tierra primitiva, una célula, el cuerpo…) y recórrelo con una guía.</p>
+          <div class="etiquetas"><span>📱 Realidad aumentada</span><span>🗣️ Tour narrado</span><span>💬 Pregúntale a la guía</span></div>
+          <span class="jugar">▶ Jugar</span>
+        </div>
+      </a>
     </div>
     <div class="firma"><span><img src="img/logo%20prolipa.png" alt="Prolipa · Vanguardia en educación" /></span></div>
   </main>
@@ -125,6 +143,7 @@
         var q = tema ? '?tema=' + encodeURIComponent(tema) : '';
         document.getElementById('j-cabeza').href = 'biocabeza.html' + q;
         document.getElementById('j-gallina').href = 'biosalto.html' + q;
+        document.getElementById('j-portal').href = 'bioportal.html' + q;
         document.getElementById('tema').hidden = !tema;
         document.getElementById('tema-texto').textContent = tema;
       }
@@ -133,11 +152,12 @@
       function filtrar(ids) {
         document.getElementById('j-cabeza').hidden = ids.indexOf('biocabeza') < 0;
         document.getElementById('j-gallina').hidden = ids.indexOf('biosalto') < 0;
+        document.getElementById('j-portal').hidden = ids.indexOf('bioportal') < 0;
       }
       var cfg = window.JUEGOS_CONFIG || {};
-      filtrar(['biocabeza', 'biosalto'].filter(function (k) { return cfg[k] !== false; }));
+      filtrar(['biocabeza', 'biosalto', 'bioportal'].filter(function (k) { return cfg[k] !== false; }));
       // Al elegir un juego: pantalla de carga (aquí y en el marco de la actividad) y luego cambia de página.
-      [['j-cabeza', 'BioCabeza', '🎩'], ['j-gallina', 'BioSalto', '🐔']].forEach(function (j) {
+      [['j-cabeza', 'BioCabeza', '🎩'], ['j-gallina', 'BioSalto', '🐔'], ['j-portal', 'BioPortal', '🌀']].forEach(function (j) {
         document.getElementById(j[0]).addEventListener('click', function (e) {
           if (e.ctrlKey || e.metaKey || e.shiftKey || e.button) return;
           e.preventDefault();

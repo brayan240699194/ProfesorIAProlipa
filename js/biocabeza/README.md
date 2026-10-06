@@ -14,17 +14,21 @@ logo de Prolipa (los tres libros) en blanco. Tiene un punto azul hasta que se us
 `js/toolbar-tooltips.js` en todas las actividades, sin tocar cada HTML ni `builder.js`. También aparece en el recorrido
 de **Info**.
 
-- **Qué juegos se muestran:** en `js/juegos/config.js`, con `biocabeza: true/false` y `biosalto: true/false`. Vale
-  para todas las actividades y se aplica al recargar.
-  - Los dos en `true`: el botón **Juegos** abre el menú para elegir.
-  - Solo uno en `true`: el botón lleva el nombre del juego ("BioCabeza" o "BioSalto") y lo abre directo, sin menú.
+- **Qué juegos se muestran:** en `js/juegos/config.js`, con `true/false` para cada uno: `biocabeza`, `biosalto`,
+  y `bioportal`. Vale para todas las actividades y se aplica al recargar.
+  - Dos o más en `true`: el botón **Juegos** abre el menú para elegir.
+  - Solo uno en `true`: el botón lleva el nombre del juego (por ejemplo "BioPortal") y lo abre directo, sin menú.
     El juego no muestra **← Juegos**.
-  - Los dos en `false`: el botón no aparece, tampoco en el recorrido de Info.
-  - Para **una sola actividad**, sin tocar ese archivo, se pone en su `<body>`: `data-juegos="biocabeza"`,
-    `data-juegos="biosalto"`, `data-juegos="biocabeza,biosalto"` o `data-juegos="ninguno"`.
+  - Todos en `false`: el botón no aparece, tampoco en el recorrido de Info.
+  - Para **una sola actividad**, sin tocar ese archivo, se pone en su `<body>` la lista de los que quieras, separados
+    por comas: `data-juegos="biocabeza,biosalto"`, `data-juegos="bioportal"` o `data-juegos="ninguno"`.
 - Abre el **menú de juegos** (`juegos.html`) **en un marco sobre la actividad**: no se sale de la página ni se pierde
-  lo que el estudiante ya respondió. Ahí se elige **BioCabeza** (cámara) o **BioSalto**, la gallina (micrófono, ver
-  `js/biosalto/README.md`). Cada juego tiene **← Juegos** para volver al menú. Al cerrar, se apagan la cámara y el
+  lo que el estudiante ya respondió. Ahí se elige:
+  - **BioCabeza** (cámara);
+  - **BioSalto**, la gallina (micrófono, ver `js/biosalto/README.md`);
+  - **BioPortal**, el portal en realidad aumentada (ver `js/bioportal/README.md`).
+
+  Cada juego tiene **← Juegos** para volver al menú. Al cerrar, se apagan la cámara y el
   micrófono.
 - **El tema no se elige.** Cada actividad le manda al juego su **título y su texto** (hasta 2500 caracteres, sin campos
   ni botones), y la IA pregunta solo sobre **ese contenido**: desde uni1act1, preguntas de uni1act1, y así con todas.
@@ -46,7 +50,7 @@ de **Info**.
   - `juego:navegando`: el marco va a cambiar de página (muestra la pantalla de carga);
   - `juego:cerrar`: volver a la actividad.
 - El marco tiene permiso de cámara y micrófono (`allow="camera; microphone; autoplay"`).
-- Al cambiar `js/toolbar-tooltips.js`, sube su `?v=` en los HTML (hoy `?v=81`).
+- Al cambiar `js/toolbar-tooltips.js`, sube su `?v=` en los HTML (hoy `?v=85`).
 
 ## Sin menciones de la IA en pantalla
 

@@ -1,7 +1,18 @@
 # Mascota virtual — integración
 
-Una mascota original acompaña al estudiante por todo el libro. Hay 10 personajes (5 para jóvenes de bachillerato, que salen primero: Astronauta, Lobo urbano, Nova IA, Fénix y Mapache; y 5 para niños: Zorrito, Gatito, Dragón bebé, Pingüino y Ajolote), 11 colores y 11 accesorios
-combinables. La mascota reacciona a lo que el estudiante hace y puede dar ideas cortas sobre el tema con IA.
+Una mascota original acompaña al estudiante por todo el libro.
+
+**Personajes y colores:**
+- 6 personajes: Astronauta, Lobo urbano, Perrito, Ajolote, Robot Bit y Robot Nexo (androide avanzado que flota con propulsores).
+- 11 colores.
+
+**Sin accesorios para elegir.** La mascota se viste sola según lo que pasa:
+- 🎧 **audífonos** mientras el estudiante usa el micrófono en la página (dictado o grabación);
+- 👓 **lentes** mientras lee;
+- 🕶️ **gafas de sol** cuando descansa;
+- 🧣 **bufanda** de vez en cuando (un ratito, cada 5 a 9 minutos).
+
+Estos atuendos se dibujan en `personajes.js`. El micrófono se detecta en `mascota.js` (`vigilarMicrofono`). La mascota reacciona a lo que el estudiante hace y puede dar ideas cortas sobre el tema con IA.
 No cambia la calificación ni el PDF.
 
 ## Activación: automática en todas las actividades
@@ -11,7 +22,7 @@ archivo nuevo hecho con la plantilla. **No hay que agregar nada en cada HTML** n
 
 - solo se activa en páginas de actividad (con `#activity` y la barra de builder.js);
 - `mascota.js` se protege para no cargarse dos veces;
-- al cambiar `toolbar-tooltips.js`, se sube su `?v=` en los HTML (hoy `?v=81`).
+- al cambiar `toolbar-tooltips.js`, se sube su `?v=` en los HTML (hoy `?v=85`).
 
 ### Encender o apagar la mascota
 
@@ -65,10 +76,106 @@ La mascota, el profesor con IA y los dos juegos **se adaptan solos a la materia 
 | Archivo | Qué contiene | Cuándo se carga |
 |---|---|---|
 | `mascota.js` | Interfaz, panel, arrastre, estados de ánimo, animaciones, eventos y almacenamiento (`PetStorage`, `LocalStorageAdapter`, `MongoAdapter`). | siempre |
-| `config.js` | **Lo editable:** IA, tiempos, frecuencias, personajes, colores, accesorios y banco de mensajes. | siempre |
-| `personajes.js` | Los 10 dibujos en SVG y los 12 accesorios. | siempre |
+| `config.js` | **Lo editable:** IA, tiempos, frecuencias, personajes, colores y banco de mensajes. | siempre |
+| `personajes.js` | Los 6 dibujos en SVG y los 4 atuendos automáticos. | siempre |
 | `ia.js` | Ideas del tema con OpenRouter y su caché. | solo si la IA está configurada |
+| `lectura.js` | Motor de la lectura en voz alta (🔊): párrafos, karaoke y voz. | al tocar 🔊 la primera vez |
 | `servidor/proxy-openrouter.mjs` | Servidor intermedio que guarda la clave (Node 18+, sin dependencias). | en tu servidor, no en el navegador |
+
+## 🎙️ Voz natural gratis y sin límites (Piper, en el dispositivo)
+
+La mascota habla y lee con una **voz neuronal Piper** que se genera **en el propio navegador**, con la librería
+`vits-web` (licencia MIT). Ver `voz-local.js`. Es gratis, sin límites, sin clave y, una vez descargada, sin
+internet.
+
+**Cómo funciona:**
+- **La primera vez** que la mascota va a hablar o leer, descarga su voz: ≈ 63 MB, una sola vez. Avisa con
+  "⬇️ Estoy bajando mi voz natural…" y, mientras tanto, habla con la voz de Gemini (si hay IA) o con la del
+  dispositivo.
+- **Queda guardada** en el dispositivo (almacenamiento privado del navegador). En las siguientes visitas se
+  prepara sola al abrir la actividad, sin descargar nada.
+- **Lee frase por frase:** mientras suena una frase, ya se está generando la siguiente. En una computadora, el
+  primer audio empieza en unos 3 s.
+
+**Voces** (`voz.vozLocal` en `config.js`):
+
+| Voz | Licencia |
+|---|---|
+| `es_MX-claude-high` (por defecto; México, la más natural) | Apache 2.0 |
+| `es_MX-ald-medium` | Unlicense |
+| `es_ES-davefx-medium` | CC0 |
+| `es_ES-sharvard-medium` | CC BY 3.0: pide citar la fuente |
+| `es_ES-carlfm-x_low` (la más liviana) | dominio público |
+
+**Para cambiar de motor:** `voz.motor` en `config.js`: `'local'` (por defecto) · `'ia'` (Gemini, con cupo) ·
+`'dispositivo'`.
+
+**Requisitos:**
+- Navegador moderno (Chrome, Edge, Firefox o Safari recientes) e internet la primera vez.
+- La librería se carga de jsDelivr y cdnjs, y la voz de Hugging Face.
+- En celulares muy básicos puede tardar más en generar cada frase.
+
+## Menú ⋯ (minimalista, solo íconos)
+
+Sobre la mascota hay un solo botón **⋯**. Al tocarlo, salen sobre su cabeza, con una animación, tres íconos:
+
+| Ícono | Qué hace |
+|---|---|
+| 🔊 | **Leer en voz alta.** Toca el párrafo que quieres escuchar, o 📄 (aparece junto a ⋯) para leer toda la actividad. |
+| 💬 | **Preguntar** (el chat de la mascota). |
+| ➖ | **Minimizar.** |
+
+- El ⋯ se convierte en ✕ para cerrar el menú.
+- Personalizar y Ajustes (con la lupa de búsqueda) siguen en el botón **Mascota** de la barra.
+- Mientras lee, junto a ⋯ aparecen ⏸/▶ y ⏹.
+
+## 🔍 Diccionario
+
+El estudiante hace **doble clic en una palabra**. En el celular, **mantiene el dedo** sobre ella. Entonces:
+- La palabra se subraya en la página.
+- La mascota levanta una **lupa en su mano**, la mueve como buscando y parpadea con curiosidad.
+- Una tarjeta explica la palabra **corto y directo**: máximo 25 palabras, el significado en esa frase y, si ayuda,
+  una comparación breve. Va sin saludos ni exclamaciones.
+- La tarjeta tiene **💡 Un ejemplo** (un ejemplo cotidiano de Ecuador) y **🔊 Escuchar**.
+
+**Por qué no se usa "seleccionar con el mouse":** las actividades desactivan la selección de texto a propósito
+(`css/folleto2.css`), para que arrastrar en los ejercicios no seleccione. Por eso la palabra se busca por su
+posición en la pantalla. Si alguna página sí permite seleccionar, seleccionar una palabra o una expresión corta
+(hasta 6 palabras) también funciona.
+
+**La IA:**
+- Usa la misma conexión que el chat: `MascotaIA.explicar` en `ia.js`. Con el servidor intermedio, va por la ruta
+  del chat.
+- Cada explicación se guarda mientras la página está abierta, así repetir una palabra no gasta otra consulta.
+- Sin IA, la tarjeta sugiere el glosario del libro o preguntarle al docente.
+
+**Encender o apagar:**
+- Para todo el libro: `diccionario: false` en `config.js`.
+- Cada estudiante puede apagarlo en el botón **Mascota** de la barra → ⚙️ Opciones → **🔍 Lupa de búsqueda**.
+
+## 🔊 Leer en voz alta (menú ⋯)
+
+La mascota lee la actividad con **su misma voz natural**, la de Gemini, que también usa al hablar en el chat.
+- **⋯ → 🔊, y tocar un párrafo:** se toca el párrafo, la pregunta o la imagen. Al pasar el mouse se marca con un borde.
+- **⋯ → 🔊 → 📄:** lee la actividad completa.
+
+**Mientras lee:**
+- **Junto a ⋯ aparecen ⏸/▶ (pausar o seguir) y ⏹ (detener).** Esc también detiene.
+- **Karaoke:** resalta la oración y cada palabra sobre el texto real de la actividad, y la página baja sola.
+- **La boca de la mascota** se abre con el volumen de la voz.
+- **La mascota "expone":** levanta el brazo hacia la oración que lee, y una manito 👈 la señala y la sigue
+  aunque la página baje.
+- **Espacios para completar:** dice "espacio en blanco" o lo que el estudiante ya escribió.
+- **Imágenes:** las lee por su descripción (`alt`).
+
+**La voz:**
+- **Párrafos completos:** lee hasta unas 480 letras de una vez, así la entonación es natural, y prepara el
+  siguiente párrafo mientras suena el actual.
+- **Respaldo:** si la voz natural tarda más de 3 s o se acaba el cupo, ese párrafo lo lee la voz del
+  dispositivo. Pasa a menudo con el **plan gratis de Google**, que da pocos audios por minuto. Para una clase
+  hace falta activar la facturación.
+
+**Para quitar el ícono 🔊:** `lectura: false` en `config.js`. El resto de la mascota no cambia.
 
 ## Panel "Mascota" (botón de la barra o ⋯ sobre la mascota)
 
@@ -79,21 +186,20 @@ tiene "Ahora no" y "¡Listo!".
   - la mascota (**tócala y salta**) con una **bolita discreta**: 🟢 IA conectada · 🟡 sin conexión;
   - su nombre, con los botones **💬 Chat** y **✏️ Editar** debajo;
   - a la derecha, **⚙️ Opciones** junto a la **✕**.
-- **💬 Chat (se abre por defecto):** solo la conversación y el campo para escribir.
-- **✏️ Editar:** **Nombres** (tu nombre, el de la mascota y **tu colegio**) · **Personaje** · **Color** ·
-  **Accesorios**.
-- **⚙️ Opciones:** mostrar u ocultar, sonido, cuánto habla, tamaño y volver a la esquina. La IA está siempre
+- **💬 Chat (se abre por defecto):** la conversación y el campo para escribir, con un botón **🎤** para
+  **preguntar con la voz**:
+  - se toca 🎤 y se habla normal; la pregunta aparece en el campo y, al terminar de hablar, se envía sola;
+  - tocar otra vez termina antes de tiempo;
+  - mientras escucha, la mascota se pone sus audífonos;
+  - usa el dictado del navegador (Chrome, Edge, Safari); en navegadores sin dictado, el botón no aparece.
+- **✏️ Editar:**
+  - **Nombres** (tu nombre y el de la mascota);
+  - **Personaje** (6);
+  - **Color**: muestras grandes con ✓ en la elegida y su nombre ("Color de Bit: Azul").
+- **⚙️ Opciones:** mostrar u ocultar, sonido, **🔍 lupa de búsqueda**, cuánto habla, tamaño y volver a la esquina. La IA está siempre
   activa si está configurada en `config.js`.
 
 - **Logo de Prolipa** en la cabecera, junto a ⚙️ (`img/prolipa-icono.png`, el mismo de los juegos).
-
-**Chompa del colegio:**
-- Al escribir el colegio en Editar → Nombres, se desbloquea en Accesorios → Cuerpo la **"Chompa del colegio"**
-  con su **inicial** en el pecho. La inicial se toma de la primera palabra que no sea genérica: "Unidad
-  Educativa San José" → **S**, "Colegio Benalcázar" → **B**.
-- Es opcional, se elige su color (`coloresChompa` en `config.js`) y las mangas también toman ese color.
-- Si se borra el colegio, la chompa se quita.
-- El colegio, igual que el nombre, se guarda **solo en este dispositivo**.
 
 **Posición:** con `recordarPosicion: 'nunca'` (por defecto), la mascota aparece siempre en la posición de
 `config.js` al abrir cada actividad. Si la arrastras, se queda ahí solo en esa página.
@@ -118,7 +224,7 @@ tiene "Ahora no" y "¡Listo!".
 
 ## Continuidad entre actividades
 
-- **Para siempre** (localStorage o Mongo): personaje, nombre, color, accesorios y opciones.
+- **Para siempre** (localStorage o Mongo): personaje, nombre, color y opciones (incluida la lupa de búsqueda).
 - **Durante la sesión** (sessionStorage, hasta cerrar el libro): posición, actividades calificadas hoy y mensajes
   ya dichos, para no repetirlos al cambiar de página.
 

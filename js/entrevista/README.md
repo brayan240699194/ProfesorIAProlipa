@@ -13,7 +13,7 @@ según el tema de la actividad. Al terminar, se despide y deja un resumen de la 
 las actividades que tienen `#activity` y la barra de builder.js. **No hay que agregar nada en cada HTML.**
 
 - Al cambiar archivos de `js/entrevista/` (menos `config.js`), sube el `?v=` de `entrevista.js` en
-  `toolbar-tooltips.js` y el de `toolbar-tooltips.js` en los HTML (hoy `?v=81`).
+  `toolbar-tooltips.js` y el de `toolbar-tooltips.js` en los HTML (hoy `?v=85`).
 
 ## Materia automática (`js/materia.js`)
 

@@ -193,20 +193,11 @@
     // DATOS (para siempre) y SESIÓN (hasta cerrar el libro)
     // =================================================================
     function datosVacios() {
-      return { version: 2, studentId: STUDENT_ID, libro: LIBRO, tipo: null, nombre: '', color: null, accesorios: [], tamano: 'normal', visible: true, minimizada: false, sonido: true, voz: false, frecuencia: 'normal', ia: true, chompa: null, pospuesto: false, nombrePedido: false, posicion: null, ultimaVisita: null };
+      return { version: 2, studentId: STUDENT_ID, libro: LIBRO, tipo: null, nombre: '', color: null, tamano: 'normal', visible: true, minimizada: false, sonido: true, voz: false, frecuencia: 'normal', ia: true, diccionario: true, pospuesto: false, nombrePedido: false, posicion: null, ultimaVisita: null };
     }
     function limpiarNombre(t) { return String(t).replace(/[<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, 20); }
     function limpiarPos(p) {
       return p && isFinite(p.x) && isFinite(p.y) ? { x: limitar(+p.x, 0, 1), y: limitar(+p.y, 0, 1) } : null;
-    }
-    // Deja un accesorio por zona (el último elegido gana).
-    function porZona(ids) {
-      var zonas = {};
-      (ids || []).forEach(function (id) {
-        var a = buscar(C.accesorios, id);
-        if (a) zonas[a.zona] = id;
-      });
-      return Object.keys(zonas).map(function (z) { return zonas[z]; });
     }
     // Acepta solo valores conocidos; migra los datos de la versión 1.
     function normalizar(d) {
@@ -215,13 +206,11 @@
       if (buscar(C.personajes, d.tipo)) n.tipo = d.tipo;
       if (typeof d.nombre === 'string') n.nombre = limpiarNombre(d.nombre);
       if (buscar(C.colores, d.color)) n.color = d.color;
-      n.accesorios = porZona(Array.isArray(d.accesorios) ? d.accesorios : d.accesorio ? [d.accesorio] : []);
       if (TAMANOS[d.tamano]) n.tamano = d.tamano;
       if (C.frecuencias[d.frecuencia]) n.frecuencia = d.frecuencia;
-      ['visible', 'minimizada', 'sonido', 'voz', 'ia', 'pospuesto', 'nombrePedido'].forEach(function (k) {
+      ['visible', 'minimizada', 'sonido', 'voz', 'ia', 'diccionario', 'pospuesto', 'nombrePedido'].forEach(function (k) {
         if (typeof d[k] === 'boolean') n[k] = d[k];
       });
-      if (buscar(C.coloresChompa || [], d.chompa)) n.chompa = d.chompa;
       n.ia = true; // la IA ya no se apaga desde el panel: siempre activa si está configurada
       if (C.recordarPosicion === 'siempre') n.posicion = limpiarPos(d.posicion);
       if (typeof d.ultimaVisita === 'string' && !isNaN(Date.parse(d.ultimaVisita))) n.ultimaVisita = d.ultimaVisita;
@@ -285,32 +274,6 @@
       var sigla = b && b === b.toUpperCase() && b !== b.toLowerCase();
       return alumno + ', ' + (/[¡¿]/.test(a) || sigla ? texto : a.toLowerCase() + texto.slice(1));
     }
-    // ---------- Colegio (solo en este dispositivo) y chompa con su inicial ----------
-    var CLAVE_COLEGIO = 'prolipa-mascota-colegio:' + STUDENT_ID;
-    var colegio = '';
-    try { colegio = String(window.localStorage.getItem(CLAVE_COLEGIO) || '').replace(/[<>]/g, '').trim().slice(0, 40); } catch (e) {}
-    function guardarColegio(t) {
-      colegio = String(t || '').replace(/[<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, 40);
-      try {
-        if (colegio) window.localStorage.setItem(CLAVE_COLEGIO, colegio);
-        else window.localStorage.removeItem(CLAVE_COLEGIO);
-      } catch (e) {}
-    }
-    // Inicial del colegio: primera palabra que no sea "Unidad", "Educativa",
-    // "Colegio", "Escuela", "de"… ("U. E. San José" → "S").
-    var GENERICAS = ['unidad', 'educativa', 'u', 'e', 'ue', 'colegio', 'escuela', 'instituto', 'liceo', 'centro', 'fiscal', 'fiscomisional', 'particular', 'municipal', 'mixto', 'mixta', 'nacional', 'de', 'del', 'la', 'el', 'los', 'las', 'y'];
-    function inicialColegio() {
-      var palabras = colegio.toLowerCase().split(/[^a-záéíóúñü]+/i).filter(Boolean);
-      var util = palabras.filter(function (w) { return GENERICAS.indexOf(w) < 0; });
-      var w = util[0] || palabras[0] || '';
-      return w ? w.charAt(0).toUpperCase() : '';
-    }
-    function hexChompa(id) {
-      var c = buscar(C.coloresChompa || [], id) || (C.coloresChompa || [])[0];
-      return c ? c.hex : '#1e3a8a';
-    }
-    function ajustarDibujo(d) { DIBUJO.ajustar({ inicial: inicialColegio(), chompa: hexChompa(d.chompa) }); }
-
     function pedirNombreUnaVez(ms) {
       if (alumno || datos.nombrePedido) return;
       datos.nombrePedido = true;
@@ -346,10 +309,31 @@
         '<div id="mascota-burbuja" aria-hidden="true" class="absolute w-max max-w-[14rem] sm:max-w-[17rem] rounded-2xl bg-white px-3 py-2 text-sm font-medium leading-snug text-slate-900 shadow-lg shadow-blue-900/10 ring-1 ring-sky-100 opacity-0 invisible transition-opacity duration-300 motion-reduce:transition-none"></div>' +
         '<div class="relative">' +
         '<button type="button" id="mascota-btn"></button>' +
+        // Un solo botón ⋯ abre el menú general con todo lo que hace la mascota.
+        // Mientras lee, a su lado aparecen ⏸/▶ y ⏹.
         '<div id="mascota-controles" class="absolute -top-2 -left-2 flex gap-1">' +
-        '<button type="button" data-accion="panel" class="w-7 h-7 rounded-full bg-white text-slate-700 text-sm font-bold leading-none shadow ring-1 ring-slate-200 hover:bg-slate-100 ' + FOCO + '" aria-label="Ajustes de la mascota">⋯</button>' +
-        '<button type="button" data-accion="minimizar" class="w-7 h-7 rounded-full bg-white text-slate-700 text-base font-bold leading-none shadow ring-1 ring-slate-200 hover:bg-slate-100 ' + FOCO + '" aria-label="Minimizar mascota">–</button>' +
+        '<button type="button" data-accion="menu" class="w-7 h-7 rounded-full bg-white text-slate-700 text-sm font-bold leading-none shadow ring-1 ring-slate-200 hover:bg-slate-100 ' + FOCO + '" aria-label="Menú de la mascota" aria-haspopup="menu" aria-expanded="false" title="Menú">⋯</button>' +
+        (C.lectura === false ? '' :
+          '<button type="button" data-accion="leer" class="hidden w-7 h-7 rounded-full bg-white text-slate-700 text-sm font-bold leading-none shadow ring-1 ring-slate-200 hover:bg-slate-100 ' + FOCO + '" aria-label="Pausar la lectura" title="Pausar">⏸</button>' +
+          '<button type="button" data-accion="leer-todo" class="hidden w-7 h-7 rounded-full bg-white text-slate-700 text-sm font-bold leading-none shadow ring-1 ring-slate-200 hover:bg-slate-100 ' + FOCO + '" aria-label="Leer toda la actividad" title="Leer toda la actividad">📄</button>' +
+          '<button type="button" data-accion="detener-lectura" class="hidden w-7 h-7 rounded-full bg-white text-slate-700 text-sm font-bold leading-none shadow ring-1 ring-slate-200 hover:bg-slate-100 ' + FOCO + '" aria-label="Detener la lectura" title="Detener">⏹</button>') +
         '</div>' +
+        // Menú minimalista: solo íconos, que salen sobre la cabeza de la mascota.
+        '<div id="mascota-menu" role="menu" aria-label="Menú de la mascota" class="hidden absolute z-10 flex gap-2" style="left:50%;transform:translateX(-50%)">' +
+        (C.lectura === false ? '' : iconoMenu('lectura', '🔊', 'Leer en voz alta')) +
+        iconoMenu('chat', '💬', 'Preguntar') +
+        iconoMenu('minimizar', '➖', 'Minimizar') +
+        '</div>' +
+        (C.diccionario === false ? '' :
+          '<div id="mascota-dicc" role="dialog" aria-label="Diccionario" class="hidden absolute z-10 w-[min(20rem,calc(100vw-2rem))] rounded-2xl bg-white p-3 text-sm leading-snug text-slate-800 shadow-xl shadow-blue-900/15 ring-1 ring-sky-100">' +
+          '<div class="flex items-center gap-2"><span aria-hidden="true" class="text-lg">🔍</span><b id="mascota-dicc-termino" class="flex-1 text-base text-blue-900"></b>' +
+          '<button type="button" data-accion="dicc-cerrar" class="w-7 h-7 rounded-full text-slate-500 hover:bg-slate-100 ' + FOCO + '" aria-label="Cerrar">✕</button></div>' +
+          '<p id="mascota-dicc-texto" class="mt-1.5" aria-live="polite"></p>' +
+          '<p id="mascota-dicc-ejemplo" class="hidden mt-2 rounded-xl bg-sky-50 p-2"></p>' +
+          '<div class="mt-2.5 flex gap-1.5">' +
+          '<button type="button" data-accion="dicc-ejemplo" class="flex-1 rounded-full bg-gradient-to-br from-blue-600 to-sky-500 px-3 py-1.5 font-bold text-white ' + FOCO + '">💡 Un ejemplo</button>' +
+          '<button type="button" data-accion="dicc-escuchar" class="rounded-full px-3 py-1.5 font-bold text-blue-900 ring-1 ring-sky-200 hover:bg-sky-50 ' + FOCO + '">🔊 Escuchar</button>' +
+          '</div></div>') +
         '<div id="mascota-particulas" class="pointer-events-none absolute inset-0" aria-hidden="true"></div>' +
         '</div>';
       document.body.appendChild(raiz);
@@ -369,14 +353,399 @@
       raiz.addEventListener('click', function (e) {
         var b = e.target.closest('[data-accion]');
         if (!b) return;
-        if (b.getAttribute('data-accion') === 'panel') abrirPanel('chat');
-        else minimizar(true);
+        var accion = b.getAttribute('data-accion');
+        if (accion === 'menu') return menuGeneral(raiz.querySelector('#mascota-menu').classList.contains('hidden'));
+        if (accion.indexOf('dicc-') === 0) return botonDiccionario(accion);
+        menuGeneral(false);
+        if (accion === 'chat') abrirPanel('chat');
+        else if (accion === 'lectura') botonLectura('leer-parrafo');
+        else if (accion === 'minimizar') minimizar(true);
+        else botonLectura(accion);
       });
+      document.addEventListener('click', function (e) { if (!raiz.contains(e.target)) menuGeneral(false); });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { menuGeneral(false); cerrarDiccionario(); } });
+      if (C.diccionario !== false) {
+        // Doble clic / dedo sostenido en una palabra; y, si la página deja seleccionar, también la selección.
+        escucharGestos();
+        var relojSel = 0;
+        document.addEventListener('selectionchange', function () { clearTimeout(relojSel); relojSel = setTimeout(revisarSeleccion, 700); });
+      }
       window.addEventListener('resize', function () { aplicarPosicion(); reservarEspacio(); });
       // Tailwind (CDN) aplica las clases un instante después: al cambiar el
       // tamaño real se recoloca y se reserva el espacio.
       if (window.ResizeObserver) new ResizeObserver(function () { aplicarPosicion(); reservarEspacio(); }).observe(btn);
       crearBotonBarra();
+      vigilarMicrofono();
+      bufandaDeVezEnCuando(true);
+      setTimeout(function () { prepararVozLocal(false); }, 4000);
+    }
+
+    // ---------- Leer en voz alta (js/pet/lectura.js) ----------
+    // 🔊 abre el menú 👆 Párrafo / 📄 Todo. Mientras lee, 🔊 es ⏸/▶ y aparece ⏹.
+    // La mascota lee con su misma voz natural y mueve la boca al hablar.
+    var lector = null, cargaLector = null;
+    function conLector(fn) {
+      if (lector) return fn(lector);
+      cargaLector = cargaLector || cargar(carpeta + 'lectura.js' + version).then(function () {
+        lector = window.MascotaLectura.crear({
+          voz: function (t) {
+            if (vozLocalLista()) return window.MascotaVozLocal.sintetizar(textoParaVoz(t)).catch(function () { return null; });
+            prepararVozLocal(true);
+            if (!vozNatural()) return Promise.resolve(null);
+            return audioNatural(textoParaVoz(t)).catch(function (e) {
+              if (e && e.status) vozIAPausa = Date.now() + (e.diario ? 60 : e.status === 429 ? 1 : 30) * 60000;
+              return null;
+            });
+          },
+          antes: function () { callar(); },
+          alEstado: estadoLectura,
+          alBoca: bocaLectura,
+          alAviso: function (t) { mostrarBurbuja(t); },
+          alSenalar: senalarLectura,
+          // Con la voz local cada parte es una frase o dos (se genera rápido y suena seguido).
+          letrasParte: function () { return vozLocalLista() ? 170 : 480; },
+          maxEspera: function () { return vozLocalLista() ? 12000 : 3000; },
+        });
+      });
+      // La voz natural también se "despierta" en este mismo toque.
+      desbloquearAudio();
+      return cargaLector.then(function () { fn(lector); });
+    }
+    // ---------- Menú general (⋯) ----------
+    function iconoMenu(accion, ico, texto) {
+      return '<button type="button" role="menuitem" data-accion="' + accion + '" aria-label="' + texto + '" title="' + texto + '" class="grid place-items-center w-11 h-11 rounded-full bg-white text-xl shadow-lg shadow-blue-900/20 ring-1 ring-sky-100 hover:bg-sky-50 hover:scale-110 transition-transform motion-reduce:transition-none ' + FOCO + '">' + ico + '</button>';
+    }
+    // Los íconos salen sobre la cabeza, uno tras otro (o debajo, si la mascota está arriba de la pantalla).
+    function menuGeneral(si) {
+      var m = raiz && raiz.querySelector('#mascota-menu');
+      if (!m) return;
+      var abierto = !m.classList.contains('hidden');
+      if (si && !abierto) {
+        var r = raiz.getBoundingClientRect();
+        var arriba = r.top > 80;
+        m.style.bottom = arriba ? 'calc(100% + .9rem)' : ''; m.style.top = arriba ? '' : 'calc(100% + .5rem)';
+        ocultarBurbuja();
+        cerrarDiccionario();
+        m.classList.remove('hidden');
+        // Centrado sobre la cabeza, pero sin salirse de la pantalla por los lados.
+        m.style.transform = 'translateX(-50%)';
+        var q = m.getBoundingClientRect(), dx = 0;
+        if (q.right > window.innerWidth - 8) dx = window.innerWidth - 8 - q.right;
+        if (q.left + dx < 8) dx = 8 - q.left;
+        m.style.transform = 'translateX(calc(-50% + ' + Math.round(dx) + 'px))';
+        [].forEach.call(m.children, function (b, i) {
+          animar(b, [{ transform: 'translateY(' + (arriba ? 18 : -18) + 'px) scale(.3)', opacity: 0 }, { transform: 'translateY(-4px) scale(1.08)', opacity: 1, offset: 0.7 }, { transform: 'none', opacity: 1 }], { duration: 320, delay: i * 55, easing: 'cubic-bezier(.3,1.4,.5,1)', fill: 'backwards' });
+        });
+        var p = m.querySelector('button'); if (p) p.focus({ preventScroll: true });
+      } else if (!si && abierto) m.classList.add('hidden');
+      raiz.querySelector('[data-accion="menu"]').setAttribute('aria-expanded', si ? 'true' : 'false');
+      raiz.querySelector('[data-accion="menu"]').textContent = si ? '✕' : '⋯';
+    }
+    function botonLectura(accion) {
+      var e = lector ? lector.estado() : 'quieto';
+      if (accion === 'leer') {
+        if (e === 'leyendo' || e === 'cargando') return lector.pausar();
+        if (e === 'pausa') return lector.seguir();
+        if (e === 'eligiendo') return lector.cancelarEleccion();
+        return;
+      }
+      if (accion === 'detener-lectura') { if (lector) lector.detener(); return; }
+      if (accion === 'leer-parrafo' || accion === 'leer-todo') {
+        cerrarDiccionario();
+        conLector(function (l) { if (accion === 'leer-parrafo') l.parrafo(); else l.todo(); });
+      }
+    }
+    function estadoLectura(e) {
+      var b = raiz.querySelector('[data-accion="leer"]'), parar = raiz.querySelector('[data-accion="detener-lectura"]');
+      if (!b) return;
+      var ico = { eligiendo: '👆', cargando: '⏳', leyendo: '⏸', pausa: '▶' }[e] || '⏸';
+      var txt = { eligiendo: 'Cancelar: no leer', cargando: 'Preparando la voz…', leyendo: 'Pausar la lectura', pausa: 'Seguir leyendo' }[e] || '';
+      b.textContent = ico;
+      b.setAttribute('aria-label', txt); b.title = txt;
+      b.classList.toggle('hidden', e === 'quieto');
+      b.classList.toggle('motion-safe:animate-pulse', e === 'eligiendo' || e === 'cargando');
+      parar.classList.toggle('hidden', e === 'quieto' || e === 'eligiendo');
+      var todo = raiz.querySelector('[data-accion="leer-todo"]');
+      if (todo) todo.classList.toggle('hidden', e !== 'eligiendo');
+      if (e === 'eligiendo') mostrarBurbuja('👆 Toca el párrafo que quieres que lea, o 📄 para leer toda la actividad.');
+      else if (e !== 'quieto') ocultarBurbuja();
+      if (e === 'quieto' || e === 'pausa') bocaLectura(0, false);
+      if (e === 'quieto') senalarLectura(null);
+      pintarAtuendo(); // lentes mientras lee
+    }
+    // Al leer, la mascota "expone": levanta el brazo hacia la oración y una
+    // manito 👈 la señala (sigue a la oración aunque se mueva la página).
+    var senal = { rect: null, mano: null, brazo: null, lado: '', reloj: 0 };
+    function senalarLectura(rect) {
+      senal.rect = rect;
+      if (!rect) {
+        if (senal.mano) senal.mano.hidden = true;
+        if (senal.brazo) { senal.brazo.cancel(); senal.brazo = null; }
+        senal.lado = '';
+        clearInterval(senal.reloj); senal.reloj = 0;
+        return;
+      }
+      if (!senal.mano) {
+        senal.mano = document.createElement('div');
+        senal.mano.id = 'mascota-senal';
+        senal.mano.setAttribute('aria-hidden', 'true');
+        senal.mano.style.cssText = 'position:fixed;z-index:1049;left:0;top:0;font-size:30px;line-height:1;pointer-events:none;filter:drop-shadow(0 3px 4px rgba(30,58,138,.35));transition:transform .45s cubic-bezier(.3,1.3,.5,1)';
+        senal.mano.innerHTML = '<span style="display:inline-block"></span>';
+        document.body.appendChild(senal.mano);
+      }
+      colocarSenal(true);
+      if (!senal.reloj) senal.reloj = setInterval(function () { colocarSenal(false); }, 250);
+    }
+    function colocarSenal(nueva) {
+      var r = senal.rect && senal.rect();
+      var m = senal.mano;
+      if (!r || !m || (!r.width && !r.height) || r.bottom < 0 || r.top > window.innerHeight) { if (m) m.hidden = true; return; }
+      var yo = btn.getBoundingClientRect();
+      var cx = yo.left + yo.width / 2, cy = yo.top + yo.height * 0.45;
+      // La manito queda al lado de la oración que mira hacia la mascota.
+      var derecha = cx > r.left + r.width / 2;
+      var x = derecha ? Math.min(window.innerWidth - 40, r.right + 6) : Math.max(4, r.left - 38);
+      var y = r.top + r.height / 2 - 16;
+      m.hidden = false;
+      m.style.transform = 'translate(' + Math.round(x) + 'px,' + Math.round(y) + 'px)';
+      var s = m.firstChild;
+      var lado = derecha ? 'izq' : 'der';
+      if (s.textContent !== (derecha ? '👈' : '👉')) s.textContent = derecha ? '👈' : '👉';
+      if (!reducirMovimiento() && s.animate && (nueva || !s._toque)) {
+        if (s._toque) s._toque.cancel();
+        s._toque = s.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(' + (derecha ? -7 : 7) + 'px)' }], { duration: 520, iterations: Infinity, direction: 'alternate', easing: 'ease-in-out' });
+      }
+      // El brazo del lado de la oración se levanta hacia ella y "explica" (sube y baja un poco).
+      if (nueva || lado !== senal.lado) {
+        senal.lado = lado;
+        if (senal.brazo) senal.brazo.cancel();
+        var ang = Math.atan2(y + 16 - cy, (derecha ? r.right : r.left) - cx) * 180 / Math.PI;
+        // El brazo cuelga hacia abajo (90° en pantalla); girarlo g grados lo apunta a 90° + g.
+        var g = ang - 90;
+        while (g > 180) g -= 360;
+        while (g <= -180) g += 360;
+        g = (g < 0 ? -1 : 1) * Math.max(60, Math.min(150, Math.abs(g)));
+        senal.brazo = animar(parte(derecha ? 'brazo-izq' : 'brazo-der'), [{ transform: rot(g * 0.92) }, { transform: rot(g * 1.04) }], { duration: 700, iterations: Infinity, direction: 'alternate', easing: 'ease-in-out' });
+      }
+    }
+
+    // ---------- 🔍 Diccionario ----------
+    // El estudiante selecciona una palabra (o una expresión corta) de la
+    // actividad: la mascota saca su lupa y la explica sencillo, como un amigo,
+    // en el sentido de la frase. "💡 Un ejemplo" pide un ejemplo cotidiano.
+    var dicc = { termino: '', frase: '', texto: '', ejemplo: '', cache: {}, turno: 0, lupa: null };
+    function diccionarioActivo() { return C.diccionario !== false && datos.diccionario !== false; }
+    function revisarSeleccion() {
+      if (!diccionarioActivo() || !activa() || panel) return;
+      var s = window.getSelection && window.getSelection();
+      if (!s || s.isCollapsed || !s.rangeCount) return;
+      var zona = document.querySelector('#activity .panel-body') || document.getElementById('activity');
+      var r = s.getRangeAt(0);
+      if (!zona || !zona.contains(r.commonAncestorContainer) || raiz.contains(r.commonAncestorContainer)) return;
+      var t = s.toString().replace(/\s+/g, ' ').replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '').trim();
+      // Solo palabras o expresiones cortas (seleccionar un párrafo entero no es "buscar una palabra").
+      if (t.length < 2 || t.length > 60 || t.split(' ').length > 6 || !/\p{L}/u.test(t)) return;
+      if (t.toLowerCase() === dicc.termino.toLowerCase() && !raiz.querySelector('#mascota-dicc').classList.contains('hidden')) return;
+      var nodo = r.commonAncestorContainer.nodeType === 1 ? r.commonAncestorContainer : r.commonAncestorContainer.parentElement;
+      var bloque = nodo.closest('p, li, td, h1, h2, h3, h4, h5, h6, blockquote, label') || nodo;
+      explicarTermino(t, (bloque.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 300));
+    }
+    // Las actividades desactivan la selección de texto (css/folleto2.css, para
+    // que arrastrar no seleccione): por eso la palabra se elige con DOBLE CLIC
+    // (o manteniendo el dedo en el celular) y se busca aquí cuál está bajo el
+    // puntero, midiendo cada palabra del párrafo.
+    var tocaCelular = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+    function palabraEn(x, y) {
+      var zona = document.querySelector('#activity .panel-body') || document.getElementById('activity');
+      var pila = document.elementsFromPoint ? document.elementsFromPoint(x, y) : [];
+      var el = null;
+      for (var i = 0; i < pila.length; i++) {
+        var p = pila[i];
+        if (!zona || !zona.contains(p) || raiz.contains(p) || /^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(p.tagName)) continue;
+        el = p.closest('p, li, td, th, h1, h2, h3, h4, h5, h6, blockquote, label, span, div') || p;
+        break;
+      }
+      if (!el) return null;
+      var w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT), n, m, r = document.createRange();
+      while ((n = w.nextNode())) {
+        var re = /[\p{L}\p{N}][\p{L}\p{N}'’-]*/gu;
+        while ((m = re.exec(n.textContent))) {
+          r.setStart(n, m.index); r.setEnd(n, m.index + m[0].length);
+          var cajas = r.getClientRects();
+          for (var k = 0; k < cajas.length; k++) {
+            var c = cajas[k];
+            if (x >= c.left - 2 && x <= c.right + 2 && y >= c.top - 2 && y <= c.bottom + 2) return { nodo: n, ini: m.index, fin: m.index + m[0].length, texto: m[0], bloque: el };
+          }
+        }
+      }
+      return null;
+    }
+    var HL_DICC = window.CSS && CSS.highlights && window.Highlight ? new Highlight() : null;
+    if (HL_DICC) {
+      CSS.highlights.set('mascota-dicc', HL_DICC);
+      var estDicc = document.createElement('style');
+      estDicc.textContent = '::highlight(mascota-dicc){background-color:rgba(56,189,248,.3);text-decoration:underline wavy #2563eb 2px;text-underline-offset:3px}';
+      document.head.appendChild(estDicc);
+    }
+    function buscarEn(x, y) {
+      if (!diccionarioActivo() || !activa() || panel) return false;
+      var p = palabraEn(x, y);
+      if (!p) return false;
+      if (HL_DICC) { var r = document.createRange(); r.setStart(p.nodo, p.ini); r.setEnd(p.nodo, p.fin); HL_DICC.clear(); HL_DICC.add(r); }
+      var bloque = p.bloque.closest('p, li, td, h1, h2, h3, h4, h5, h6, blockquote, label') || p.bloque;
+      explicarTermino(p.texto, (bloque.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 300));
+      return true;
+    }
+    function escucharGestos() {
+      document.addEventListener('dblclick', function (e) { buscarEn(e.clientX, e.clientY); });
+      // Celular: mantener el dedo ~0,55 s sobre la palabra.
+      var toque = null;
+      document.addEventListener('touchstart', function (e) {
+        if (e.touches.length !== 1) { toque = null; return; }
+        var t = e.touches[0];
+        toque = { x: t.clientX, y: t.clientY, reloj: setTimeout(function () { if (toque) { buscarEn(toque.x, toque.y); toque = null; } }, 550) };
+      }, { passive: true });
+      var cancelar = function () { if (toque) { clearTimeout(toque.reloj); toque = null; } };
+      document.addEventListener('touchmove', function (e) { if (toque && Math.hypot(e.touches[0].clientX - toque.x, e.touches[0].clientY - toque.y) > 10) cancelar(); }, { passive: true });
+      document.addEventListener('touchend', cancelar, { passive: true });
+      document.addEventListener('touchcancel', cancelar, { passive: true });
+    }
+    // La lupa se dibuja DENTRO del brazo (en su mano): así se mueve con él.
+    // La mascota levanta ese brazo hacia su cara, como mirando a través.
+    var SVGNS = 'http://www.w3.org/2000/svg';
+    function manoDe(brazo) {
+      // Personajes con brazo de línea: la mano es el círculo del final.
+      var c = brazo.querySelector('circle');
+      if (c) return { x: +c.getAttribute('cx'), y: +c.getAttribute('cy'), r: +c.getAttribute('r') || 4 };
+      // Alas o aletas: el extremo de abajo (cuelgan del hombro).
+      try { var b = brazo.getBBox(); return { x: b.x + b.width / 2, y: b.y + b.height, r: 3 }; } catch (e) { return null; }
+    }
+    function ponerLupa(si) {
+      if (dicc.anims) { dicc.anims.forEach(function (x) { if (x) x.cancel(); }); dicc.anims = null; }
+      if (dicc.lupa) { var br = dicc.lupa.parentNode; dicc.lupa.remove(); dicc.lupa = null; if (br && br.style) br.style.transform = ''; }
+      if (!si) return;
+      // El brazo del lado de la actividad (la mascota suele estar a la derecha).
+      var r = raiz.getBoundingClientRect();
+      var izqPantalla = r.left + r.width / 2 > window.innerWidth / 2;
+      var brazo = parte(izqPantalla ? 'brazo-izq' : 'brazo-der');
+      var m = brazo && manoDe(brazo);
+      if (m) {
+        // Mango desde la mano y lente un poco más allá (en la dirección del brazo: hacia abajo antes de girar).
+        var t = Math.max(5, m.r * 1.6);
+        var g = document.createElementNS(SVGNS, 'g');
+        g.setAttribute('class', 'mascota-lupa');
+        g.innerHTML =
+          '<line x1="' + m.x + '" y1="' + m.y + '" x2="' + m.x + '" y2="' + (m.y + t * 1.1) + '" stroke="#78350f" stroke-width="' + (t * 0.42).toFixed(1) + '" stroke-linecap="round"/>' +
+          '<circle cx="' + m.x + '" cy="' + (m.y + t * 2) + '" r="' + t + '" fill="rgba(186,230,253,.55)" stroke="#1e3a8a" stroke-width="' + (t * 0.32).toFixed(1) + '"/>' +
+          '<circle cx="' + (m.x - t * 0.35) + '" cy="' + (m.y + t * 1.65) + '" r="' + (t * 0.25).toFixed(1) + '" fill="#fff" opacity=".9"/>';
+        brazo.appendChild(g);
+        dicc.lupa = g;
+        dicc.brazo = brazo; dicc.giro = izqPantalla ? 150 : -150;
+        levantarLupa(true);
+        dicc.anims.push(animar(g, [{ opacity: 0 }, { opacity: 1 }], { duration: 250 }));
+      }
+      if (MOV.meneo) MOV.meneo();
+      animar(parte('ojos'), [{ transform: 'scaleY(1)' }, { transform: 'scaleY(0.1)' }, { transform: 'scaleY(1)' }, { transform: 'scaleY(0.1)' }, { transform: 'scaleY(1)' }], { duration: 420, delay: 200 });
+    }
+    // Levanta el brazo con la lupa hacia la cara y "busca" moviéndola un poco.
+    // (Se vuelve a llamar si la mascota reinicia sus animaciones de reposo.)
+    function levantarLupa(conSubida) {
+      if (!dicc.lupa || !dicc.brazo) return;
+      if (dicc.anims) dicc.anims.forEach(function (x) { if (x) x.cancel(); });
+      var brazo = dicc.brazo, giro = dicc.giro, d = giro > 0 ? 1 : -1;
+      dicc.anims = [
+        conSubida ? animar(brazo, [{ transform: rot(0) }, { transform: rot(giro) }], { duration: 450, easing: 'cubic-bezier(.3,1.4,.5,1)', fill: 'forwards' }) : null,
+        animar(brazo, [{ transform: rot(giro) }, { transform: rot(giro - 12 * d) }, { transform: rot(giro + 8 * d) }, { transform: rot(giro) }], { duration: 1600, delay: conSubida ? 450 : 0, iterations: Infinity, easing: 'ease-in-out' }),
+      ];
+      if (reducirMovimiento()) brazo.style.transform = rot(giro);
+    }
+    function abrirDiccionario() {
+      var c = raiz.querySelector('#mascota-dicc');
+      var r = raiz.getBoundingClientRect();
+      var abajo = r.top < window.innerHeight / 2, izq = r.left + r.width / 2 < window.innerWidth / 2;
+      if (window.innerWidth < 640) {
+        // Celular: a lo ancho de la pantalla, encima (o debajo) de la mascota, sin salirse por los lados.
+        c.style.position = 'fixed'; c.style.left = '12px'; c.style.right = '12px'; c.style.width = 'auto';
+        c.style.top = abajo ? Math.round(r.bottom + 8) + 'px' : ''; c.style.bottom = abajo ? '' : Math.round(window.innerHeight - r.top + 10) + 'px';
+      } else {
+        c.style.position = ''; c.style.width = '';
+        c.style.top = abajo ? '100%' : ''; c.style.bottom = abajo ? '' : 'calc(100% + .75rem)';
+        c.style.left = izq ? '0' : ''; c.style.right = izq ? '' : '0';
+      }
+      c.classList.remove('hidden');
+      ocultarBurbuja();
+      menuGeneral(false);
+    }
+    function cerrarDiccionario() {
+      var c = raiz && raiz.querySelector('#mascota-dicc');
+      if (c) c.classList.add('hidden');
+      dicc.turno++;
+      ponerLupa(false);
+      if (HL_DICC) HL_DICC.clear();
+    }
+    function pedirExplicacion(termino, frase, ejemplo) {
+      var k = (ejemplo ? 'ej|' : '') + termino.toLowerCase() + '|' + (ejemplo ? '' : frase.slice(0, 80));
+      if (dicc.cache[k]) return Promise.resolve({ texto: dicc.cache[k] });
+      if (!iaConfigurada()) return Promise.resolve({ texto: '', error: 'sin IA' });
+      scriptIA = scriptIA || cargar(carpeta + 'ia.js' + version);
+      var ctx = { libro: nombreMateria(), publico: C.publico, mascota: nombre(), config: C.ia };
+      return scriptIA.then(function () { return window.MascotaIA.explicar(ctx, termino, frase, ejemplo); }).then(function (r) {
+        if (r.texto) dicc.cache[k] = r.texto;
+        return r;
+      }).catch(function () { return { texto: '', error: 'sin conexión' }; });
+    }
+    function explicarTermino(termino, frase) {
+      var mio = ++dicc.turno;
+      dicc.termino = termino; dicc.frase = frase; dicc.texto = ''; dicc.ejemplo = '';
+      raiz.querySelector('#mascota-dicc-termino').textContent = termino;
+      var p = raiz.querySelector('#mascota-dicc-texto');
+      p.textContent = '🔍 Déjame ver…';
+      p.classList.add('text-slate-500', 'italic');
+      raiz.querySelector('#mascota-dicc-ejemplo').classList.add('hidden');
+      raiz.querySelector('[data-accion="dicc-ejemplo"]').disabled = true;
+      ponerLupa(true);
+      abrirDiccionario();
+      pedirExplicacion(termino, frase, false).then(function (r) {
+        if (mio !== dicc.turno) return;
+        p.classList.remove('text-slate-500', 'italic');
+        dicc.texto = r.texto || 'Para explicarte «' + termino + '» necesito conectarme con la IA. Mientras tanto, búscala en el glosario de tu libro o pregúntale a tu docente.';
+        p.textContent = dicc.texto;
+        raiz.querySelector('[data-accion="dicc-ejemplo"]').disabled = !r.texto;
+        anuncio.textContent = nombre() + ': ' + dicc.texto;
+        if (r.texto) { ponerAnimo('feliz'); volverACalma(4000); }
+      });
+    }
+    function botonDiccionario(accion) {
+      if (accion === 'dicc-cerrar') return cerrarDiccionario();
+      if (accion === 'dicc-escuchar') return hablar((dicc.texto + ' ' + dicc.ejemplo).trim());
+      if (accion === 'dicc-ejemplo') {
+        var b = raiz.querySelector('[data-accion="dicc-ejemplo"]'), e = raiz.querySelector('#mascota-dicc-ejemplo');
+        var mio = dicc.turno;
+        b.disabled = true;
+        e.classList.remove('hidden');
+        e.textContent = '💡 Pensando un ejemplo…';
+        pedirExplicacion(dicc.termino, dicc.frase, true).then(function (r) {
+          if (mio !== dicc.turno) return;
+          dicc.ejemplo = r.texto ? '💡 ' + r.texto : '';
+          e.textContent = dicc.ejemplo || 'Ahora no pude pensar un ejemplo. Intenta otra vez en un momento.';
+          b.disabled = false;
+        });
+      }
+    }
+
+    // Boca al leer: la "o" se abre con el volumen de la voz; al callar vuelve su expresión.
+    var bocaAbierta = false;
+    function bocaLectura(nivel, hablando) {
+      var o = parte('boca-o'), fz = parte('boca-feliz');
+      if (!o) return;
+      if (hablando) {
+        if (!bocaAbierta) { bocaAbierta = true; o.style.display = ''; if (fz) fz.style.display = 'none'; o.style.transformBox = 'fill-box'; o.style.transformOrigin = '50% 30%'; }
+        o.style.transform = 'scale(' + (0.85 + nivel * 0.25).toFixed(2) + ',' + (0.2 + nivel * 1.1).toFixed(2) + ')';
+      } else if (bocaAbierta) {
+        bocaAbierta = false;
+        o.style.transform = '';
+        aplicarExpresion();
+      }
     }
 
     // Botón "Mascota" en la barra flotante: hereda estilo y tooltip
@@ -385,7 +754,7 @@
       var nav = document.querySelector('#navbar .nav');
       if (!nav) return;
       var li = document.createElement('li');
-      li.innerHTML = '<button type="button" id="mascota-nav" class="btn button mytooltip" data-info="Mascota" aria-label="Mascota: personaje, accesorios y opciones" aria-haspopup="dialog" style="background:linear-gradient(150deg,#7dd3fc,#0ea5e9);padding:4px"></button>';
+      li.innerHTML = '<button type="button" id="mascota-nav" class="btn button mytooltip" data-info="Mascota" aria-label="Mascota: personaje, color y opciones" aria-haspopup="dialog" style="background:linear-gradient(150deg,#7dd3fc,#0ea5e9);padding:4px"></button>';
       var x = document.getElementById('toggle-btn-navbar-Ocultar');
       if (x && x.parentNode === nav) nav.insertBefore(li, x);
       else nav.appendChild(li);
@@ -400,7 +769,6 @@
     }
 
     function pintar() {
-      ajustarDibujo(datos);
       var sin = !datos.tipo;
       var mini = datos.minimizada || sin;
       raiz.classList.toggle('hidden', !datos.visible && !sin);
@@ -410,12 +778,12 @@
         btn.innerHTML = '<span aria-hidden="true">🐾</span>';
         btn.setAttribute('aria-label', 'Elegir una mascota que te acompañe');
       } else {
-        btn.innerHTML = '<span id="mascota-figura" class="block w-full h-full">' + DIBUJO.dibujar(datos.tipo, hexDe(datos.color, datos.tipo), datos.accesorios) + '</span>';
+        btn.innerHTML = '<span id="mascota-figura" class="block w-full h-full">' + DIBUJO.dibujar(datos.tipo, hexDe(datos.color, datos.tipo), atuendoActual()) + '</span>';
         btn.setAttribute('aria-label', mini ? 'Mostrar a ' + nombre() : nombre() + ', tu mascota. Actívala para jugar; con las flechas la mueves.');
       }
       raiz.querySelector('#mascota-controles').classList.toggle('hidden', mini);
-      if (mini) ocultarBurbuja();
-      if (botonNav) botonNav.innerHTML = datos.tipo ? '<span class="block w-full h-full pointer-events-none">' + DIBUJO.dibujar(datos.tipo, hexDe(datos.color, datos.tipo), datos.accesorios) + '</span>' : '<span aria-hidden="true" style="font-size:20px;line-height:1">🐾</span>';
+      if (mini) { ocultarBurbuja(); menuGeneral(false); cerrarDiccionario(); }
+      if (botonNav) botonNav.innerHTML = datos.tipo ? '<span class="block w-full h-full pointer-events-none">' + DIBUJO.dibujar(datos.tipo, hexDe(datos.color, datos.tipo), []) + '</span>' : '<span aria-hidden="true" style="font-size:20px;line-height:1">🐾</span>';
       aplicarExpresion();
       reiniciarBucles();
       aplicarPosicion();
@@ -539,6 +907,71 @@
       animo = a;
       aplicarExpresion();
       reiniciarBucles();
+      pintarAtuendo(); // gafas de sol al descansar
+    }
+
+    // ---------- Atuendo automático ----------
+    // No se elige: audífonos mientras el estudiante usa el micrófono, lentes
+    // mientras lee, gafas de sol cuando descansa y, de vez en cuando, bufanda.
+    var atu = { mic: false, bufanda: false, reconocedores: 0, flujos: [] };
+    function atuendoActual() {
+      var l = [];
+      if (atu.mic) l.push('audifonos');
+      var e = lector ? lector.estado() : 'quieto';
+      if (e === 'leyendo' || e === 'cargando' || e === 'pausa') l.push('lentes');
+      else if (animo === 'dormido') l.push('gafasSol');
+      if (atu.bufanda) l.push('bufanda');
+      return l;
+    }
+    function pintarAtuendo() {
+      var g = btn && btn.querySelector('[data-parte="atuendo"]');
+      if (!g || !datos.tipo) return;
+      var html = DIBUJO.atuendo(datos.tipo, atuendoActual());
+      if (g._html === html) return;
+      g._html = html;
+      g.innerHTML = html;
+      animar(g, [{ opacity: 0, transform: 'translateY(-4px)' }, { opacity: 1, transform: 'none' }], { duration: 260, easing: 'ease-out' });
+    }
+    // ¿Se está usando el micrófono en la página (dictado o grabación)?
+    function revisarMicrofono() {
+      atu.flujos = atu.flujos.filter(function (s) { return s.getAudioTracks().some(function (t) { return t.readyState === 'live' && t.enabled; }); });
+      var si = atu.reconocedores > 0 || atu.flujos.length > 0;
+      if (si !== atu.mic) { atu.mic = si; pintarAtuendo(); }
+    }
+    function vigilarMicrofono() {
+      var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (SR && SR.prototype && !SR.prototype.__mascota) {
+        var iniciar = SR.prototype.start;
+        SR.prototype.start = function () {
+          var r = this, listo = false;
+          var fin = function () { if (listo) return; listo = true; atu.reconocedores = Math.max(0, atu.reconocedores - 1); revisarMicrofono(); };
+          atu.reconocedores++;
+          r.addEventListener('end', fin);
+          r.addEventListener('error', fin);
+          revisarMicrofono();
+          try { return iniciar.apply(this, arguments); } catch (e) { fin(); throw e; }
+        };
+        SR.prototype.__mascota = true;
+      }
+      var md = navigator.mediaDevices;
+      if (md && md.getUserMedia && !md.__mascota) {
+        var pedir = md.getUserMedia.bind(md);
+        md.getUserMedia = function (c) {
+          return pedir(c).then(function (s) { if (c && c.audio) { atu.flujos.push(s); revisarMicrofono(); } return s; });
+        };
+        md.__mascota = true;
+      }
+      setInterval(function () { if (atu.flujos.length || atu.mic) revisarMicrofono(); }, 1000);
+    }
+    // De vez en cuando (cada 5 a 9 minutos) se pone la bufanda un ratito.
+    function bufandaDeVezEnCuando(primera) {
+      setTimeout(function () {
+        if (activa() && !document.hidden) {
+          atu.bufanda = true; pintarAtuendo();
+          setTimeout(function () { atu.bufanda = false; pintarAtuendo(); }, 75000);
+        }
+        bufandaDeVezEnCuando(false);
+      }, (primera ? 60 + Math.random() * 120 : 300 + Math.random() * 240) * 1000);
     }
     var tCalma = null;
     function volverACalma(ms) {
@@ -567,6 +1000,9 @@
         dormido && animar(parte('zzz'), [{ transform: 'translateY(4px)', opacity: 0.3 }, { transform: 'translateY(-4px)', opacity: 1 }], { duration: 1800, iterations: Infinity, direction: 'alternate' }),
       ].forEach(function (a) { if (a) bucles.push(a); });
       if (!dormido) parpadear();
+      // Si tiene la lupa en la mano o está señalando al leer, ese brazo sigue arriba.
+      if (typeof dicc !== 'undefined' && dicc && dicc.lupa) levantarLupa(false);
+      if (typeof senal !== 'undefined' && senal && senal.rect) { senal.lado = ''; colocarSenal(false); }
     }
     function parpadear() {
       tParpadeo = setTimeout(function () {
@@ -675,7 +1111,7 @@
 
     // Sonido corto generado (sin archivos), solo al hacerle clic.
     var audio = null;
-    var TONO = { astronauta: 560, lobo: 340, nova: 720, fenix: 880, mapache: 420, zorro: 520, gato: 700, dragon: 300, pinguino: 600, ajolote: 820 };
+    var TONO = { astronauta: 560, lobo: 340, perro: 600, ajolote: 820, bit: 760, nexo: 700 };
     function sonar() {
       if (!datos.sonido) return;
       try {
@@ -686,11 +1122,11 @@
         var o = audio.createOscillator();
         var g = audio.createGain();
         var fr = (TONO[datos.tipo] || 480) * (0.9 + Math.random() * 0.25);
-        o.type = datos.tipo === 'nova' ? 'triangle' : 'sine';
+        o.type = datos.tipo === 'bit' || datos.tipo === 'nexo' ? 'triangle' : 'sine';
         o.frequency.setValueAtTime(fr, t);
         o.frequency.exponentialRampToValueAtTime(fr * 1.9, t + 0.12);
         g.gain.setValueAtTime(0.0001, t);
-        g.gain.exponentialRampToValueAtTime(datos.tipo === 'nova' ? 0.06 : 0.1, t + 0.02);
+        g.gain.exponentialRampToValueAtTime(datos.tipo === 'bit' || datos.tipo === 'nexo' ? 0.06 : 0.1, t + 0.02);
         g.gain.exponentialRampToValueAtTime(0.0001, t + 0.2);
         o.connect(g).connect(audio.destination);
         o.start(t);
@@ -980,6 +1416,60 @@
       pintarChat(chatMostrados < 0);
     }
 
+    // ---------- Preguntar con la voz (dictado del navegador: Chrome, Edge, Safari) ----------
+    // Se toca 🎤, se habla y la pregunta aparece en el campo; al terminar de hablar
+    // se envía sola. Mientras escucha, la mascota se pone sus audífonos.
+    var dictado = null;
+    function hayDictado() { return !!(window.SpeechRecognition || window.webkitSpeechRecognition); }
+    function pintarMic(escuchando) {
+      var b = panel && panel.querySelector('#mp-chat-mic');
+      var campo = panel && panel.querySelector('#mp-chat-texto');
+      if (b) {
+        b.setAttribute('aria-pressed', escuchando ? 'true' : 'false');
+        b.textContent = escuchando ? '⏺' : '🎤';
+        b.title = escuchando ? 'Te escucho… (toca para terminar)' : 'Preguntar con tu voz';
+        b.className = 'flex-none w-11 rounded-xl text-lg transition-colors ' + FOCO + (escuchando ? ' bg-red-500 text-white ring-2 ring-red-300 motion-safe:animate-pulse' : ' ring-1 ring-sky-200 bg-white hover:bg-sky-50');
+      }
+      if (campo) campo.placeholder = escuchando ? '🎤 Te escucho… habla normal' : 'Escribe o toca 🎤 y habla…';
+    }
+    function detenerDictado() { if (dictado) { var d = dictado; dictado = null; try { d.abort(); } catch (e) {} pintarMic(false); } }
+    function dictar() {
+      if (dictado) { try { dictado.stop(); } catch (e) {} return; } // segundo toque: termina y envía
+      var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SR || !chatDisponible() || esperandoChat) return;
+      callar(); // que no se escuche a sí misma
+      var r = new SR();
+      var idioma = (navigator.language || '').toLowerCase();
+      r.lang = /^es/.test(idioma) ? navigator.language : 'es-EC';
+      r.interimResults = true;
+      r.continuous = false;
+      r.maxAlternatives = 1;
+      var texto = '', enviado = false;
+      r.onresult = function (e) {
+        texto = Array.prototype.map.call(e.results, function (x) { return x[0].transcript; }).join(' ').replace(/\s+/g, ' ').trim();
+        var campo = panel && panel.querySelector('#mp-chat-texto');
+        if (campo) campo.value = texto;
+      };
+      r.onerror = function (e) {
+        if (e.error === 'not-allowed' || e.error === 'service-not-allowed') agregarAlChat('mascota', 'Para preguntarme con tu voz, permite el micrófono en el navegador. También puedes escribir. 😊', true);
+        else if (e.error === 'no-speech') agregarAlChat('mascota', 'No te escuché. Toca 🎤 y habla normal, cerca del micrófono.', true);
+      };
+      r.onend = function () {
+        if (dictado !== r) return;
+        dictado = null;
+        pintarMic(false);
+        var campo = panel && panel.querySelector('#mp-chat-texto');
+        if (!enviado && texto && campo) {
+          enviado = true;
+          if (enviarPregunta(texto)) campo.value = '';
+          campo.focus();
+        }
+      };
+      dictado = r;
+      pintarMic(true);
+      try { r.start(); } catch (e) { dictado = null; pintarMic(false); }
+    }
+
     function enviarPregunta(texto) {
       texto = String(texto || '').replace(/\s+/g, ' ').trim().slice(0, CH.maxCaracteres || 300);
       if (!texto || esperandoChat || !chatDisponible()) return false;
@@ -1155,6 +1645,9 @@
       var mio = turnoVoz;
       botonHablando = btn || null;
       var fin = function () { if (mio === turnoVoz) { marcarBoton(btn, 'listo'); botonHablando = null; } };
+      // 1) Voz natural en el dispositivo (Piper): gratis y sin límites.
+      if (vozLocalLista()) return hablarLocal(t, btn, mio, fin);
+      prepararVozLocal(true); // la primera vez se descarga (una sola vez); mientras tanto, las otras voces
       if (!vozNatural()) return vozDispositivo(t, btn, mio, fin);
       desbloquearAudio();
       marcarBoton(btn, 'cargando');
@@ -1172,6 +1665,45 @@
         if (e && e.name === 'NotAllowedError') return fin(); // el navegador no dejó sonar (sin toque previo)
         vozDispositivo(t, btn, mio, fin);
       });
+    }
+    // ---------- Voz local (js/pet/voz-local.js: Piper en el navegador) ----------
+    // motor 'local' (por defecto): voz neuronal generada en el propio dispositivo,
+    // gratis y sin límites. Se descarga una sola vez (≈ 60 MB) cuando la mascota
+    // va a hablar o leer por primera vez; si ya está guardada, se prepara sola.
+    var cargaVozLocal = null, avisoVozLocal = false;
+    function motorLocal() { return (VC.motor || 'local') === 'local' && !!AUDIO; }
+    function vozLocalLista() { return motorLocal() && !!window.MascotaVozLocal && window.MascotaVozLocal.lista(); }
+    function prepararVozLocal(descargar) {
+      if (!motorLocal()) return Promise.resolve();
+      if (!cargaVozLocal) cargaVozLocal = cargar(carpeta + 'voz-local.js' + version).then(function () { if (VC.vozLocal) window.MascotaVozLocal.usar(VC.vozLocal); });
+      return cargaVozLocal.then(function () {
+        var L = window.MascotaVozLocal;
+        if (!L.soportada() || L.lista() || L.estado() === 'preparando' || L.estado() === 'error') return;
+        // Sin permiso para descargar (al abrir la página): solo si ya está guardada en el dispositivo.
+        if (!descargar) return L.guardada().then(function (si) { if (si) return L.preparar(); }).catch(function () {});
+        if (!avisoVozLocal && datos.tipo && activa()) { avisoVozLocal = true; mostrarBurbuja('⬇️ Estoy bajando mi voz natural (una sola vez). Mientras tanto hablo con esta voz.'); }
+        L.preparar().then(function () { if (datos.tipo && activa()) mostrarBurbuja('🎙️ ¡Listo! Ya tengo mi voz natural.'); }, function (e) { console.warn('Mascota: sin voz local.', e); });
+      }).catch(function () {});
+    }
+    // Lee frase por frase: mientras suena una, se genera la siguiente.
+    function hablarLocal(t, btn, mio, fin) {
+      var L = window.MascotaVozLocal, frases = L.frases(t), pedidos = [];
+      var pedir = function (i) { return pedidos[i] || (pedidos[i] = L.sintetizar(frases[i])); };
+      marcarBoton(btn, 'cargando');
+      var tocar = function (i) {
+        if (mio !== turnoVoz) return;
+        if (i >= frases.length) return fin();
+        pedir(i).then(function (url) {
+          if (mio !== turnoVoz) return;
+          if (i + 1 < frases.length) pedir(i + 1);
+          AUDIO.onended = function () { tocar(i + 1); };
+          AUDIO.src = url;
+          marcarBoton(btn, 'hablando');
+          var pr = AUDIO.play();
+          if (pr && pr.catch) pr.catch(function () { fin(); });
+        }).catch(function () { if (mio === turnoVoz) vozDispositivo(frases.slice(i).join(' '), btn, mio, fin); });
+      };
+      tocar(0);
     }
     function vozDispositivo(t, btn, mio, fin) {
       if (!VOZ) return fin();
@@ -1455,7 +1987,7 @@
     // Clases de cada control según si está elegido (se usan al dibujar y al actualizar).
     var CLASES = {
       chip: function (s) { return 'rounded-full px-3 py-1.5 text-sm font-semibold leading-snug ring-2 transition-colors motion-reduce:transition-none ' + FOCO + (s ? ' ring-blue-600 bg-blue-50 text-blue-900' : ' ring-slate-200 bg-white text-slate-700 hover:bg-sky-50 hover:ring-sky-200'); },
-      color: function (s) { return 'w-9 h-9 rounded-full ring-2 ring-offset-2 transition-shadow motion-reduce:transition-none ' + FOCO + (s ? ' ring-slate-900' : ' ring-transparent'); },
+      color: function (s) { return 'grid place-items-center w-full aspect-square rounded-2xl shadow-sm ring-2 ring-offset-2 transition-transform motion-reduce:transition-none hover:scale-110 ' + FOCO + (s ? ' ring-blue-600 scale-110 shadow-md' : ' ring-transparent'); },
       tarjeta: function (s) { return 'rounded-2xl p-2 text-center ring-2 transition-colors motion-reduce:transition-none ' + FOCO + (s ? ' ring-blue-600 bg-blue-50' : ' ring-slate-200 bg-white hover:bg-sky-50 hover:ring-sky-200'); },
       interruptor: function (s) { return 'relative flex-none w-12 h-7 rounded-full transition-colors motion-reduce:transition-none disabled:opacity-50 ' + FOCO + (s ? ' bg-blue-600' : ' bg-slate-300'); },
       perilla: function (s) { return 'absolute top-1 left-1 w-5 h-5 rounded-full bg-white shadow transition-transform motion-reduce:transition-none' + (s ? ' translate-x-5' : ''); },
@@ -1473,15 +2005,13 @@
       switch (el.getAttribute('data-p')) {
         case 'tipo': return b.tipo === id;
         case 'color': return hexDe(b.color, b.tipo) === buscar(C.colores, id).hex;
-        case 'acc': return b.accesorios.indexOf(id) >= 0;
         case 'opcion': return b[el.getAttribute('data-clave')] === id;
         case 'switch': return !!b[id] && !el.disabled;
-        case 'chompaColor': return hexChompa(b.chompa) === hexChompa(id);
       }
       return null;
     }
     function miniPersonaje(p, sel) {
-      return DIBUJO.dibujar(p.id, sel ? hexDe(borrador.color, borrador.tipo) : hexDe(p.color, p.id), sel ? borrador.accesorios : []);
+      return DIBUJO.dibujar(p.id, sel ? hexDe(borrador.color, borrador.tipo) : hexDe(p.color, p.id), []);
     }
 
     // Tarjeta de sección (pestaña Editar).
@@ -1500,52 +2030,32 @@
           '<div id="mp-chat-log" role="log" aria-label="Conversación con ' + esc(nombre()) + '" class="flex flex-col gap-2 h-[46vh] sm:h-[50vh] min-h-[12rem] overflow-y-auto overscroll-contain rounded-2xl bg-gradient-to-b from-sky-50 to-white ring-1 ring-sky-100 p-3"></div>' +
           (libre
             ? '<form id="mp-chat-form" class="mt-2 flex gap-2" autocomplete="off"><label for="mp-chat-texto" class="sr-only">Tu pregunta para ' + esc(nombre()) + '</label>' +
-              '<input id="mp-chat-texto" type="text" maxlength="' + (CH.maxCaracteres || 300) + '" placeholder="Escribe tu pregunta…" class="flex-1 min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-slate-900 placeholder:text-slate-500 focus:bg-white ' + FOCO + '"/>' +
+              '<input id="mp-chat-texto" type="text" maxlength="' + (CH.maxCaracteres || 300) + '" placeholder="' + (hayDictado() ? 'Escribe o toca 🎤 y habla…' : 'Escribe tu pregunta…') + '" class="flex-1 min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-slate-900 placeholder:text-slate-500 focus:bg-white ' + FOCO + '"/>' +
+              (hayDictado() ? '<button type="button" id="mp-chat-mic" aria-label="Preguntar con tu voz" aria-pressed="false" title="Preguntar con tu voz" class="flex-none w-11 rounded-xl text-lg ring-1 ring-sky-200 bg-white hover:bg-sky-50 transition-colors ' + FOCO + '">🎤</button>' : '') +
               '<button type="submit" id="mp-chat-enviar" class="flex-none rounded-xl px-4 py-2 text-sm ' + PRIMARIO + '">Enviar</button></form>' +
               '<p id="mp-chat-info" class="mt-2 text-xs text-slate-600"></p>'
             : '<p class="mt-2 rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-700">' +
               (CH.activo === false ? 'Las preguntas están apagadas en este libro.' : !iaConfigurada() ? 'Para hacerle preguntas se necesita la IA conectada. Pídele a tu docente que la active.' : 'Para hacerle preguntas se necesita la IA conectada. Intenta otra vez en un momento.') + '</p>');
       }
       if (id === 'editar') {
-        var personajes = '<div class="grid grid-cols-3 sm:grid-cols-5 gap-2 p-1">' + C.personajes.map(function (p) {
+        var personajes = '<div class="grid grid-cols-3 sm:grid-cols-6 gap-2 p-1">' + C.personajes.map(function (p) {
           return '<button type="button" data-p="tipo" data-id="' + p.id + '">' +
             '<span data-mini class="block w-12 h-12 sm:w-14 sm:h-14 mx-auto pointer-events-none">' + miniPersonaje(p, p.id === b.tipo) + '</span>' +
             '<span class="block mt-1 text-xs font-semibold text-slate-800 leading-tight">' + esc(p.nombre) + '</span></button>';
         }).join('') + '</div>';
-        var colores = '<div class="flex flex-wrap gap-2 p-1">' + C.colores.map(function (c) {
-          return '<button type="button" data-p="color" data-id="' + c.id + '" title="' + esc(c.nombre) + '" style="background:' + c.hex + '"><span class="sr-only">' + esc(c.nombre) + '</span></button>';
-        }).join('') + '</div>';
-        // Accesorios: tarjetas con TU mascota puesta (se ve cómo queda), por zona;
-        // ✓ en las elegidas y 🔒 en la chompa mientras no haya colegio.
-        var tarjetaAcc = function (x) {
-          return '<button type="button" data-p="acc" data-id="' + x.id + '" aria-label="' + esc(x.nombre) + '">' +
-            '<span data-check aria-hidden="true" class="absolute -top-1.5 -right-1.5 hidden w-5 h-5 rounded-full bg-blue-600 text-center text-[0.7rem] font-bold leading-5 text-white shadow">✓</span>' +
-            (x.id === 'chompa' ? '<span data-candado aria-hidden="true" class="absolute inset-0 hidden items-center justify-center rounded-2xl bg-white/75 text-xl">🔒</span>' : '') +
-            '<span data-mini class="block w-14 h-14 mx-auto overflow-hidden rounded-xl bg-sky-50 pointer-events-none"></span>' +
-            '<span data-nombre class="block mt-1 text-[0.7rem] sm:text-xs font-semibold leading-tight text-slate-800">' + esc(x.nombre) + '</span></button>';
-        };
-        var extraChompa = '<p id="mp-chompa-aviso" class="mt-1 text-xs text-slate-500">🔒 Escribe tu colegio en Nombres para desbloquear la chompa con su inicial.</p>' +
-          '<div id="mp-chompa-colores" class="mt-2 rounded-xl bg-slate-50 px-3 py-2"><p class="text-[0.7rem] font-semibold uppercase tracking-wide text-slate-500">Color de la chompa</p><div class="mt-1 flex flex-wrap gap-2 p-1">' +
-          (C.coloresChompa || []).map(function (c) { return '<button type="button" data-p="chompaColor" data-id="' + c.id + '" title="' + esc(c.nombre) + '" style="background:' + c.hex + '"><span class="sr-only">' + esc(c.nombre) + '</span></button>'; }).join('') +
-          '</div></div>';
-        var accesorios = '<div class="flex items-start justify-between gap-2"><p class="text-xs text-slate-600">Combina varios, uno por zona. Toca otra vez para quitarlo.</p>' +
-          '<button type="button" data-p="sinAcc" class="flex-none rounded-full px-2.5 py-1 text-xs font-semibold text-blue-700 ring-1 ring-blue-200 hover:bg-blue-50 ' + FOCO + '">Quitar todos</button></div>' +
-          C.zonas.map(function (z) {
-            var items = C.accesorios.filter(function (x) { return x.zona === z.id; });
-            if (!items.length) return '';
-            return '<p class="mt-3 text-[0.7rem] font-semibold uppercase tracking-wide text-slate-500">' + esc(z.nombre) + '</p>' +
-              '<div class="mt-1 grid grid-cols-3 sm:grid-cols-5 gap-2 p-1">' + items.map(tarjetaAcc).join('') + '</div>' +
-              (z.id === 'cuerpo' ? extraChompa : '');
-          }).join('');
+        // Colores: muestras grandes con ✓ en la elegida y su nombre arriba.
+        var colores = '<p class="mb-2 text-sm text-slate-700">Color de <b id="mp-color-de"></b>: <b id="mp-color-nombre" class="text-slate-900"></b></p>' +
+          '<div class="grid grid-cols-6 sm:grid-cols-11 gap-2 p-1">' + C.colores.map(function (c) {
+            return '<button type="button" data-p="color" data-id="' + c.id + '" title="' + esc(c.nombre) + '" aria-label="' + esc(c.nombre) + '" style="background:linear-gradient(145deg,' + c.hex + ',' + c.hex + 'cc)">' +
+              '<span data-check aria-hidden="true" class="hidden text-white text-lg font-black drop-shadow">✓</span></button>';
+          }).join('') + '</div>';
         var nombres = '<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">' +
           '<div><label for="mp-alumno" class="block text-sm font-semibold text-slate-800">Tu nombre</label>' +
           '<input id="mp-alumno" type="text" maxlength="20" autocomplete="given-name" placeholder="¿Cómo te llamas?" value="' + esc(alumno) + '" class="' + CAMPO + '"/></div>' +
           '<div><label for="mp-nombre" class="block text-sm font-semibold text-slate-800">Nombre de tu mascota</label>' +
           '<input id="mp-nombre" type="text" maxlength="20" autocomplete="off" value="' + esc(b.nombre || buscar(C.personajes, b.tipo).nombreSugerido) + '" class="' + CAMPO + '"/></div>' +
-          '<div class="sm:col-span-2"><label for="mp-colegio" class="block text-sm font-semibold text-slate-800">Tu colegio</label>' +
-          '<input id="mp-colegio" type="text" maxlength="40" autocomplete="organization" placeholder="Ej.: Unidad Educativa San José" value="' + esc(colegio) + '" class="' + CAMPO + '"/></div>' +
-          '</div><p class="mt-2 text-xs text-slate-600">Tu nombre y tu colegio solo se guardan en este dispositivo. Con tu colegio desbloqueas la chompa con su inicial (en Accesorios).</p>';
-        return '<div class="space-y-3">' + seccion('Nombres', nombres) + seccion('Personaje', personajes) + seccion('Color', colores) + seccion('Accesorios', accesorios) + '</div>';
+          '</div><p class="mt-2 text-xs text-slate-600">Tu nombre solo se guarda en este dispositivo.</p>';
+        return '<div class="space-y-3">' + seccion('Nombres', nombres) + seccion('Personaje', personajes) + seccion('Color', colores) + '</div>';
       }
       // Opciones
       var interruptor = function (clave, texto, ayuda, deshabilitado) {
@@ -1560,65 +2070,36 @@
       };
       return interruptor('visible', 'Mostrar la mascota', 'Si la ocultas, vuelve desde su botón en la barra.') +
         interruptor('sonido', 'Sonido al tocarla') +
+        (C.diccionario === false ? '' : interruptor('diccionario', '🔍 Lupa de búsqueda', (window.matchMedia && window.matchMedia('(pointer: coarse)').matches ? 'Mantén el dedo' : 'Doble clic') + ' en una palabra de la actividad y te la explico.')) +
         grupo('frecuencia', 'Cuánto habla', C.frecuencias) +
         grupo('tamano', 'Tamaño', TAMANOS) +
         '<div class="pt-4"><button type="button" data-p="esquina" class="' + BOTON + '">↘️ Volver a la esquina</button></div>';
-    }
-
-    // Miniatura de un accesorio: tu mascota con él puesto, con zoom a su zona
-    // (cabeza, cara, cuello…) para que se vea bien en la tarjeta.
-    function miniAccesorio(b, id) {
-      var x = buscar(C.accesorios, id);
-      var a = DIBUJO.anclas(b.tipo);
-      var zona = x ? x.zona : '';
-      var caja = zona === 'cabeza' ? [a.cx - 33, a.cabezaY - 26, 66] : zona === 'orejas' ? [a.cx - 38, a.cabezaY - 18, 76] : zona === 'cara' ? [a.cx - 27, a.ojosY - 24, 54] :
-        zona === 'cuello' ? [a.cx - 28, a.cuelloY - 24, 56] : zona === 'cuerpo' ? [a.cx - 34, a.cuelloY - 20, 68] : [0, 0, 120];
-      return DIBUJO.dibujar(b.tipo, hexDe(b.color, b.tipo), [id]).replace('viewBox="0 0 120 120"', 'viewBox="' + caja[0] + ' ' + caja[1] + ' ' + caja[2] + ' ' + caja[2] + '"');
     }
 
     // Pone clases y estados ARIA de todos los controles según el borrador.
     function actualizarControles() {
       if (!panel) return;
       var b = borrador;
-      ajustarDibujo(b);
-      var conColegio = !!colegio;
-      var aviso = panel.querySelector('#mp-chompa-aviso');
-      if (aviso) aviso.classList.toggle('hidden', conColegio);
-      var colChompa = panel.querySelector('#mp-chompa-colores');
-      if (colChompa) colChompa.classList.toggle('hidden', b.accesorios.indexOf('chompa') < 0);
-      panel.querySelector('#mp-vista').innerHTML = DIBUJO.dibujar(b.tipo, hexDe(b.color, b.tipo), b.accesorios, 'Vista previa de ' + esc(b.nombre || 'tu mascota'));
+      panel.querySelector('#mp-vista').innerHTML = DIBUJO.dibujar(b.tipo, hexDe(b.color, b.tipo), [], 'Vista previa de ' + esc(b.nombre || 'tu mascota'));
+      var cn = panel.querySelector('#mp-color-nombre');
+      if (cn) {
+        var col = C.colores.filter(function (c) { return c.hex === hexDe(b.color, b.tipo); })[0];
+        cn.textContent = col ? col.nombre : '';
+        panel.querySelector('#mp-color-de').textContent = b.nombre || buscar(C.personajes, b.tipo).nombreSugerido;
+      }
       Array.prototype.forEach.call(panel.querySelectorAll('#mp-cuerpo [data-p]'), function (el) {
         var p = el.getAttribute('data-p');
         var s = elegido(el);
-        if (s === null) {
-          if (p === 'sinAcc') el.classList.toggle('hidden', !b.accesorios.length);
-          return;
-        }
+        if (s === null) return;
         if (p === 'switch') {
           el.setAttribute('aria-checked', String(s));
           el.className = CLASES.interruptor(s);
           el.firstChild.className = CLASES.perilla(s);
           return;
         }
-        if (p === 'acc') {
-          // Tarjeta: miniatura de tu mascota con ese accesorio, ✓ si está puesto, 🔒 si falta el colegio.
-          var aid = el.getAttribute('data-id');
-          var bloqueada = aid === 'chompa' && !conColegio;
-          el.disabled = bloqueada;
-          el.setAttribute('aria-pressed', String(s));
-          el.className = 'relative ' + CLASES.tarjeta(s) + ' disabled:cursor-not-allowed';
-          el.querySelector('[data-mini]').innerHTML = miniAccesorio(b, aid);
-          el.querySelector('[data-check]').classList.toggle('hidden', !s);
-          var candado = el.querySelector('[data-candado]');
-          if (candado) {
-            candado.classList.toggle('hidden', !bloqueada);
-            candado.classList.toggle('flex', bloqueada);
-          }
-          if (aid === 'chompa') el.querySelector('[data-nombre]').textContent = conColegio && inicialColegio() ? 'Chompa ' + inicialColegio() : 'Chompa del colegio';
-          return;
-        }
         el.setAttribute('aria-pressed', String(s));
-        el.className = p === 'color' || p === 'chompaColor' ? CLASES.color(s) : p === 'tipo' ? CLASES.tarjeta(s) : CLASES.chip(s);
+        el.className = p === 'color' ? CLASES.color(s) : p === 'tipo' ? CLASES.tarjeta(s) : CLASES.chip(s);
+        if (p === 'color') el.querySelector('[data-check]').classList.toggle('hidden', !s);
         if (p === 'tipo') el.querySelector('[data-mini]').innerHTML = miniPersonaje(buscar(C.personajes, el.getAttribute('data-id')), s);
       });
       refrescarEstadoIA();
@@ -1626,6 +2107,7 @@
 
     function mostrarPestana(id, enfocarPestana) {
       pestana = id;
+      detenerDictado();
       callar();
       panel.querySelectorAll('[data-tab]').forEach(function (t) {
         var sel = t.getAttribute('data-tab') === pestana;
@@ -1701,19 +2183,10 @@
           if (alumno && alumno !== antes) nombreNuevo = true;
           return;
         }
-        if (e.target.id === 'mp-colegio') {
-          guardarColegio(e.target.value);
-          // Sin colegio no hay chompa: se quita si la llevaba.
-          if (!colegio && borrador.accesorios.indexOf('chompa') >= 0) {
-            borrador.accesorios = borrador.accesorios.filter(function (x) { return x !== 'chompa'; });
-            if (!primera) confirmarCambios(false);
-          } else if (!primera) pintar();
-          actualizarControles();
-          return;
-        }
         if (e.target.id !== 'mp-nombre') return;
         borrador.nombre = limpiarNombre(e.target.value);
         panel.querySelector('#mp-vista svg').setAttribute('aria-label', 'Vista previa de ' + esc(borrador.nombre || 'tu mascota'));
+        var cd = panel.querySelector('#mp-color-de'); if (cd) cd.textContent = borrador.nombre || buscar(C.personajes, borrador.tipo).nombreSugerido;
         if (!primera) confirmarCambios(false);
       });
       panel.addEventListener('keydown', teclasPanel);
@@ -1745,6 +2218,7 @@
     }
 
     function clicPanel(e) {
+      if (e.target.closest('#mp-chat-mic')) { despertarVoz(); return dictar(); }
       if (e.target.closest('#mp-voz')) {
         datos.voz = !datos.voz;
         guardar();
@@ -1773,15 +2247,6 @@
           break;
         }
         case 'color': b.color = id; break;
-        case 'chompaColor': b.chompa = id; break;
-        case 'acc': {
-          var zona = buscar(C.accesorios, id).zona;
-          var tenia = b.accesorios.indexOf(id) >= 0;
-          b.accesorios = b.accesorios.filter(function (x) { return buscar(C.accesorios, x).zona !== zona; });
-          if (!tenia) b.accesorios.push(id);
-          break;
-        }
-        case 'sinAcc': b.accesorios = []; break;
         case 'switch': b[id] = !b[id]; break;
         case 'opcion': b[t.getAttribute('data-clave')] = id; break;
         case 'esquina': volverAEsquina(); cerrarPanel(); return;
@@ -1799,7 +2264,7 @@
         }
         default: return;
       }
-      if (!primera) confirmarCambios(p === 'tipo' || p === 'color' || p === 'acc' || p === 'chompaColor');
+      if (!primera) confirmarCambios(p === 'tipo' || p === 'color');
       actualizarControles();
     }
 
@@ -1837,6 +2302,7 @@
     }
     function cerrarPanel() {
       if (!panel) return;
+      detenerDictado();
       callar();
       var eraPrimera = primera;
       panel.remove();
@@ -1910,8 +2376,6 @@
       animo: function () { return animo; },
       ideas: function () { return ideasIA ? copia(ideasIA) : null; },
       alumno: function () { return alumno; },
-      colegio: function () { return colegio; },
-      inicial: inicialColegio,
       preguntar: enviarPregunta,
       revelaRespuesta: revelaRespuesta,
       decir: decir,

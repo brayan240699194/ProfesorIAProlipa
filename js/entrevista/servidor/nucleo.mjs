@@ -26,15 +26,19 @@
      /api/transcribir        { audio (base64 WAV) }         → { texto }
      /api/biocabeza/preguntas { tema, cantidad, nivel, contexto, libro, publico } → { tema, preguntas }
      /api/biosalto/preguntas  { tema, cantidad, nivel, contexto, libro, publico } → { tema, preguntas }
+     /api/bioportal/tour      { tema, paradas, contexto, libro, publico }       → { mundo, titulo, bienvenida, paradas, despedida }
+     /api/bioportal/pregunta  { tema, mundo, parada, pregunta, libro, publico } → { respuesta }
      GET /api/salud                                         → { ok, modelo }
    ========================================================================= */
 import '../reglas.js'; // define globalThis.EntrevistaReglas (mismas reglas que el navegador)
 import '../../biocabeza/reglas.js'; // define globalThis.BioCabezaReglas (juego BioCabeza)
 import '../../biosalto/reglas.js'; // define globalThis.BioSaltoReglas (juego BioSalto)
+import '../../bioportal/reglas.js'; // define globalThis.BioPortalReglas (BioPortal)
 
 const R = globalThis.EntrevistaReglas;
 const B = globalThis.BioCabezaReglas;
 const S = globalThis.BioSaltoReglas;
+const P = globalThis.BioPortalReglas;
 const URL_GOOGLE = 'https://generativelanguage.googleapis.com/v1beta/models/';
 const VOZ_POR_DEFECTO = 'gemini-3.8-flash-lite-tts,gemini-3.8-flash-tts,gemini-3.1-flash-tts-preview,gemini-2.5-flash-preview-tts';
 const texto = R.texto;
@@ -267,6 +271,28 @@ export function crearServidor(env) {
     } catch (err) { return falla(err); }
   }
 
+  // ---------- BioPortal: el tour por el mundo del tema y las preguntas a la guía ----------
+  async function tourPortal(e) {
+    const d = P.datos(e);
+    if (P.tieneDatosPersonales(d.tema)) return [400, { error: 'datos personales' }];
+    try {
+      let r = null;
+      for (let i = 0; i < 2 && !r; i++) {
+        r = P.normalizarTour(await generar(P.sistema(d), [{ rol: 'estudiante', texto: P.usuario(d) }], { json: true, maxTokens: 3000, temperatura: 0.8, ms: 12000 }), d.paradas);
+      }
+      return r ? [200, r] : [502, { error: 'sin tour' }];
+    } catch (err) { return falla(err); }
+  }
+  async function preguntaPortal(e) {
+    const d = P.datosPregunta(e);
+    if (d.pregunta.length < 2) return [400, { error: 'pregunta vacía' }];
+    if (P.tieneDatosPersonales(d.pregunta)) return [400, { error: 'datos personales' }];
+    try {
+      const r = P.normalizarPregunta(await generar(P.sistemaPregunta(d), [{ rol: 'estudiante', texto: d.pregunta }], { json: true, maxTokens: 400, temperatura: 0.6, ms: 9000 }));
+      return r ? [200, r] : [502, { error: 'sin respuesta' }];
+    } catch (err) { return falla(err); }
+  }
+
   const RUTAS = {
     '/api/entrevista/chat': { tipo: 'chat', fn: chat, max: 64 * 1024 },
     '/api/entrevista/cierre': { tipo: 'cierre', fn: cierre, max: 64 * 1024 },
@@ -274,6 +300,8 @@ export function crearServidor(env) {
     '/api/transcribir': { tipo: 'transcribir', fn: transcribir, max: 3 * 1024 * 1024 }, // ~60 s de WAV a 16 kHz
     '/api/biocabeza/preguntas': { tipo: 'preguntas', fn: preguntas, max: 12 * 1024 },
     '/api/biosalto/preguntas': { tipo: 'preguntas', fn: preguntasSalto, max: 12 * 1024 },
+    '/api/bioportal/tour': { tipo: 'preguntas', fn: tourPortal, max: 12 * 1024 },
+    '/api/bioportal/pregunta': { tipo: 'chat', fn: preguntaPortal, max: 8 * 1024 },
   };
 
   return async function atender(request, ip) {
