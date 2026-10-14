@@ -330,7 +330,7 @@ function materiaActividad() { return (window.ProlipaMateria && window.ProlipaMat
   var yo = document.currentScript && document.currentScript.src;
   if (!yo) return;
   var s = document.createElement('script');
-  s.src = yo.split('?')[0].replace(/[^/]*$/, '') + 'pet/mascota.js?v=51';
+  s.src = yo.split('?')[0].replace(/[^/]*$/, '') + 'pet/mascota.js?v=52';
   s.defer = true;
   document.body.appendChild(s);
 })();

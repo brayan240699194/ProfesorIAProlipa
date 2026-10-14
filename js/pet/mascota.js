@@ -2146,7 +2146,10 @@
       panel.setAttribute('aria-modal', 'true');
       panel.setAttribute('aria-labelledby', 'mp-titulo');
       panel.innerHTML =
-        '<div class="flex flex-col w-full sm:max-w-xl max-h-[92vh] overflow-hidden rounded-t-3xl sm:rounded-3xl bg-white shadow-2xl shadow-blue-950/20 ring-1 ring-black/5">' +
+        // Alto máximo = lo VISIBLE de la pantalla (dvh, sin las barras del navegador del
+        // celular) menos un margen: con 92vh el panel quedaba más alto que la pantalla y
+        // se cortaba arriba (⚙️ y ✕). La primera línea es el respaldo sin dvh.
+        '<div class="flex flex-col w-full sm:max-w-xl overflow-hidden rounded-t-3xl sm:rounded-3xl bg-white shadow-2xl shadow-blue-950/20 ring-1 ring-black/5" style="max-height:calc(100vh - 2rem);max-height:calc(100dvh - 2rem)">' +
         // Cabecera azul: la mascota (tócala y salta) con una bolita discreta del
         // estado de la IA (verde = conectada, amarilla = sin conexión), su nombre
         // con las pestañas Chat y Editar, y a la derecha Opciones (⚙️) y cerrar.
