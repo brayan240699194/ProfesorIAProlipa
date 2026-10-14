@@ -46,9 +46,7 @@ window.MASCOTA_CONFIG = {
   // ╚═══════════════════════════════════════════════════════════════════╝
   ia: {
     activa: true,
-    // ⚠ DEMO PUBLICADA (exposición): pega aquí la MISMA clave de Gemini que en
-    // js/entrevista/config.js. Visible con F12: bórrala al terminar y deja apiKey: ''.
-    apiKey: 'AQ.Ab8RN6Kuru9s56XrIAS6CEVUrAtFd4JCpCl7qzCQnosXhB06jA',
+    apiKey: '', // NO pongas la clave aquí: va en js/pet/config.local.js (no se sube a git)
     proxyUrl: '', // Opción B (publicado). Si hay proxyUrl, se usa este.
     // 'google' = Gemini con clave de Google AI Studio · 'openrouter' = clave sk-or-…
     proveedor: 'google',

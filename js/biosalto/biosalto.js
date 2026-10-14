@@ -697,9 +697,7 @@ function coincide(textos, p) {
     // También palabras que el dictado separó ("mito condria") o juntó.
     const juntas = palabras.slice(1).map((w, i) => palabras[i] + w);
     const todo = palabras.join('');
-    // Contenida en lo dicho junto solo si es larga (≥5 sonidos): con palabras
-    // cortas, "gen" aparecía dentro de "oxígeno" y contaba como acierto.
-    return objetivos.some((o) => todo === o || (o.length >= 5 && todo.includes(o)) ||
+    return objetivos.some((o) => todo === o || (o.length >= 3 && todo.includes(o)) ||
       palabras.concat(juntas).some((w) => w === o || (w.length >= 3 && distancia(w, o) <= tolerancia(o.length))));
   });
 }

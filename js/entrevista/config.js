@@ -22,11 +22,7 @@ window.ENTREVISTA_CONFIG = {
   // ╚═══════════════════════════════════════════════════════════════════╝
   ia: {
     activa: true,
-    // ⚠ DEMO PUBLICADA (exposición): pega aquí tu clave de Gemini para que la IA
-    // funcione en GitHub Pages (Profesor IA y los 3 juegos). Cualquiera puede verla
-    // con F12: usa una clave nueva solo para la exposición, bórrala en AI Studio al
-    // terminar y deja de nuevo apiKey: ''.
-    apiKey: 'AQ.Ab8RN6Kuru9s56XrIAS6CEVUrAtFd4JCpCl7qzCQnosXhB06jA',
+    apiKey: '', // ⚠ siempre vacío (la clave va en config.local.js o en el servidor)
     proxyUrl: '', // dirección del servidor intermedio, sin /api al final
     // Google Gemini: texto, voz y transcripción con la misma clave.
     modelo: 'gemini-3.5-flash-lite',
