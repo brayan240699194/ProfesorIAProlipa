@@ -1,0 +1,50 @@
+# Publica el libro en GitHub Pages con la IA conectada.
+# La clave de Gemini vive en el secreto GEMINI_API_KEY (Settings → Secrets and
+# variables → Actions) y se escribe en los config.js SOLO en la copia que se
+# publica: nunca queda en el código del repositorio.
+# ⚠ En la página publicada la clave sí se ve con F12 (el navegador la necesita):
+#   úsala solo para la demo y restríngela a tu dominio en Google Cloud.
+name: Publicar en GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: # botón "Run workflow" en la pestaña Actions
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.despliegue.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Poner la clave de Gemini en la copia publicada
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          if [ -z "$GEMINI_API_KEY" ]; then
+            echo "::warning::No hay secreto GEMINI_API_KEY: se publica sin IA."
+            exit 0
+          fi
+          for f in js/entrevista/config.js js/pet/config.js; do
+            sed -i "0,/apiKey: ''/s|apiKey: ''|apiKey: '${GEMINI_API_KEY}'|" "$f"
+            grep -q "apiKey: ''" "$f" && echo "::warning::$f sigue sin clave" || echo "Clave puesta en $f"
+          done
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - id: despliegue
+        uses: actions/deploy-pages@v4
