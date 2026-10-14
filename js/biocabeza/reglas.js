@@ -69,7 +69,9 @@
       });
       var c = Number(p.correcta);
       var pregunta = texto(p.pregunta, 140);
-      if (!pregunta || ops.some(function (o) { return !o.texto; }) || !(c >= 0 && c <= 2)) return;
+      // correcta: entero 0, 1 o 2 (un 1.5, null o "" dejaba la pregunta sin respuesta correcta).
+      if (p.correcta === null || p.correcta === '' || !(c === 0 || c === 1 || c === 2)) return;
+      if (!pregunta || ops.some(function (o) { return !o.texto; })) return;
       lista.push({ pregunta: pregunta, opciones: ops, correcta: c, explicacion: texto(p.explicacion, 180) });
     });
     if (lista.length < 2) return null;

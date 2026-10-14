@@ -62,7 +62,7 @@
   Promise.all(cargas).then(cargarSecretos).then(function () {
     aplicarSecretos();
     var ia = (window.ENTREVISTA_CONFIG && window.ENTREVISTA_CONFIG.ia) || {};
-    if (!enLocal && !ia.proxyUrl && ia.activa !== false && window.console) console.warn('Entrevista: falta la dirección del servidor intermedio en js/entrevista/config.js (ia.proxyUrl). Sin ella, la IA no funciona publicada. Ver js/entrevista/README.md → "Publicar en GitHub Pages".');
+    if (!enLocal && !ia.proxyUrl && !ia.apiKey && ia.activa !== false && window.console) console.warn('Entrevista: falta la dirección del servidor intermedio en js/entrevista/config.js (ia.proxyUrl). Sin ella, la IA no funciona publicada. Ver js/entrevista/README.md → "Publicar en GitHub Pages".');
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', iniciar);
     else iniciar();
   }).catch(function (err) { if (window.console) console.warn(err); });
